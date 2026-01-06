@@ -3,259 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Countdown to 2026/01/08</title>
+    <title>Countdown to Love</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        body{font-family:system-ui,-apple-system,sans-serif;min-height:100vh;overflow:hidden;background:#2d0b47;position:relative}
+        /* --- CSS Variables: Brighter & richer Palette --- */
+        :root {
+            --primary-hot: #ff006e;   /* Hot Pink */
+            --primary-soft: #ff5c8d;  /* Softer Pink */
+            --accent-gold: #ffd700;   /* Gold for brilliance */
+            --bg-deep: #1a0021;       /* Deepest Indigo/Violet Background */
+            --bg-rich: #4a0072;       /* Rich Violet */
+            
+            --text-glow: 0 0 10px rgba(255, 0, 110, 0.8), 0 0 20px rgba(255, 92, 141, 0.5);
+            --card-glow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        /* Loading Screen */
-        #loading{position:fixed;inset:0;width:100%;height:100%;background:#2d0b47;z-index:1000;display:grid;place-items:center;transition:opacity .3s,visibility .3s}
-        .loader{width:60px;height:60px;border:5px solid rgba(255,27,141,.2);border-top:5px solid #ff1b8d;border-radius:50%;animation:spin 1s linear infinite;will-change:transform}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        
-        /* Background with fixed gradient */
-        .bg-gradient{position:fixed;inset:0;background:linear-gradient(135deg,#2d0b47 0%,#5a0d7a 25%,#9d0d7a 50%,#ff1b8d 75%,#ff6ab8 100%);background-size:400% 400%;animation:gradientMove 15s ease infinite;z-index:1}
-        @keyframes gradientMove{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
-        
-        /* Main Content */
-        #content{position:relative;z-index:2;min-height:100vh;display:grid;place-items:center;padding:max(2vmin,10px);opacity:0;transition:opacity .5s}
-        
-        /* Timer Container */
-        .timer-container{width:min(95vw,900px);padding:clamp(15px,4vw,30px);background:rgba(45,11,71,.85);backdrop-filter:blur(20px);border-radius:clamp(20px,4vw,30px);border:1px solid rgba(255,106,184,.3);box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 2px rgba(255,26,141,.2),inset 0 0 40px rgba(157,13,122,.3);position:relative;overflow:hidden}
-        
-        .timer-container::before{content:'';position:absolute;inset:-100%;background:conic-gradient(from 0deg,transparent 0%,rgba(255,27,141,.1) 10%,transparent 30%);animation:rotate 20s linear infinite}
-        @keyframes rotate{to{transform:rotate(360deg)}}
-        
-        /* Countdown Grid */
-        .countdown-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(8px,2vw,20px);place-items:center}
-        
-        /* Time Units - Responsive Squares */
-        .time-unit{aspect-ratio:1;width:100%;max-width:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:clamp(15px,3vw,20px);background:linear-gradient(145deg,rgba(90,13,122,.9),rgba(157,13,122,.9));box-shadow:0 10px 20px rgba(0,0,0,.3),inset 0 4px 10px rgba(255,106,184,.3),inset 0 -4px 10px rgba(45,11,71,.4);position:relative;transition:transform .2s,box-shadow .2s}
-        
-        .time-unit::before{content:'';position:absolute;inset:-3px;border-radius:inherit;background:conic-gradient(#ff1b8d,#ff6ab8,#9d0d7a,#5a0d7a,#ff1b8d);animation:rotate 4s linear infinite;z-index:-1;opacity:.8}
-        
-        .time-value{font-size:clamp(2.5rem,8vw,4.5rem);font-weight:800;color:#fff;text-shadow:0 0 10px rgba(255,106,184,.8),0 2px 5px rgba(0,0,0,.5);line-height:1;letter-spacing:1px;margin-bottom:clamp(2px,1vw,5px)}
-        
-        .time-label{font-size:clamp(.7rem,2.5vw,1.1rem);font-weight:600;color:#ff6ab8;text-transform:uppercase;letter-spacing:clamp(1px,1vw,2px);text-shadow:0 1px 3px rgba(0,0,0,.5)}
-        
-        /* Separators - Only show on larger screens */
-        .separator{display:none;align-items:center;justify-content:center;color:#ff1b8d;font-size:clamp(1.5rem,4vw,2.5rem);font-weight:800;height:100%;animation:pulse 2s infinite}
-        @keyframes pulse{50%{opacity:.5}}
-        
-        /* Particles - Performance optimized */
-        .particles{position:fixed;inset:0;z-index:0;pointer-events:none}
-        .particle{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(255,106,184,.6);animation:float linear infinite}
-        @keyframes float{to{transform:translateY(-100vh) translateX(var(--tx))}}
-        
-        /* Responsive Layout */
-        @media (min-width: 768px) {
-            .countdown-grid{grid-template-columns:repeat(8,1fr)}
-            .separator{display:flex}
-            .time-unit:nth-child(odd){grid-column:span 2}
-            .separator{grid-column:span 1}
-            .time-unit{max-width:180px}
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            background: var(--bg-deep);
+            color: #fff;
+            position: relative;
+        }
+
+        /* --- Vibrant Animated Background --- */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            /* A richer, brighter gradient */
+            background: radial-gradient(circle at center bottom, var(--bg-rich) 0%, var(--bg-deep) 80%);
+            z-index: 1;
         }
         
-        @media (max-width: 767px) {
-            .countdown-grid{grid-template-columns:repeat(2,1fr);gap:clamp(10px,3vw,15px)}
-            .time-unit{max-width:150px}
+        /* Overlay to add more vibrancy */
+        .bg-gradient::after {
+             content: ''; position: absolute; inset: 0;
+             background: linear-gradient(45deg, rgba(255,0,110,0.2), rgba(255,215,0,0.1));
+             mix-blend-mode: screen;
         }
-        
-        @media (max-width: 480px) {
-            .countdown-grid{gap:10px}
-            .time-value{font-size:clamp(2rem,7vw,3rem)}
-            .time-label{font-size:clamp(.6rem,2vw,.9rem)}
+
+        /* --- Loading State --- */
+        #loading {
+            position: fixed; inset: 0; background: var(--bg-deep); z-index: 1000;
+            display: grid; place-items: center; transition: opacity 0.5s ease;
         }
-        
-        @media (max-width: 360px) {
-            .countdown-grid{grid-template-columns:1fr;gap:8px}
-            .time-unit{max-width:140px;margin:0 auto}
+        .loader {
+            width: 60px; height: 60px;
+            border: 4px solid rgba(255, 92, 141, 0.2);
+            border-top-color: var(--primary-hot);
+            border-bottom-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: var(--text-glow);
         }
-        
-        /* Portrait vs Landscape */
-        @media (orientation: landscape) and (max-height: 600px) {
-            .timer-container{padding:10px}
-            .countdown-grid{gap:8px}
-            .time-value{font-size:clamp(1.8rem,5vh,2.5rem)}
-            .time-label{font-size:clamp(.6rem,2vh,.8rem)}
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- Main Layout --- */
+        #content {
+            position: relative; z-index: 10; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.8s ease; padding: 20px;
         }
+
+        /* --- Timer Card Container --- */
+        .timer-container {
+            width: 100%; max-width: 900px;
+            padding: clamp(25px, 5vw, 45px);
+            /* Brighter, more frosted glass look */
+            background: rgba(74, 0, 114, 0.25);
+            box-shadow: var(--card-glow);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-top: 1px solid rgba(255, 92, 141, 0.5);
+            position: relative; overflow: hidden;
+        }
+
+        /* Brighter animated border sheen */
+        .timer-container::before {
+            content: ''; position: absolute; top: 0; left: -50%; width: 200%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 110, 0.4), rgba(255, 215, 0, 0.3), transparent);
+            transform: skewX(-20deg);
+            animation: shine 6s infinite linear; pointer-events: none;
+        }
+        @keyframes shine { 0% { transform: translateX(-100%) skewX(-20deg); } 100% { transform: translateX(50%) skewX(-20deg); } }
+
+        .target-info {
+            text-align: center; margin-bottom: 35px;
+            color: var(--accent-gold);
+            font-size: clamp(1rem, 2.5vw, 1.4rem);
+            text-transform: uppercase; letter-spacing: 3px; font-weight: 700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        /* --- Grid & Units --- */
+        .countdown-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(12px, 2.5vw, 35px);
+        }
+        .time-unit { display: flex; flex-direction: column; align-items: center; position: relative; }
+
+        .time-card {
+            /* Brighter gradient for the cards themselves */
+            background: linear-gradient(160deg, rgba(255, 92, 141, 0.15), rgba(74, 0, 114, 0.3));
+            width: 100%; aspect-ratio: 1/1.1;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255, 92, 141, 0.3);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            position: relative; overflow: hidden;
+             backdrop-filter: blur(5px);
+        }
+
+        .time-value {
+            font-size: clamp(2.5rem, 7vw, 5.5rem); font-weight: 800; color: #fff;
+            text-shadow: var(--text-glow), 0 2px 5px rgba(0,0,0,0.3);
+            font-variant-numeric: tabular-nums; line-height: 1; z-index: 2;
+        }
+
+        .time-label {
+            margin-top: 15px; font-size: clamp(0.8rem, 1.5vw, 1.1rem);
+            color: var(--primary-soft);
+            text-transform: uppercase; letter-spacing: 2px; font-weight: 700;
+            text-shadow: 0 0 8px rgba(255, 92, 141, 0.5);
+        }
+
+        /* --- Love Bubbles (Hearts) --- */
+        .bubbles-container { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden;}
         
-        /* High DPI screens */
-        @media (-webkit-min-device-pixel-ratio: 2),(min-resolution: 192dpi){
-            .timer-container{border-width:2px}
+        /* CSS Heart Shape using pseudo-elements */
+        .heart {
+            position: absolute;
+            width: var(--size, 20px);
+            height: var(--size, 20px);
+            background: var(--color, var(--primary-hot));
+            transform: rotate(45deg);
+            opacity: 0; /* Start hidden */
+            bottom: -50px; /* Start below screen */
+            will-change: transform, opacity;
+        }
+        .heart::before,
+        .heart::after {
+            content: '';
+            position: absolute;
+            width: var(--size, 20px);
+            height: var(--size, 20px);
+            border-radius: 50%;
+            background: var(--color, var(--primary-hot));
+        }
+        .heart::before { left: -50%; }
+        .heart::after { top: -50%; }
+
+        /* Floating Animation */
+        @keyframes floatUp {
+            0% {
+                opacity: 0;
+                transform: translateY(0) translateX(0) rotate(45deg) scale(0.5);
+            }
+            10% {
+                opacity: var(--opacity, 0.7);
+            }
+            50% {
+                transform: translateY(calc(-50vh - var(--y-offset))) translateX(var(--x-wobble)) rotate(var(--rot)) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(calc(-110vh - var(--y-offset))) translateX(calc(var(--x-wobble) * -1)) rotate(var(--rot2)) scale(var(--end-scale));
+            }
+        }
+
+        /* --- Mobile Optimization --- */
+        @media (max-width: 600px) {
+            .countdown-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
+            .time-card { aspect-ratio: 2/1; }
+            .target-info { margin-bottom: 25px; }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading">
-        <div class="loader"></div>
-    </div>
-    
-    <!-- Background -->
+
+    <div id="loading"><div class="loader"></div></div>
     <div class="bg-gradient"></div>
-    <div class="particles" id="particles"></div>
-    
-    <!-- Main Content -->
+    <div class="bubbles-container" id="love-bubbles"></div>
+
     <div id="content">
         <div class="timer-container">
+            <div class="target-info" id="target-text">Initializing Target...</div>
+            
             <div class="countdown-grid">
                 <div class="time-unit">
-                    <div class="time-value" id="days">00</div>
-                    <div class="time-label">Days</div>
+                    <div class="time-card"><span class="time-value" id="days">00</span></div>
+                    <span class="time-label">Days</span>
                 </div>
-                
-                <div class="separator">:</div>
-                
                 <div class="time-unit">
-                    <div class="time-value" id="hours">00</div>
-                    <div class="time-label">Hours</div>
+                    <div class="time-card"><span class="time-value" id="hours">00</span></div>
+                    <span class="time-label">Hours</span>
                 </div>
-                
-                <div class="separator">:</div>
-                
                 <div class="time-unit">
-                    <div class="time-value" id="minutes">00</div>
-                    <div class="time-label">Minutes</div>
+                    <div class="time-card"><span class="time-value" id="minutes">00</span></div>
+                    <span class="time-label">Minutes</span>
                 </div>
-                
-                <div class="separator">:</div>
-                
                 <div class="time-unit">
-                    <div class="time-value" id="seconds">00</div>
-                    <div class="time-label">Seconds</div>
+                    <div class="time-card"><span class="time-value" id="seconds">00</span></div>
+                    <span class="time-label">Seconds</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Performance optimized version
         (function() {
             'use strict';
-            
-            const loading = document.getElementById('loading');
-            const content = document.getElementById('content');
-            const targetDate = new Date('2026-01-08T00:00:00').getTime();
-            let animationFrame;
-            
-            // Create optimized particles
-            function createParticles() {
-                const container = document.getElementById('particles');
-                const count = Math.min(40, Math.floor(window.innerWidth * window.innerHeight / 10000));
-                const fragment = document.createDocumentFragment();
+
+            // --- Configuration ---
+            const CONFIG = {
+                daysFromNow: 5,
+                targetHour: 10, // 10:00 AM
+                timezone: 'Europe/Amsterdam' // Venlo Time
+            };
+
+            // --- State ---
+            let targetTimestamp = 0;
+            let lastSeconds = -1;
+
+            // --- 1. Date Calculation (Same robust logic as before) ---
+            function calculateTargetTime() {
+                const now = new Date();
+                const futureDate = new Date(now);
+                futureDate.setDate(now.getDate() + CONFIG.daysFromNow);
+
+                const y = futureDate.getFullYear();
+                const m = String(futureDate.getMonth() + 1).padStart(2, '0');
+                const d = String(futureDate.getDate()).padStart(2, '0');
+                const h = String(CONFIG.targetHour).padStart(2, '0');
+                const isoString = `${y}-${m}-${d}T${h}:00:00`;
+
+                let candidate = new Date(isoString); 
                 
-                for (let i = 0; i < count; i++) {
-                    const particle = document.createElement('div');
-                    particle.className = 'particle';
-                    
-                    // Calculate once
-                    const size = Math.random() * 2 + 1;
-                    const tx = (Math.random() - 0.5) * 200;
-                    const duration = Math.random() * 10 + 10;
-                    const delay = Math.random() * 5;
-                    const color = `rgba(255,106,184,${Math.random() * 0.4 + 0.3})`;
-                    
-                    particle.style.cssText = `
-                        width:${size}px;
-                        height:${size}px;
-                        left:${Math.random() * 100}%;
-                        top:${Math.random() * 100 + 100}%;
-                        background:${color};
-                        --tx:${tx}px;
-                        animation-duration:${duration}s;
-                        animation-delay:${delay}s
-                    `;
-                    
-                    fragment.appendChild(particle);
+                const getAmsterdamHour = (date) => {
+                    const str = date.toLocaleString('en-US', { timeZone: CONFIG.timezone, hour: 'numeric', hour12: false });
+                    return parseInt(str, 10);
+                };
+
+                const currentAmsterdamHour = getAmsterdamHour(candidate);
+                const diff = CONFIG.targetHour - currentAmsterdamHour;
+                candidate.setHours(candidate.getHours() + diff);
+                
+                targetTimestamp = candidate.getTime();
+
+                const readableDate = candidate.toLocaleDateString('en-NL', { 
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                    timeZone: CONFIG.timezone 
+                });
+                document.getElementById('target-text').innerHTML = `Target: ${readableDate} &bull; 10:00 AM (Venlo)`;
+            }
+
+            // --- 2. Timer Logic ---
+            const els = { d: document.getElementById('days'), h: document.getElementById('hours'), m: document.getElementById('minutes'), s: document.getElementById('seconds') };
+
+            function updateTimer() {
+                const now = Date.now();
+                const diff = targetTimestamp - now;
+
+                if (diff <= 0) {
+                    els.d.textContent = "00"; els.h.textContent = "00"; els.m.textContent = "00"; els.s.textContent = "00";
+                    document.getElementById('target-text').textContent = "The time has arrived!";
+                    document.getElementById('target-text').style.color = "var(--primary-hot)";
+                    return; 
                 }
-                
+
+                const seconds = Math.floor(diff / 1000);
+                if (seconds !== lastSeconds) {
+                    lastSeconds = seconds;
+                    const d = Math.floor(seconds / 86400);
+                    const h = Math.floor((seconds % 86400) / 3600);
+                    const m = Math.floor((seconds % 3600) / 60);
+                    const s = seconds % 60;
+                    els.d.textContent = d < 10 ? '0' + d : d;
+                    els.h.textContent = h < 10 ? '0' + h : h;
+                    els.m.textContent = m < 10 ? '0' + m : m;
+                    els.s.textContent = s < 10 ? '0' + s : s;
+                }
+                requestAnimationFrame(updateTimer);
+            }
+
+            // --- 3. Love Bubble Animation System ---
+            function initLoveBubbles() {
+                const container = document.getElementById('love-bubbles');
+                const isMobile = window.innerWidth < 600;
+                const count = isMobile ? 15 : 35; // Number of hearts
+                const fragment = document.createDocumentFragment();
+
+                const colors = ['var(--primary-hot)', 'var(--primary-soft)', 'var(--accent-gold)', '#ff8fab'];
+
+                for(let i = 0; i < count; i++) {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart';
+                    
+                    // Randomize parameters for natural look
+                    const size = Math.floor(Math.random() * 20 + 10); // 10px to 30px
+                    const left = Math.random() * 100; // Position across screen
+                    const duration = Math.random() * 6 + 8; // 8s to 14s float time
+                    const delay = Math.random() * 8; // Start delay
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const opacity = Math.random() * 0.4 + 0.3; // Max opacity
+
+                    // Randomize movement path variables
+                    const xWobble = Math.random() * 100 - 50 + 'px';
+                    const yOffset = Math.random() * 100 + 'px';
+                    const rot = Math.random() * 90 + 45 + 'deg';
+                    const rot2 = Math.random() * 180 + 45 + 'deg';
+                    const endScale = Math.random() * 0.5 + 0.5;
+
+                    // Apply custom properties for the CSS animation to use
+                    heart.style.setProperty('--size', `${size}px`);
+                    heart.style.setProperty('--color', color);
+                    heart.style.setProperty('--opacity', opacity);
+                    heart.style.setProperty('--x-wobble', xWobble);
+                    heart.style.setProperty('--y-offset', yOffset);
+                    heart.style.setProperty('--rot', rot);
+                    heart.style.setProperty('--rot2', rot2);
+                    heart.style.setProperty('--end-scale', endScale);
+                    
+                    heart.style.left = `${left}%`;
+                    heart.style.animation = `floatUp ${duration}s linear ${delay}s infinite`;
+
+                    fragment.appendChild(heart);
+                }
                 container.appendChild(fragment);
             }
-            
-            // Update countdown with throttling
-            function updateCountdown() {
-                const now = Date.now();
-                const timeRemaining = targetDate - now;
-                
-                if (timeRemaining <= 0) {
-                    document.querySelector('.countdown-grid').innerHTML = `
-                        <div style="grid-column:1/-1;text-align:center;padding:20px">
-                            <div style="font-size:clamp(2rem,6vw,3.5rem);color:#ff6ab8;text-shadow:0 0 15px #ff1b8d">ARRIVED</div>
-                        </div>
-                    `;
-                    return true;
-                }
-                
-                const seconds = Math.floor(timeRemaining / 1000);
-                const days = Math.floor(seconds / 86400);
-                const hours = Math.floor((seconds % 86400) / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
-                const secs = seconds % 60;
-                
-                // Batch updates
-                document.getElementById('days').textContent = days.toString().padStart(2, '0');
-                document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-                document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-                document.getElementById('seconds').textContent = secs.toString().padStart(2, '0');
-                
-                return false;
-            }
-            
-            // Optimized animation loop
-            function animate() {
-                if (!updateCountdown()) {
-                    animationFrame = requestAnimationFrame(() => {
-                        setTimeout(animate, 1000 - (Date.now() % 1000));
-                    });
-                }
-            }
-            
-            // Handle resize with debouncing
-            let resizeTimeout;
-            function handleResize() {
-                clearTimeout(resizeTimeout);
-                resizeTimeout = setTimeout(() => {
-                    document.getElementById('particles').innerHTML = '';
-                    createParticles();
-                }, 250);
-            }
-            
-            // Initialize
+
+            // --- 4. Initialization ---
             function init() {
-                // Create particles
-                createParticles();
+                calculateTargetTime();
+                initLoveBubbles();
                 
-                // Start countdown
-                animate();
+                const loading = document.getElementById('loading');
+                const content = document.getElementById('content');
                 
-                // Show content with slight delay
                 setTimeout(() => {
                     loading.style.opacity = '0';
-                    loading.style.visibility = 'hidden';
                     content.style.opacity = '1';
-                    
-                    setTimeout(() => {
-                        loading.remove();
-                    }, 300);
-                }, 800);
-                
-                // Add resize listener
-                window.addEventListener('resize', handleResize, { passive: true });
+                    updateTimer();
+                    setTimeout(() => loading.remove(), 500);
+                }, 500);
             }
-            
-            // Start when DOM is ready
+
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
                 init();
             }
-            
-            // Cleanup
-            window.addEventListener('beforeunload', () => {
-                cancelAnimationFrame(animationFrame);
-                window.removeEventListener('resize', handleResize);
-            });
         })();
     </script>
 </body>
