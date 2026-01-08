@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Countdown to Love</title>
+    <title>Until We Meet Again</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
@@ -11,7 +11,9 @@
     <style>
         /* --- CSS Variables --- */
         :root {
+            /* Hot Magenta */
             --primary-hot: #ff006e;   
+            
             --primary-soft: #ff8fab;  
             --accent-gold: #ffd700;   
             --bg-deep: #0f0c29;       
@@ -34,11 +36,11 @@
             position: relative;
         }
 
-        /* --- 1. Efficient Starfield Background (CSS Only Optimization) --- */
+        /* --- 1. Efficient Starfield Background --- */
         .stars {
             width: 1px; height: 1px;
             background: transparent;
-            box-shadow: 1744px 122px #FFF , 134px 1321px #FFF , 92px 859px #FFF; /* Placeholder, populated by JS for randomness */
+            box-shadow: 1744px 122px #FFF , 134px 1321px #FFF , 92px 859px #FFF; 
             animation: animStar 50s linear infinite;
             position: absolute;
             z-index: 0;
@@ -71,23 +73,26 @@
             position: relative; overflow: hidden;
         }
 
-        /* Elegant Title */
+        /* Title in Magenta */
         .main-title {
             font-family: 'Great Vibes', cursive;
             text-align: center;
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            color: var(--primary-soft);
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            color: var(--primary-hot); 
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+            text-shadow: 0 0 25px rgba(255, 0, 110, 0.6);
             line-height: 1.2;
+            padding-bottom: 10px;
         }
 
+        /* Subtext changed to White */
         .target-subtext {
             text-align: center; margin-bottom: 40px;
-            color: var(--accent-gold);
+            color: #ffffff; /* Changed to White */
             font-size: clamp(0.8rem, 2vw, 1rem);
             text-transform: uppercase; letter-spacing: 4px; font-weight: 700;
             opacity: 0.9;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
         /* --- 4. The Grid --- */
@@ -169,7 +174,6 @@
     <div id="loading"><div class="spinner"></div></div>
     
     <div id="star-layer" class="stars"></div>
-
     <div class="bubbles-container" id="love-bubbles"></div>
 
     <div id="content">
@@ -203,15 +207,9 @@
             'use strict';
 
             // --- Configuration ---
-            const CONFIG = {
-                // Saturday, January 10th, 2026 at 9:00 PM (21:00:00)
-                year: 2026,
-                month: 0, // Jan is 0
-                day: 10,
-                hour: 21, 
-                minute: 0,
-                timezone: 'Europe/Amsterdam' // Venlo
-            };
+            // 2026-01-10 at 21:00:00 (9PM)
+            // +01:00 represents the Offset for Netherlands/Venlo in Winter (CET)
+            const TARGET_ISO_STRING = "2026-01-10T21:00:00+01:00";
 
             // --- DOM Elements ---
             const els = {
@@ -224,33 +222,18 @@
 
             let targetTime = 0;
 
-            // --- 1. Robust Date Logic ---
+            // --- 1. Precise Time Logic ---
             function initTargetDate() {
-                // Create date object based on specific components in the target timezone
-                // We use a formatted string to let the browser parse the timezone offset correctly
-                const targetString = new Date(CONFIG.year, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute).toLocaleString('en-US', { timeZone: CONFIG.timezone });
+                targetTime = Date.parse(TARGET_ISO_STRING);
+                const dateObj = new Date(targetTime);
+                const options = { weekday: 'long', month: 'long', day: 'numeric' };
+                const datePart = dateObj.toLocaleDateString('en-GB', options);
                 
-                // We reconstruct a Date object from that locale string to get the timestamp
-                // Note: The cleanest modern way is usually to just trust the offset, 
-                // but this ensures we hit 9pm LOCAL Venlo time regardless of where the user is.
-                
-                // Simplified approach for reliability:
-                // 1. Create a UTC date for the target
-                // 2. Adjust for offset. 
-                // However, 'Europe/Amsterdam' in Jan is UTC+1.
-                // 21:00 Venlo = 20:00 UTC.
-                const targetDate = new Date(Date.UTC(CONFIG.year, CONFIG.month, CONFIG.day, CONFIG.hour - 1, CONFIG.minute));
-                
-                targetTime = targetDate.getTime();
-
-                // Display readable text
-                const options = { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' };
-                const readable = targetDate.toLocaleDateString('en-GB', options);
-                els.targetTxt.innerHTML = `${readable} &bull; Venlo Time`;
+                // Set text (CSS handles color)
+                els.targetTxt.innerHTML = `${datePart} &bull; 21:00 (Venlo Time)`;
             }
 
-            // --- 2. Optimized Timer Loop ---
-            // We use previous values to only update the DOM when numbers actually change
+            // --- 2. Timer Loop ---
             let prevValues = { d: null, h: null, m: null, s: null };
 
             function updateTimer() {
@@ -258,10 +241,8 @@
                 const diff = targetTime - now;
 
                 if (diff <= 0) {
-                    // Time's up!
                     ['d','h','m','s'].forEach(k => els[k].textContent = "00");
-                    document.querySelector('.main-title').textContent = "The Moment is Here!";
-                    document.querySelector('.main-title').style.color = "#fff";
+                    document.querySelector('.main-title').textContent = "I'm here!";
                     els.targetTxt.style.display = 'none';
                     return;
                 }
@@ -272,7 +253,6 @@
                 const m = Math.floor((totalSeconds % 3600) / 60);
                 const s = totalSeconds % 60;
 
-                // Dirty checking to minimize DOM writes
                 if (d !== prevValues.d) { els.d.textContent = d < 10 ? '0'+d : d; prevValues.d = d; }
                 if (h !== prevValues.h) { els.h.textContent = h < 10 ? '0'+h : h; prevValues.h = h; }
                 if (m !== prevValues.m) { els.m.textContent = m < 10 ? '0'+m : m; prevValues.m = m; }
@@ -281,23 +261,20 @@
                 requestAnimationFrame(updateTimer);
             }
 
-            // --- 3. Aesthetic: Static Starfield Generator ---
-            // Generates a single long box-shadow string instead of creating hundreds of DIVs
+            // --- 3. Starfield Generator ---
             function generateStars() {
                 const layer = document.getElementById('star-layer');
                 let boxShadow = '';
                 const starCount = 200;
-                
                 for(let i = 0; i < starCount; i++) {
                     const x = Math.floor(Math.random() * 2000);
                     const y = Math.floor(Math.random() * 2000);
                     boxShadow += `${x}px ${y}px #FFF, `;
                 }
-                
-                layer.style.boxShadow = boxShadow.slice(0, -2); // Remove last comma
+                layer.style.boxShadow = boxShadow.slice(0, -2);
             }
 
-            // --- 4. Aesthetic: Floating Hearts ---
+            // --- 4. Floating Hearts ---
             function initLoveBubbles() {
                 const container = document.getElementById('love-bubbles');
                 const fragment = document.createDocumentFragment();
@@ -307,19 +284,14 @@
                 for (let i = 0; i < count; i++) {
                     const heart = document.createElement('div');
                     heart.className = 'heart';
-                    
-                    // Random properties
                     const size = Math.random() * 20 + 10 + 'px';
                     const left = Math.random() * 100 + '%';
-                    const dur = Math.random() * 10 + 10 + 's'; // 10-20s duration (slower is more elegant)
-                    const delay = Math.random() * 20 + 's';
                     const color = colors[Math.floor(Math.random() * colors.length)];
                     
                     heart.style.setProperty('--size', size);
                     heart.style.setProperty('--color', color);
                     heart.style.left = left;
                     
-                    // Simple CSS animation definition injected inline for uniqueness
                     heart.animate([
                         { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
                         { transform: 'translateY(-20vh) rotate(45deg) scale(1)', opacity: 0.8, offset: 0.2 },
@@ -330,7 +302,6 @@
                         iterations: Infinity,
                         easing: 'linear'
                     });
-
                     fragment.appendChild(heart);
                 }
                 container.appendChild(fragment);
@@ -345,7 +316,6 @@
                 
                 const loadScreen = document.getElementById('loading');
                 const content = document.getElementById('content');
-                
                 setTimeout(() => {
                     loadScreen.style.opacity = '0';
                     content.style.opacity = '1';
