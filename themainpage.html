@@ -4,193 +4,178 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Countdown to Love</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        /* --- CSS Variables: Brighter & richer Palette --- */
+        /* --- CSS Variables --- */
         :root {
-            --primary-hot: #ff006e;   /* Hot Pink */
-            --primary-soft: #ff5c8d;  /* Softer Pink */
-            --accent-gold: #ffd700;   /* Gold for brilliance */
-            --bg-deep: #1a0021;       /* Deepest Indigo/Violet Background */
-            --bg-rich: #4a0072;       /* Rich Violet */
+            --primary-hot: #ff006e;   
+            --primary-soft: #ff8fab;  
+            --accent-gold: #ffd700;   
+            --bg-deep: #0f0c29;       
+            --bg-rich: #302b63;       
+            --bg-light: #24243e;      
             
-            --text-glow: 0 0 10px rgba(255, 0, 110, 0.8), 0 0 20px rgba(255, 92, 141, 0.5);
-            --card-glow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-shadow: 0 0 15px rgba(255, 0, 110, 0.6);
         }
+
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
             overflow: hidden;
-            background: var(--bg-deep);
+            background: linear-gradient(to bottom, var(--bg-deep), var(--bg-rich), var(--bg-light));
             color: #fff;
             position: relative;
         }
 
-        /* --- Vibrant Animated Background --- */
-        .bg-gradient {
-            position: fixed;
-            inset: 0;
-            /* A richer, brighter gradient */
-            background: radial-gradient(circle at center bottom, var(--bg-rich) 0%, var(--bg-deep) 80%);
-            z-index: 1;
+        /* --- 1. Efficient Starfield Background (CSS Only Optimization) --- */
+        .stars {
+            width: 1px; height: 1px;
+            background: transparent;
+            box-shadow: 1744px 122px #FFF , 134px 1321px #FFF , 92px 859px #FFF; /* Placeholder, populated by JS for randomness */
+            animation: animStar 50s linear infinite;
+            position: absolute;
+            z-index: 0;
+            opacity: 0.8;
         }
-        
-        /* Overlay to add more vibrancy */
-        .bg-gradient::after {
-             content: ''; position: absolute; inset: 0;
-             background: linear-gradient(45deg, rgba(255,0,110,0.2), rgba(255,215,0,0.1));
-             mix-blend-mode: screen;
+        .stars::after {
+            content: " "; position: absolute; top: 2000px; width: 1px; height: 1px; background: transparent;
+            box-shadow: inherit;
         }
+        @keyframes animStar { from { transform: translateY(0px); } to { transform: translateY(-2000px); } }
 
-        /* --- Loading State --- */
-        #loading {
-            position: fixed; inset: 0; background: var(--bg-deep); z-index: 1000;
-            display: grid; place-items: center; transition: opacity 0.5s ease;
-        }
-        .loader {
-            width: 60px; height: 60px;
-            border: 4px solid rgba(255, 92, 141, 0.2);
-            border-top-color: var(--primary-hot);
-            border-bottom-color: var(--accent-gold);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            box-shadow: var(--text-glow);
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* --- Main Layout --- */
+        /* --- 2. Main Layout --- */
         #content {
             position: relative; z-index: 10; min-height: 100vh;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.8s ease; padding: 20px;
+            opacity: 0; transition: opacity 1s ease; padding: 20px;
         }
 
-        /* --- Timer Card Container --- */
+        /* --- 3. Glassmorphism Timer Container --- */
         .timer-container {
-            width: 100%; max-width: 900px;
-            padding: clamp(25px, 5vw, 45px);
-            /* Brighter, more frosted glass look */
-            background: rgba(74, 0, 114, 0.25);
-            box-shadow: var(--card-glow);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-top: 1px solid rgba(255, 92, 141, 0.5);
+            width: 100%; max-width: 850px;
+            padding: clamp(30px, 6vw, 60px);
+            background: var(--glass-bg);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 40px;
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
             position: relative; overflow: hidden;
         }
 
-        /* Brighter animated border sheen */
-        .timer-container::before {
-            content: ''; position: absolute; top: 0; left: -50%; width: 200%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 0, 110, 0.4), rgba(255, 215, 0, 0.3), transparent);
-            transform: skewX(-20deg);
-            animation: shine 6s infinite linear; pointer-events: none;
+        /* Elegant Title */
+        .main-title {
+            font-family: 'Great Vibes', cursive;
+            text-align: center;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            color: var(--primary-soft);
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+            line-height: 1.2;
         }
-        @keyframes shine { 0% { transform: translateX(-100%) skewX(-20deg); } 100% { transform: translateX(50%) skewX(-20deg); } }
 
-        .target-info {
-            text-align: center; margin-bottom: 35px;
+        .target-subtext {
+            text-align: center; margin-bottom: 40px;
             color: var(--accent-gold);
-            font-size: clamp(1rem, 2.5vw, 1.4rem);
-            text-transform: uppercase; letter-spacing: 3px; font-weight: 700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            text-transform: uppercase; letter-spacing: 4px; font-weight: 700;
+            opacity: 0.9;
         }
 
-        /* --- Grid & Units --- */
+        /* --- 4. The Grid --- */
         .countdown-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(12px, 2.5vw, 35px);
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(10px, 3vw, 30px);
         }
-        .time-unit { display: flex; flex-direction: column; align-items: center; position: relative; }
+
+        .time-unit { display: flex; flex-direction: column; align-items: center; }
 
         .time-card {
-            /* Brighter gradient for the cards themselves */
-            background: linear-gradient(160deg, rgba(255, 92, 141, 0.15), rgba(74, 0, 114, 0.3));
-            width: 100%; aspect-ratio: 1/1.1;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            width: 100%; aspect-ratio: 1/1.2;
             display: flex; align-items: center; justify-content: center;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-bottom: 1px solid rgba(255, 92, 141, 0.3);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            position: relative; overflow: hidden;
-             backdrop-filter: blur(5px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            transition: transform 0.3s ease;
         }
+        
+        .time-card:hover { transform: translateY(-5px); border-color: var(--primary-hot); }
 
         .time-value {
-            font-size: clamp(2.5rem, 7vw, 5.5rem); font-weight: 800; color: #fff;
-            text-shadow: var(--text-glow), 0 2px 5px rgba(0,0,0,0.3);
-            font-variant-numeric: tabular-nums; line-height: 1; z-index: 2;
+            font-size: clamp(2rem, 6vw, 5rem); font-weight: 900; color: #fff;
+            text-shadow: 0 0 20px rgba(255,255,255,0.4);
+            font-variant-numeric: tabular-nums;
         }
 
         .time-label {
-            margin-top: 15px; font-size: clamp(0.8rem, 1.5vw, 1.1rem);
-            color: var(--primary-soft);
-            text-transform: uppercase; letter-spacing: 2px; font-weight: 700;
-            text-shadow: 0 0 8px rgba(255, 92, 141, 0.5);
+            margin-top: 15px; font-size: clamp(0.7rem, 1.5vw, 0.9rem);
+            color: #e0e0e0; text-transform: uppercase; letter-spacing: 2px;
         }
 
-        /* --- Love Bubbles (Hearts) --- */
-        .bubbles-container { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden;}
-        
-        /* CSS Heart Shape using pseudo-elements */
+        /* Heartbeat effect for seconds */
+        .unit-seconds .time-value { color: var(--primary-hot); text-shadow: var(--text-shadow); }
+        .unit-seconds .time-card { animation: heartbeat 1s infinite; border-bottom: 2px solid var(--primary-hot); }
+
+        @keyframes heartbeat {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 110, 0.4); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 0, 110, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 110, 0); }
+        }
+
+        /* --- 5. Floating Hearts --- */
+        .bubbles-container { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;}
         .heart {
-            position: absolute;
-            width: var(--size, 20px);
-            height: var(--size, 20px);
-            background: var(--color, var(--primary-hot));
-            transform: rotate(45deg);
-            opacity: 0; /* Start hidden */
-            bottom: -50px; /* Start below screen */
+            position: absolute; width: var(--size); height: var(--size);
+            background: var(--color); transform: rotate(45deg);
+            opacity: 0; bottom: -50px;
             will-change: transform, opacity;
         }
-        .heart::before,
-        .heart::after {
-            content: '';
-            position: absolute;
-            width: var(--size, 20px);
-            height: var(--size, 20px);
-            border-radius: 50%;
-            background: var(--color, var(--primary-hot));
+        .heart::before, .heart::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            border-radius: 50%; background: inherit;
         }
-        .heart::before { left: -50%; }
-        .heart::after { top: -50%; }
+        .heart::before { left: -50%; } .heart::after { top: -50%; }
 
-        /* Floating Animation */
-        @keyframes floatUp {
-            0% {
-                opacity: 0;
-                transform: translateY(0) translateX(0) rotate(45deg) scale(0.5);
-            }
-            10% {
-                opacity: var(--opacity, 0.7);
-            }
-            50% {
-                transform: translateY(calc(-50vh - var(--y-offset))) translateX(var(--x-wobble)) rotate(var(--rot)) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(calc(-110vh - var(--y-offset))) translateX(calc(var(--x-wobble) * -1)) rotate(var(--rot2)) scale(var(--end-scale));
-            }
-        }
-
-        /* --- Mobile Optimization --- */
         @media (max-width: 600px) {
             .countdown-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
             .time-card { aspect-ratio: 2/1; }
-            .target-info { margin-bottom: 25px; }
         }
+        
+        /* Loading Overlay */
+        #loading {
+            position: fixed; inset: 0; background: var(--bg-deep); z-index: 999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--primary-hot); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <div id="loading"><div class="loader"></div></div>
-    <div class="bg-gradient"></div>
+    <div id="loading"><div class="spinner"></div></div>
+    
+    <div id="star-layer" class="stars"></div>
+
     <div class="bubbles-container" id="love-bubbles"></div>
 
     <div id="content">
         <div class="timer-container">
-            <div class="target-info" id="target-text">Initializing Target...</div>
+            <div class="main-title">Until We Meet Again</div>
+            <div class="target-subtext" id="target-display">Loading Date...</div>
             
             <div class="countdown-grid">
                 <div class="time-unit">
@@ -205,7 +190,7 @@
                     <div class="time-card"><span class="time-value" id="minutes">00</span></div>
                     <span class="time-label">Minutes</span>
                 </div>
-                <div class="time-unit">
+                <div class="time-unit unit-seconds">
                     <div class="time-card"><span class="time-value" id="seconds">00</span></div>
                     <span class="time-label">Seconds</span>
                 </div>
@@ -219,143 +204,158 @@
 
             // --- Configuration ---
             const CONFIG = {
-                daysFromNow: 5,
-                targetHour: 10, // 10:00 AM
-                timezone: 'Europe/Amsterdam' // Venlo Time
+                // Saturday, January 10th, 2026 at 9:00 PM (21:00:00)
+                year: 2026,
+                month: 0, // Jan is 0
+                day: 10,
+                hour: 21, 
+                minute: 0,
+                timezone: 'Europe/Amsterdam' // Venlo
             };
 
-            // --- State ---
-            let targetTimestamp = 0;
-            let lastSeconds = -1;
+            // --- DOM Elements ---
+            const els = {
+                d: document.getElementById('days'),
+                h: document.getElementById('hours'),
+                m: document.getElementById('minutes'),
+                s: document.getElementById('seconds'),
+                targetTxt: document.getElementById('target-display')
+            };
 
-            // --- 1. Date Calculation (Same robust logic as before) ---
-            function calculateTargetTime() {
-                const now = new Date();
-                const futureDate = new Date(now);
-                futureDate.setDate(now.getDate() + CONFIG.daysFromNow);
+            let targetTime = 0;
 
-                const y = futureDate.getFullYear();
-                const m = String(futureDate.getMonth() + 1).padStart(2, '0');
-                const d = String(futureDate.getDate()).padStart(2, '0');
-                const h = String(CONFIG.targetHour).padStart(2, '0');
-                const isoString = `${y}-${m}-${d}T${h}:00:00`;
-
-                let candidate = new Date(isoString); 
+            // --- 1. Robust Date Logic ---
+            function initTargetDate() {
+                // Create date object based on specific components in the target timezone
+                // We use a formatted string to let the browser parse the timezone offset correctly
+                const targetString = new Date(CONFIG.year, CONFIG.month, CONFIG.day, CONFIG.hour, CONFIG.minute).toLocaleString('en-US', { timeZone: CONFIG.timezone });
                 
-                const getAmsterdamHour = (date) => {
-                    const str = date.toLocaleString('en-US', { timeZone: CONFIG.timezone, hour: 'numeric', hour12: false });
-                    return parseInt(str, 10);
-                };
-
-                const currentAmsterdamHour = getAmsterdamHour(candidate);
-                const diff = CONFIG.targetHour - currentAmsterdamHour;
-                candidate.setHours(candidate.getHours() + diff);
+                // We reconstruct a Date object from that locale string to get the timestamp
+                // Note: The cleanest modern way is usually to just trust the offset, 
+                // but this ensures we hit 9pm LOCAL Venlo time regardless of where the user is.
                 
-                targetTimestamp = candidate.getTime();
+                // Simplified approach for reliability:
+                // 1. Create a UTC date for the target
+                // 2. Adjust for offset. 
+                // However, 'Europe/Amsterdam' in Jan is UTC+1.
+                // 21:00 Venlo = 20:00 UTC.
+                const targetDate = new Date(Date.UTC(CONFIG.year, CONFIG.month, CONFIG.day, CONFIG.hour - 1, CONFIG.minute));
+                
+                targetTime = targetDate.getTime();
 
-                const readableDate = candidate.toLocaleDateString('en-NL', { 
-                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                    timeZone: CONFIG.timezone 
-                });
-                document.getElementById('target-text').innerHTML = `Target: ${readableDate} &bull; 10:00 AM (Venlo)`;
+                // Display readable text
+                const options = { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+                const readable = targetDate.toLocaleDateString('en-GB', options);
+                els.targetTxt.innerHTML = `${readable} &bull; Venlo Time`;
             }
 
-            // --- 2. Timer Logic ---
-            const els = { d: document.getElementById('days'), h: document.getElementById('hours'), m: document.getElementById('minutes'), s: document.getElementById('seconds') };
+            // --- 2. Optimized Timer Loop ---
+            // We use previous values to only update the DOM when numbers actually change
+            let prevValues = { d: null, h: null, m: null, s: null };
 
             function updateTimer() {
                 const now = Date.now();
-                const diff = targetTimestamp - now;
+                const diff = targetTime - now;
 
                 if (diff <= 0) {
-                    els.d.textContent = "00"; els.h.textContent = "00"; els.m.textContent = "00"; els.s.textContent = "00";
-                    document.getElementById('target-text').textContent = "The time has arrived!";
-                    document.getElementById('target-text').style.color = "var(--primary-hot)";
-                    return; 
+                    // Time's up!
+                    ['d','h','m','s'].forEach(k => els[k].textContent = "00");
+                    document.querySelector('.main-title').textContent = "The Moment is Here!";
+                    document.querySelector('.main-title').style.color = "#fff";
+                    els.targetTxt.style.display = 'none';
+                    return;
                 }
 
-                const seconds = Math.floor(diff / 1000);
-                if (seconds !== lastSeconds) {
-                    lastSeconds = seconds;
-                    const d = Math.floor(seconds / 86400);
-                    const h = Math.floor((seconds % 86400) / 3600);
-                    const m = Math.floor((seconds % 3600) / 60);
-                    const s = seconds % 60;
-                    els.d.textContent = d < 10 ? '0' + d : d;
-                    els.h.textContent = h < 10 ? '0' + h : h;
-                    els.m.textContent = m < 10 ? '0' + m : m;
-                    els.s.textContent = s < 10 ? '0' + s : s;
-                }
+                const totalSeconds = Math.floor(diff / 1000);
+                const d = Math.floor(totalSeconds / 86400);
+                const h = Math.floor((totalSeconds % 86400) / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+
+                // Dirty checking to minimize DOM writes
+                if (d !== prevValues.d) { els.d.textContent = d < 10 ? '0'+d : d; prevValues.d = d; }
+                if (h !== prevValues.h) { els.h.textContent = h < 10 ? '0'+h : h; prevValues.h = h; }
+                if (m !== prevValues.m) { els.m.textContent = m < 10 ? '0'+m : m; prevValues.m = m; }
+                if (s !== prevValues.s) { els.s.textContent = s < 10 ? '0'+s : s; prevValues.s = s; }
+
                 requestAnimationFrame(updateTimer);
             }
 
-            // --- 3. Love Bubble Animation System ---
+            // --- 3. Aesthetic: Static Starfield Generator ---
+            // Generates a single long box-shadow string instead of creating hundreds of DIVs
+            function generateStars() {
+                const layer = document.getElementById('star-layer');
+                let boxShadow = '';
+                const starCount = 200;
+                
+                for(let i = 0; i < starCount; i++) {
+                    const x = Math.floor(Math.random() * 2000);
+                    const y = Math.floor(Math.random() * 2000);
+                    boxShadow += `${x}px ${y}px #FFF, `;
+                }
+                
+                layer.style.boxShadow = boxShadow.slice(0, -2); // Remove last comma
+            }
+
+            // --- 4. Aesthetic: Floating Hearts ---
             function initLoveBubbles() {
                 const container = document.getElementById('love-bubbles');
-                const isMobile = window.innerWidth < 600;
-                const count = isMobile ? 15 : 35; // Number of hearts
                 const fragment = document.createDocumentFragment();
+                const colors = ['#ff006e', '#ff5c8d', '#ffd700', '#ffffff'];
+                const count = window.innerWidth < 600 ? 15 : 30;
 
-                const colors = ['var(--primary-hot)', 'var(--primary-soft)', 'var(--accent-gold)', '#ff8fab'];
-
-                for(let i = 0; i < count; i++) {
+                for (let i = 0; i < count; i++) {
                     const heart = document.createElement('div');
                     heart.className = 'heart';
                     
-                    // Randomize parameters for natural look
-                    const size = Math.floor(Math.random() * 20 + 10); // 10px to 30px
-                    const left = Math.random() * 100; // Position across screen
-                    const duration = Math.random() * 6 + 8; // 8s to 14s float time
-                    const delay = Math.random() * 8; // Start delay
+                    // Random properties
+                    const size = Math.random() * 20 + 10 + 'px';
+                    const left = Math.random() * 100 + '%';
+                    const dur = Math.random() * 10 + 10 + 's'; // 10-20s duration (slower is more elegant)
+                    const delay = Math.random() * 20 + 's';
                     const color = colors[Math.floor(Math.random() * colors.length)];
-                    const opacity = Math.random() * 0.4 + 0.3; // Max opacity
-
-                    // Randomize movement path variables
-                    const xWobble = Math.random() * 100 - 50 + 'px';
-                    const yOffset = Math.random() * 100 + 'px';
-                    const rot = Math.random() * 90 + 45 + 'deg';
-                    const rot2 = Math.random() * 180 + 45 + 'deg';
-                    const endScale = Math.random() * 0.5 + 0.5;
-
-                    // Apply custom properties for the CSS animation to use
-                    heart.style.setProperty('--size', `${size}px`);
-                    heart.style.setProperty('--color', color);
-                    heart.style.setProperty('--opacity', opacity);
-                    heart.style.setProperty('--x-wobble', xWobble);
-                    heart.style.setProperty('--y-offset', yOffset);
-                    heart.style.setProperty('--rot', rot);
-                    heart.style.setProperty('--rot2', rot2);
-                    heart.style.setProperty('--end-scale', endScale);
                     
-                    heart.style.left = `${left}%`;
-                    heart.style.animation = `floatUp ${duration}s linear ${delay}s infinite`;
+                    heart.style.setProperty('--size', size);
+                    heart.style.setProperty('--color', color);
+                    heart.style.left = left;
+                    
+                    // Simple CSS animation definition injected inline for uniqueness
+                    heart.animate([
+                        { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
+                        { transform: 'translateY(-20vh) rotate(45deg) scale(1)', opacity: 0.8, offset: 0.2 },
+                        { transform: 'translateY(-100vh) rotate(90deg) scale(0.5)', opacity: 0 }
+                    ], {
+                        duration: 10000 + Math.random() * 10000,
+                        delay: Math.random() * 20000,
+                        iterations: Infinity,
+                        easing: 'linear'
+                    });
 
                     fragment.appendChild(heart);
                 }
                 container.appendChild(fragment);
             }
 
-            // --- 4. Initialization ---
+            // --- Init ---
             function init() {
-                calculateTargetTime();
+                initTargetDate();
+                generateStars();
                 initLoveBubbles();
+                updateTimer();
                 
-                const loading = document.getElementById('loading');
+                const loadScreen = document.getElementById('loading');
                 const content = document.getElementById('content');
                 
                 setTimeout(() => {
-                    loading.style.opacity = '0';
+                    loadScreen.style.opacity = '0';
                     content.style.opacity = '1';
-                    updateTimer();
-                    setTimeout(() => loading.remove(), 500);
+                    setTimeout(() => loadScreen.remove(), 600);
                 }, 500);
             }
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+            else init();
+
         })();
     </script>
 </body>
