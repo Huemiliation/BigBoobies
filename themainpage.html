@@ -9,31 +9,259 @@
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- CSS Variables --- */
         :root {
-            /* Hot Magenta */
             --primary-hot: #ff006e;   
-            
-            --primary-soft: #ff8fab;  
-            --accent-gold: #ffd700;   
             --bg-deep: #0f0c29;       
             --bg-rich: #302b63;       
             --bg-light: #24243e;      
-            
             --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --text-shadow: 0 0 15px rgba(255, 0, 110, 0.6);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Montserrat', sans-serif;
             min-height: 100vh;
             overflow: hidden;
-            background: linear-gradient(to bottom, var(--bg-deep), var(--bg-rich), var(--bg-light));
+            background: radial-gradient(circle at center, var(--bg-rich), var(--bg-deep));
             color: #fff;
             position: relative;
+        }
+
+        /* Optimized Starfield */
+        .stars {
+            width: 2px; height: 2px;
+            background: transparent;
+            position: absolute; z-index: 0; opacity: 0.5;
+            animation: animStar 100s linear infinite;
+        }
+
+        @keyframes animStar { 
+            from { transform: translateY(0); } 
+            to { transform: translateY(-2000px); } 
+        }
+
+        /* Sleeker Loading Screen */
+        #loading {
+            position: fixed; inset: 0; 
+            background: var(--bg-deep); 
+            z-index: 9999;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .loader-ring {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--primary-hot);
+            animation: spin 1s linear infinite;
+            position: relative;
+        }
+        .loader-ring::before {
+            content: ''; position: absolute; inset: -10px;
+            border-radius: 50%; border: 2px solid transparent;
+            border-bottom: 2px solid #fff; opacity: 0.2;
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Content Layout */
+        #content {
+            position: relative; z-index: 10; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 1.5s ease; padding: 20px;
+        }
+
+        .timer-container {
+            width: 100%; max-width: 850px;
+            padding: clamp(30px, 6vw, 60px);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .main-title {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            color: var(--primary-hot); 
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(255, 0, 110, 0.4);
+        }
+
+        .target-subtext {
+            margin-bottom: 40px; color: #ffffff;
+            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+            text-transform: uppercase; letter-spacing: 3px; font-weight: 700;
+        }
+
+        .countdown-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(10px, 3vw, 25px);
+        }
+
+        .time-card {
+            background: rgba(255,255,255,0.03);
+            aspect-ratio: 1/1.1;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 15px; border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .time-value {
+            font-size: clamp(1.8rem, 5vw, 4.5rem); font-weight: 900;
+        }
+
+        .time-label {
+            margin-top: 10px; font-size: 0.7rem; color: #aaa;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        /* Floating Hearts */
+        .heart {
+            position: absolute; pointer-events: none;
+            z-index: 1; opacity: 0;
+            will-change: transform, opacity;
+        }
+        .heart::before, .heart::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            background: inherit; border-radius: 50%;
+        }
+        .heart::before { left: -50%; }
+        .heart::after { top: -50%; }
+
+        @media (max-width: 600px) {
+            .countdown-grid { grid-template-columns: 1fr 1fr; }
+            .time-card { aspect-ratio: 1.8/1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading"><div class="loader-ring"></div></div>
+    
+    <div id="star-layer" class="stars"></div>
+    <div id="love-bubbles"></div>
+
+    <div id="content">
+        <div class="timer-container">
+            <h1 class="main-title" id="main-title">Oops, the code was messed up</h1>
+            <p class="target-subtext" id="target-display">Wait for it...</p>
+            
+            <div class="countdown-grid">
+                <div class="time-unit"><div class="time-card"><span class="time-value" id="days">00</span></div><div class="time-label">Days</div></div>
+                <div class="time-unit"><div class="time-card"><span class="time-value" id="hours">00</span></div><div class="time-label">Hours</div></div>
+                <div class="time-unit"><div class="time-card"><span class="time-value" id="minutes">00</span></div><div class="time-label">Minutes</div></div>
+                <div class="time-unit"><div class="time-card"><span class="time-value" id="seconds" style="color:var(--primary-hot)">00</span></div><div class="time-label">Seconds</div></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            const TARGET_DATE = new Date("2026-02-01T22:00:00+01:00").getTime();
+            const MESSAGES = [
+                "Just a little bit longer", "It'll be worth the wait", 
+                "You're lucky to have me!", "Counting down every second",
+                "Patience is a virtue", "Almost there...",
+                "The best things take time", "Preparing something special"
+            ];
+
+            const els = {
+                d: document.getElementById('days'),
+                h: document.getElementById('hours'),
+                m: document.getElementById('minutes'),
+                s: document.getElementById('seconds'),
+                title: document.getElementById('main-title'),
+                msg: document.getElementById('target-display'),
+                loader: document.getElementById('loading'),
+                content: document.getElementById('content')
+            };
+
+            function updateTimer() {
+                const now = Date.now();
+                const diff = TARGET_DATE - now;
+
+                if (diff <= 0) {
+                    els.title.textContent = "You'll love it, I know";
+                    els.msg.style.display = 'none';
+                    return;
+                }
+
+                const s = Math.floor(diff / 1000);
+                els.d.textContent = String(Math.floor(s / 86400)).padStart(2, '0');
+                els.h.textContent = String(Math.floor((s % 86400) / 3600)).padStart(2, '0');
+                els.m.textContent = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+                els.s.textContent = String(s % 60).padStart(2, '0');
+
+                requestAnimationFrame(updateTimer);
+            }
+
+            function createHearts() {
+                const container = document.getElementById('love-bubbles');
+                const colors = ['#ff006e', '#ff8fab', '#ffffff', '#ffd700'];
+                
+                for(let i = 0; i < 20; i++) {
+                    const h = document.createElement('div');
+                    h.className = 'heart';
+                    const size = Math.random() * 15 + 10;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    Object.assign(h.style, {
+                        width: size + 'px',
+                        height: size + 'px',
+                        left: Math.random() * 100 + 'vw',
+                        bottom: '-20px',
+                        background: color,
+                        transform: 'rotate(45deg)'
+                    });
+
+                    container.appendChild(h);
+
+                    h.animate([
+                        { transform: `translateY(0) rotate(45deg) scale(0)`, opacity: 0 },
+                        { opacity: 0.6, offset: 0.1 },
+                        { transform: `translateY(-105vh) rotate(${45 + Math.random() * 90}deg) scale(1)`, opacity: 0 }
+                    ], {
+                        duration: 6000 + Math.random() * 4000,
+                        delay: Math.random() * 10000,
+                        iterations: Infinity
+                    });
+                }
+            }
+
+            function init() {
+                // Set daily message
+                const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+                els.msg.textContent = MESSAGES[dayOfYear % MESSAGES.length];
+
+                // Starfield
+                let shadows = '';
+                for(let i = 0; i < 150; i++) {
+                    shadows += `${Math.random()*100}vw ${Math.random()*2000}px #fff, `;
+                }
+                document.getElementById('star-layer').style.boxShadow = shadows.slice(0, -2);
+
+                createHearts();
+                updateTimer();
+
+                // Reveal
+                setTimeout(() => {
+                    els.loader.style.opacity = '0';
+                    els.content.style.opacity = '1';
+                    setTimeout(() => els.loader.remove(), 800);
+                }, 1000);
+            }
+
+            window.addEventListener('load', init);
+        })();
+    </script>
+</body>
+</html>
         }
 
         /* --- 1. Efficient Starfield Background --- */
