@@ -4,502 +4,455 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Our Memories</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;500;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    <style>
-        /* --- Theme Variables --- */
-        :root {
-            --primary: #ff007f;
-            --bg-dark: #050510;
-            --bg-light: #1a0b2e;
-            
-            /* Liquid Glass Variables */
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.15);
-            --glass-highlight: rgba(255, 255, 255, 0.05);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            --blur-amount: 16px;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        script: ['"Great Vibes"', 'cursive'],
+                        sans: ['"Montserrat"', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: "rgba(255, 255, 255, 0.05)",
+                    }
+                }
+            }
         }
+    </script>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
-            color: #fff;
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* --- Backgrounds --- */
-        .background-layer { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-        #stars { width: 2px; height: 2px; animation: animStar 100s linear infinite; }
-        @keyframes animStar { from { transform: translateY(0); } to { transform: translateY(-2000px); } }
-
-        /* --- Liquid Glass Mixin Class --- */
-        .liquid-glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--blur-amount));
-            -webkit-backdrop-filter: blur(var(--blur-amount));
-            border: 1px solid var(--glass-border);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            border-left: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: var(--glass-shadow), inset 0 0 20px var(--glass-highlight);
-            border-radius: 20px;
-        }
-
-        /* --- Main Layout --- */
-        #main-container {
-            position: relative; z-index: 10;
-            max-width: 800px; margin: 0 auto;
-            padding: 40px 20px 100px;
-            opacity: 0; transition: opacity 1s ease;
-        }
-
-        .page-header { text-align: center; margin-bottom: 40px; }
-
-        .page-title {
-            font-family: 'Great Vibes', cursive;
-            font-size: clamp(3.5rem, 10vw, 5rem);
-            color: var(--primary);
-            text-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
-            margin-bottom: 15px;
-        }
-
-        /* --- Music Player Button (Updated) --- */
-        .music-wrapper { display: flex; justify-content: center; margin-bottom: 30px; }
-        
-        #music-btn {
-            background: rgba(255, 0, 127, 0.1);
-            border: 1px solid var(--primary);
-            color: #fff;
-            padding: 12px 35px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
-            animation: breathe 3s ease-in-out infinite;
-        }
-        
-        #music-btn:hover { background: var(--primary); box-shadow: 0 0 30px var(--primary); }
-        
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(255, 0, 127, 0.8); }
-        }
-
-        /* --- Memory Section --- */
-        .memory-section {
-            padding: 25px; margin-bottom: 40px;
-            overflow: hidden; /* Hide overflow for auto-scroll */
-        }
-
-        .memory-header { text-align: center; margin-bottom: 20px; }
-        .memory-title { font-weight: 800; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-        .memory-date { font-size: 0.85rem; color: var(--primary); font-weight: 500; margin-top: 5px; }
-
-        /* --- Auto-Scrolling Carousel --- */
-        .carousel-wrapper {
-            width: 100%;
-            overflow: hidden;
-            position: relative;
-            padding: 10px 0;
-            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-        }
-
-        .carousel-track {
-            display: flex; gap: 15px;
-            width: max-content;
-            /* Animation applied in JS to handle dynamic width or fallback to CSS below */
-            animation: scroll 20s linear infinite;
-        }
-
-        /* Pause scroll on hover so user can click */
-        .carousel-track:hover { animation-play-state: paused; }
-
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); } /* Move half way (since we duplicate images) */
-        }
-
-        .photo-preview {
-            flex: 0 0 120px;
-            height: 160px;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-            cursor: pointer;
-            transition: transform 0.2s;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
-        .photo-preview:active { transform: scale(0.95); }
-
-        .memory-story {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            border-left: 2px solid var(--primary);
-            font-size: 0.95rem; line-height: 1.6; color: #ddd;
-        }
-
-        /* --- Lightbox (Modal) --- */
-        #lightbox {
-            position: fixed; inset: 0; z-index: 100;
-            background: rgba(5, 5, 16, 0.9);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.4s ease;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        
-        #lightbox.active { opacity: 1; pointer-events: auto; }
-
-        .lb-content {
-            width: 100%; max-width: 600px;
-            height: 80vh;
-            display: flex; flex-direction: column;
-            align-items: center;
-            position: relative;
-            padding: 20px;
-        }
-
-        .lb-image-container {
-            flex: 1; width: 100%;
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 20px;
-            overflow: hidden;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        .lb-img {
-            max-width: 100%; max-height: 100%;
-            object-fit: contain;
-            border-radius: 10px;
-        }
-
-        /* Typewriter Cursor */
-        .lb-caption-box {
-            width: 100%;
-            max-height: 120px;
-            overflow-y: auto;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            color: #fff;
-            font-size: 0.95rem;
-            min-height: 60px; /* Space for text */
-        }
-
-        /* Lightbox Controls */
-        .lb-close {
-            position: absolute; top: 20px; right: 20px;
-            font-size: 2rem; color: #fff; cursor: pointer; z-index: 101;
-        }
-        
-        .lb-nav {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            font-size: 2rem; color: rgba(255,255,255,0.5);
-            cursor: pointer; padding: 20px; z-index: 101;
-            transition: color 0.3s;
-        }
-        .lb-nav:hover { color: var(--primary); }
-        .lb-prev { left: 0; } .lb-next { right: 0; }
-
-        /* Floating Hearts */
-        .heart {
-            position: fixed; pointer-events: none; z-index: 1;
-            will-change: transform, opacity;
-        }
-        .heart::before, .heart::after { content: ''; position: absolute; width: 100%; height: 100%; background: inherit; border-radius: 50%; }
-        .heart::before { left: -50%; } .heart::after { top: -50%; }
-
-    </style>
-</head>
-<body>
-
-    <div id="player" style="display:none"></div>
-
-    <div id="stars" class="background-layer"></div>
-    <div id="hearts-container"></div>
-
-    <div id="main-container">
-        
-        <div class="page-header">
-            <h1 class="page-title">Our Memories</h1>
-            
-            <div class="music-wrapper">
-                <button id="music-btn" class="liquid-glass">Play</button>
-            </div>
-        </div>
-
-        <div class="memory-section liquid-glass">
-            <div class="memory-header">
-                <div class="memory-title">First Trip Together</div>
-                <div class="memory-date">July 2024</div>
-            </div>
-
-            <div class="carousel-wrapper">
-                <div class="carousel-track" id="track-1">
-                    <div class="photo-preview" onclick="openLightbox(0)">
-                        <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=600&auto=format&fit=crop" 
-                             data-caption="Walking through the forest, I remember you nearly tripped over that log! But you laughed it off beautifully.">
-                    </div>
-                    <div class="photo-preview" onclick="openLightbox(1)">
-                        <img src="https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?q=80&w=600&auto=format&fit=crop" 
-                             data-caption="The view from the top was incredible, but honestly, looking at you was better.">
-                    </div>
-                    <div class="photo-preview" onclick="openLightbox(2)">
-                        <img src="https://images.unsplash.com/photo-1490750967868-58cb75063ed4?q=80&w=600&auto=format&fit=crop" 
-                             data-caption="Sunset by the lake. We sat here for hours just talking about our future and watching the colors fade into the night sky.">
-                    </div>
-                    <div class="photo-preview" onclick="openLightbox(3)">
-                        <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=600&auto=format&fit=crop" 
-                             data-caption="Your smile in this picture is everything to me.">
-                    </div>
-                    <div class="photo-preview" onclick="openLightbox(4)">
-                        <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=600&auto=format&fit=crop" 
-                             data-caption="Coffee dates are the best dates. especially when I'm with you.">
-                    </div>
-                </div>
-            </div>
-
-            <div class="memory-story">
-                This was the weekend we decided to just drive without a map. We ended up in that tiny cabin by the lake. No internet, no phone service, just us.
-            </div>
-        </div>
-        </div>
-
-    <div id="lightbox">
-        <div class="lb-close" onclick="closeLightbox()">&times;</div>
-        
-        <div class="lb-nav lb-prev" onclick="changeImage(-1)">&#10094;</div>
-        <div class="lb-nav lb-next" onclick="changeImage(1)">&#10095;</div>
-
-        <div class="lb-content">
-            <div class="lb-image-container">
-                <img src="" alt="" class="lb-img" id="lb-img">
-            </div>
-            <div class="lb-caption-box liquid-glass" id="lb-caption">
-                </div>
-        </div>
-    </div>
-
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <script src="https://www.youtube.com/iframe_api"></script>
 
-    <script>
-        // --- 1. YouTube & Music Logic ---
-        let player;
-        const musicBtn = document.getElementById('music-btn');
-        let isPlaying = false;
-
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '0',
-                width: '0',
-                videoId: 'j3QtbSrej8M', // Joji - Past Won't Leave My Bed
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            musicBtn.addEventListener('click', () => {
-                if (!isPlaying) {
-                    player.playVideo();
-                } else {
-                    player.pauseVideo();
-                }
-            });
-        }
-
-        function onPlayerStateChange(event) {
-            if (event.data == YT.PlayerState.PLAYING) {
-                isPlaying = true;
-                musicBtn.textContent = 'Pause';
-                musicBtn.style.animation = 'none'; // Stop breathing when playing (optional preference) or keep it
-                musicBtn.style.boxShadow = '0 0 25px var(--primary)';
-            } else if (event.data == YT.PlayerState.PAUSED) {
-                isPlaying = false;
-                musicBtn.textContent = 'Play';
-                musicBtn.style.animation = 'breathe 3s ease-in-out infinite';
-            } else if (event.data == YT.PlayerState.ENDED) {
-                isPlaying = false;
-                musicBtn.textContent = 'Play Again';
-            }
-        }
-
-        // --- 2. Infinite Scroll Setup ---
-        // Duplicates the images to create a seamless loop
-        function setupInfiniteScroll() {
-            const track = document.getElementById('track-1');
-            // Clone children
-            const children = Array.from(track.children);
-            children.forEach(child => {
-                const clone = child.cloneNode(true);
-                // Update onclick index for clones to match original logical index
-                // Note: The openLightbox function relies on a global list, 
-                // so we need to be careful. Simpler approach:
-                // We will rebuild the global list based on the visual list
-                track.appendChild(clone);
-            });
-        }
-
-        // --- 3. Lightbox & Typewriter Logic ---
-        let currentImages = []; 
-        let currentIndex = 0;
-        let typeWriterTimeout;
+    <style>
+        /* Custom Utilities */
+        body { overflow-x: hidden; transition: background 1.5s ease; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        const lightbox = document.getElementById('lightbox');
-        const lbImg = document.getElementById('lb-img');
-        const lbCaption = document.getElementById('lb-caption');
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Floating Hearts Animation */
+        .heart-particle { position: fixed; pointer-events: none; z-index: 1; opacity: 0; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(45deg) scale(0); opacity: 0; }
+            20% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(90deg) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-black text-white selection:bg-pink-500 selection:text-white">
 
-        function openLightbox(index) {
-            // Re-gather images (including clones) so navigation works naturally visually
-            // However, to avoid duplicate logic, let's just grab distinct source data
-            // Or simpler: Just grab the data from the clicked element's original set.
-            
-            // To handle the clones correctly:
-            // We'll scan the *original* items (first half of track) to build the data array
-            // Then find which index corresponds to the clicked visual item.
-            
-            // Simplified: Just rebuild list from ALL visible items (including clones)
-            // This allows next/prev to work even if you clicked a clone.
-            const allPhotos = document.querySelectorAll('.photo-preview img');
-            currentImages = Array.from(allPhotos).map(img => ({
-                src: img.src,
-                caption: img.getAttribute('data-caption') || ""
-            }));
-            
-            // Find index of clicked item within allPhotos
-            // Note: The onclick in HTML passes 0, 1, 2... but clones have same index.
-            // We need to pass the actual DOM element reference to find true index.
-            // Since we passed integers, let's just use the clicked integer. 
-            // If user clicked a clone, the visual transition might jump if we use 0-5.
-            
-            // FIX: Let's trust the integer passed. If it's a clone (later in DOM), 
-            // it doesn't matter, we just show that content.
-            // We need to map the passed integer (0-4) to our data.
-            // But we duplicated the DOM. So index 0 exists twice visually.
-            // Let's just use the integer to lookup the distinct data.
-            
-            // Re-gather ONLY UNIQUE data for the gallery logic
-            const track = document.getElementById('track-1');
-            const originalCount = track.children.length / 2; // We doubled it
-            
-            // Adjust index if it's out of bounds (shouldn't be with hardcoded onclicks)
-            currentIndex = index % originalCount; 
-            
-            // Build unique data list
-            const uniqueImages = [];
-            const rawImages = track.querySelectorAll('img');
-            for(let i=0; i<originalCount; i++) {
-                uniqueImages.push({
-                    src: rawImages[i].src,
-                    caption: rawImages[i].getAttribute('data-caption')
-                });
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const { motion, AnimatePresence, useScroll, useTransform } = window.Motion;
+
+        // --- Configuration Data ---
+        const CHAPTERS = [
+            {
+                id: 1,
+                title: "Chapter 1",
+                subtitle: "The Beginning",
+                theme: { from: "#2e0212", to: "#000000", accent: "#ff007f" }, // Joji Red/Dark
+                song: { title: "Test Drive", id: "PEKSrqmKgyo" },
+                albums: [
+                    { title: "First Glances", photos: [101, 102, 103] },
+                    { title: "Late Night Talks", photos: [104, 105, 106] },
+                    { title: "Coffee Dates", photos: [107, 108, 109] },
+                    { title: "The Park", photos: [110, 111, 112] },
+                    { title: "Holding Hands", photos: [113, 114, 115] }
+                ]
+            },
+            {
+                id: 2,
+                title: "Chapter 2",
+                subtitle: "Growing Closer",
+                theme: { from: "#0f172a", to: "#000000", accent: "#fbbf24" }, // M83 Blue/Gold
+                song: { title: "Your Dreams", id: "lAwYodrBr2Q" }, // Wait - M83
+                albums: [
+                    { title: "Road Trips", photos: [201, 202, 203] },
+                    { title: "Stargazing", photos: [204, 205, 206] },
+                    { title: "Beach Days", photos: [207, 208, 209] },
+                    { title: "Festivals", photos: [210, 211, 212] },
+                    { title: "Sunsets", photos: [213, 214, 215] }
+                ]
+            },
+            {
+                id: 3,
+                title: "Chapter 3",
+                subtitle: "Forever",
+                theme: { from: "#1c1917", to: "#000000", accent: "#e5e7eb" }, // Radiohead Monochrome
+                song: { title: "I will see you in the next life", id: "n5h0qHwNrHk" }, // Motion Picture Soundtrack
+                albums: [
+                    { title: "Moving In", photos: [301, 302, 303] },
+                    { title: "Anniversaries", photos: [304, 305, 306] },
+                    { title: "Quiet Mornings", photos: [307, 308, 309] },
+                    { title: "Adventures", photos: [310, 311, 312] },
+                    { title: "The Future", photos: [313, 314, 315] }
+                ]
             }
-            currentImages = uniqueImages;
+        ];
 
-            updateLightbox();
-            lightbox.classList.add('active');
-            document.body.style.overflow = 'hidden'; 
-        }
+        // --- Components ---
 
-        function closeLightbox() {
-            lightbox.classList.remove('active');
-            document.body.style.overflow = '';
-            clearTimeout(typeWriterTimeout); // Stop typing
-        }
-
-        function updateLightbox() {
-            const data = currentImages[currentIndex];
+        // 1. Music Player Button
+        const MusicPlayer = ({ song, accent, activeVideoId, onPlay }) => {
+            const isPlaying = activeVideoId === song.id;
             
-            lbImg.style.opacity = 0;
-            lbCaption.innerHTML = ""; // Clear text for typewriter
-            clearTimeout(typeWriterTimeout); // Clear previous typing
-            
-            setTimeout(() => {
-                lbImg.src = data.src;
-                lbImg.style.opacity = 1;
-                // Start Typewriter
-                typeWriter(data.caption, 0);
-            }, 200);
-        }
+            return (
+                <div className="flex justify-center my-6">
+                    <button 
+                        onClick={() => onPlay(song.id)}
+                        className="relative group px-8 py-3 rounded-full flex items-center gap-3 transition-all duration-500 overflow-hidden liquid-glass"
+                        style={{ borderColor: isPlaying ? accent : 'rgba(255,255,255,0.2)' }}
+                    >
+                        {/* Glowing Background */}
+                        <div 
+                            className={`absolute inset-0 opacity-20 transition-all duration-500`}
+                            style={{ backgroundColor: accent, opacity: isPlaying ? 0.4 : 0 }}
+                        ></div>
+                        
+                        {/* Breathing Animation for "Playing" State */}
+                        {isPlaying && (
+                            <div className="absolute inset-0 animate-pulse" style={{ boxShadow: `0 0 20px ${accent}` }}></div>
+                        )}
 
-        function typeWriter(text, i) {
-            if (i < text.length) {
-                lbCaption.innerHTML += text.charAt(i);
-                // Randomize speed slightly for realism
-                const speed = 30 + Math.random() * 20; 
-                typeWriterTimeout = setTimeout(() => typeWriter(text, i + 1), speed);
+                        <span className="relative z-10 text-xl">{isPlaying ? '⏸' : '▶'}</span>
+                        <span className="relative z-10 font-sans font-bold uppercase tracking-widest text-xs sm:text-sm">
+                            {song.title}
+                        </span>
+                    </button>
+                </div>
+            );
+        };
+
+        // 2. Typewriter Effect
+        const Typewriter = ({ text, speed = 30 }) => {
+            const [displayedText, setDisplayedText] = useState("");
+            
+            useEffect(() => {
+                setDisplayedText("");
+                let i = 0;
+                const timer = setInterval(() => {
+                    if (i < text.length) {
+                        setDisplayedText((prev) => prev + text.charAt(i));
+                        i++;
+                    } else {
+                        clearInterval(timer);
+                    }
+                }, speed);
+                return () => clearInterval(timer);
+            }, [text, speed]);
+
+            return <p className="text-gray-200 font-sans leading-relaxed">{displayedText}</p>;
+        };
+
+        // 3. Heart Navigation Buttons
+        const HeartNav = ({ direction, onClick, accent }) => {
+            // direction -1 = left, 1 = right
+            // Left heart points left (-90deg), Right heart points right (90deg)
+            const rotation = direction === -1 ? -90 : 90;
+            
+            return (
+                <button 
+                    onClick={(e) => { e.stopPropagation(); onClick(); }}
+                    className="p-4 hover:scale-110 transition-transform active:scale-95 opacity-70 hover:opacity-100"
+                    style={{ color: accent }}
+                >
+                    <svg 
+                        width="40" height="40" viewBox="0 0 24 24" fill="currentColor" 
+                        style={{ transform: `rotate(${rotation}deg)` }}
+                    >
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </button>
+            );
+        };
+
+        // 4. Infinite Carousel
+        const Carousel = ({ photos, onOpen, accent }) => {
+            // Duplicate photos for infinite loop
+            const displayPhotos = [...photos, ...photos, ...photos]; 
+            
+            return (
+                <div className="w-full overflow-hidden relative py-8 group">
+                    <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-black/50 to-transparent"></div>
+                    <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-black/50 to-transparent"></div>
+                    
+                    <div className="flex w-max gap-6 animate-scroll hover:pause-scroll">
+                        {displayPhotos.map((photoId, idx) => (
+                            <motion.div
+                                key={`${photoId}-${idx}`}
+                                whileHover={{ y: -10, scale: 1.05 }}
+                                className="relative w-[140px] h-[200px] sm:w-[180px] sm:h-[260px] flex-shrink-0 rounded-2xl overflow-hidden cursor-pointer border border-white/10"
+                                onClick={() => onOpen(photoId)}
+                            >
+                                <img 
+                                    src={`https://picsum.photos/seed/${photoId}/600/800`} 
+                                    alt="memory" 
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/20 hover:bg-transparent transition-colors"></div>
+                            </motion.div>
+                        ))}
+                    </div>
+                    
+                    {/* CSS Animation defined in style block below */}
+                </div>
+            );
+        };
+
+        // 5. Lightbox Modal
+        const Lightbox = ({ isOpen, seed, onClose, accent, onNext, onPrev }) => {
+            if (!isOpen) return null;
+
+            return (
+                <motion.div 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
+                    onClick={onClose}
+                >
+                    {/* Controls */}
+                    <button onClick={onClose} className="absolute top-6 right-6 text-white/50 hover:text-white text-4xl">&times;</button>
+                    
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 z-50">
+                        <HeartNav direction={-1} onClick={onPrev} accent={accent} />
+                    </div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 z-50">
+                        <HeartNav direction={1} onClick={onNext} accent={accent} />
+                    </div>
+
+                    <motion.div 
+                        initial={{ y: 50, scale: 0.9 }} 
+                        animate={{ y: 0, scale: 1 }} 
+                        className="w-full max-w-lg flex flex-col items-center gap-6"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <motion.div 
+                            className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+                            style={{ boxShadow: `0 0 40px ${accent}40` }}
+                        >
+                            <img 
+                                src={`https://picsum.photos/seed/${seed}/600/800`} 
+                                className="w-full h-full object-cover" 
+                            />
+                        </motion.div>
+
+                        <div className="w-full liquid-glass rounded-xl p-6 min-h-[120px] max-h-[200px] overflow-y-auto">
+                            <Typewriter 
+                                text="I remember this moment vividly. The way the light caught your eyes, the sound of your laughter echoing around us. It's a memory I want to keep on replay forever. You make every simple moment feel like magic." 
+                                speed={15} // Faster speed as requested
+                            />
+                        </div>
+                    </motion.div>
+                </motion.div>
+            );
+        };
+
+        // --- Main App ---
+        const App = () => {
+            const [activeChapter, setActiveChapter] = useState(0);
+            const [lightboxOpen, setLightboxOpen] = useState(false);
+            const [currentPhoto, setCurrentPhoto] = useState(null);
+            const [activeVideoId, setActiveVideoId] = useState(null);
+            const playerRef = useRef(null);
+
+            // Setup YouTube API
+            useEffect(() => {
+                window.onYouTubeIframeAPIReady = () => {
+                    playerRef.current = new YT.Player('player-frame', {
+                        height: '0', width: '0',
+                        playerVars: { 'autoplay': 0, 'controls': 0 }
+                    });
+                };
+            }, []);
+
+            // Scroll Listener for Theming
+            useEffect(() => {
+                const handleScroll = () => {
+                    const sections = document.querySelectorAll('.chapter-section');
+                    sections.forEach((sec, index) => {
+                        const rect = sec.getBoundingClientRect();
+                        // If section is in middle of screen
+                        if (rect.top < window.innerHeight / 2 && rect.bottom > window.innerHeight / 2) {
+                            setActiveChapter(index);
+                        }
+                    });
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            // Music Control
+            const toggleMusic = (videoId) => {
+                if (activeVideoId === videoId) {
+                    playerRef.current.pauseVideo();
+                    setActiveVideoId(null);
+                } else {
+                    setActiveVideoId(videoId);
+                    playerRef.current.loadVideoById(videoId);
+                    playerRef.current.playVideo();
+                }
+            };
+
+            const currentTheme = CHAPTERS[activeChapter].theme;
+
+            // Lightbox Nav
+            const handleNext = () => setCurrentPhoto(prev => prev + 1);
+            const handlePrev = () => setCurrentPhoto(prev => prev - 1);
+
+            return (
+                <div 
+                    className="min-h-screen transition-colors duration-[1500ms]"
+                    style={{ 
+                        background: `radial-gradient(circle at top center, ${currentTheme.from} 0%, ${currentTheme.to} 100%)`
+                    }}
+                >
+                    {/* Background Stars */}
+                    <div className="fixed inset-0 pointer-events-none z-0">
+                        <div id="stars"></div>
+                    </div>
+
+                    {/* Hidden YT Player */}
+                    <div id="player-frame" className="fixed top-0 left-0 w-0 h-0 overflow-hidden"></div>
+
+                    {/* Main Content */}
+                    <div className="relative z-10 max-w-3xl mx-auto px-4 pb-32">
+                        
+                        <header className="pt-24 pb-12 text-center animate-fade-in-up">
+                            <h1 className="font-script text-7xl sm:text-8xl md:text-9xl mb-4" style={{ textShadow: `0 0 30px ${currentTheme.accent}` }}>
+                                Our Memories
+                            </h1>
+                            <p className="font-sans tracking-[0.3em] uppercase text-sm text-gray-400">A Digital Collection</p>
+                        </header>
+
+                        {CHAPTERS.map((chapter, index) => (
+                            <section 
+                                key={chapter.id} 
+                                className="chapter-section py-20 min-h-[80vh] flex flex-col justify-center"
+                            >
+                                <div className="text-center mb-12">
+                                    <h2 className="font-script text-6xl text-white/90 mb-2">{chapter.title}</h2>
+                                    <h3 className="font-sans text-xl tracking-widest uppercase text-white/60 mb-8">{chapter.subtitle}</h3>
+                                    
+                                    <MusicPlayer 
+                                        song={chapter.song} 
+                                        accent={chapter.theme.accent} 
+                                        activeVideoId={activeVideoId}
+                                        onPlay={toggleMusic}
+                                    />
+                                </div>
+
+                                <div className="space-y-16">
+                                    {chapter.albums.map((album, aIdx) => (
+                                        <div key={aIdx} className="liquid-glass rounded-3xl p-6 sm:p-8">
+                                            <h4 className="font-sans font-bold text-lg mb-4 ml-2 border-l-4 pl-4" style={{ borderColor: currentTheme.accent }}>
+                                                {album.title}
+                                            </h4>
+                                            
+                                            <Carousel 
+                                                photos={album.photos} 
+                                                onOpen={(id) => { setLightboxOpen(true); setCurrentPhoto(id); }}
+                                                accent={currentTheme.accent}
+                                            />
+
+                                            <p className="mt-4 text-sm text-gray-400 font-light italic ml-2">
+                                                Scroll to see more moments...
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+
+                    {/* Lightbox */}
+                    <AnimatePresence>
+                        {lightboxOpen && (
+                            <Lightbox 
+                                isOpen={lightboxOpen} 
+                                seed={currentPhoto}
+                                onClose={() => setLightboxOpen(false)}
+                                accent={currentTheme.accent}
+                                onNext={handleNext}
+                                onPrev={handlePrev}
+                            />
+                        )}
+                    </AnimatePresence>
+                </div>
+            );
+        };
+
+        // --- Global Animations & Init ---
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes scroll {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-33.33%); }
             }
-        }
+            .animate-scroll {
+                animation: scroll 60s linear infinite; /* Slower speed */
+            }
+            .group:hover .animate-scroll {
+                animation-play-state: paused;
+            }
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in-up {
+                animation: fadeInUp 1s ease-out forwards;
+            }
+            #stars {
+                width: 2px; height: 2px; background: transparent;
+                box-shadow: ${Array(100).fill(0).map(() => `${Math.random()*100}vw ${Math.random()*2000}px #FFF`).join(',')};
+                animation: animStar 100s linear infinite;
+            }
+            @keyframes animStar { from { transform: translateY(0); } to { transform: translateY(-2000px); } }
+        `;
+        document.head.appendChild(styleSheet);
 
-        function changeImage(direction) {
-            currentIndex += direction;
-            if (currentIndex < 0) currentIndex = currentImages.length - 1;
-            if (currentIndex >= currentImages.length) currentIndex = 0;
-            updateLightbox();
-        }
-
-        // Swipe Support
-        let touchStartX = 0;
-        lightbox.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX);
-        lightbox.addEventListener('touchend', e => {
-            const touchEndX = e.changedTouches[0].screenX;
-            if (touchStartX - touchEndX > 50) changeImage(1);
-            if (touchEndX - touchStartX > 50) changeImage(-1);
-        });
-
-        // --- 4. Init ---
-        function init() {
-            setupInfiniteScroll();
-            
-            // Stars
-            let shadow = '';
-            for(let i=0; i<100; i++) shadow += `${Math.random()*100}vw ${Math.random()*2000}px #fff, `;
-            document.getElementById('stars').style.boxShadow = shadow.slice(0, -2);
-            
-            // Hearts
-            setInterval(spawnHeart, 1500);
-            
-            // Fade In
-            setTimeout(() => document.getElementById('main-container').style.opacity = '1', 500);
-        }
-
-        function spawnHeart() {
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+        
+        // --- Heart Particles (Vanilla JS for performance) ---
+        setInterval(() => {
             if(document.hidden) return;
-            const h = document.createElement('div'); h.className = 'heart';
+            const h = document.createElement('div');
+            h.classList.add('heart-particle');
             const size = Math.random() * 15 + 10;
             h.style.width = size+'px'; h.style.height = size+'px';
-            h.style.background = ['#ff007f','#ff5c8d','#ffffff'][Math.floor(Math.random()*3)];
-            h.style.left = Math.random()*100+'vw'; h.style.bottom = '-50px'; h.style.transform = 'rotate(45deg)';
-            document.getElementById('hearts-container').appendChild(h);
-            h.animate([
-                { transform: 'translateY(0) rotate(45deg)', opacity: 0 },
-                { opacity: 0.5, offset: 0.2 },
-                { transform: `translateY(-80vh) rotate(90deg)`, opacity: 0 }
-            ], { duration: 6000 + Math.random()*4000 }).onfinish = () => h.remove();
-        }
+            h.style.left = Math.random() * 100 + 'vw';
+            h.style.bottom = '-50px';
+            h.style.background = ['#ff007f', '#fbbf24', '#e5e7eb'][Math.floor(Math.random()*3)];
+            
+            // CSS Heart Shape
+            h.style.position = 'fixed';
+            h.style.transform = 'rotate(45deg)';
+            h.innerHTML = '<div style="position:absolute; width:100%; height:100%; background:inherit; border-radius:50%; top:-50%; left:0;"></div><div style="position:absolute; width:100%; height:100%; background:inherit; border-radius:50%; top:0; left:-50%;"></div>';
+            
+            h.style.animation = 'floatUp ' + (6 + Math.random()*4) + 's linear forwards';
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 10000);
+        }, 1500);
 
-        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
