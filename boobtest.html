@@ -20,6 +20,10 @@
                     },
                     colors: {
                         glass: "rgba(255, 255, 255, 0.05)",
+                        gold: "#ffd700",
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 }
             }
@@ -41,7 +45,7 @@
             transition: background 1.5s ease;
         }
         
-        /* Loading Screen Animation */
+        /* Loading Screen */
         #initial-loader {
             position: fixed; inset: 0; z-index: 9999;
             background: #000;
@@ -61,7 +65,7 @@
         .loader-heart::after { top: -25px; }
         @keyframes pulse { 0% { transform: rotate(45deg) scale(0.8); opacity: 0.8; } 50% { transform: rotate(45deg) scale(1); opacity: 1; } 100% { transform: rotate(45deg) scale(0.8); opacity: 0.8; } }
 
-        /* Liquid Glass */
+        /* Liquid Glass Default */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -69,11 +73,29 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
 
-        /* Hide Scrollbar but allow scroll */
+        /* Special Effects Styles */
+        .effect-birthday {
+            border: 1px solid rgba(255, 105, 180, 0.5);
+            box-shadow: 0 0 30px rgba(255, 105, 180, 0.2);
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255, 105, 180, 0.05));
+        }
+        
+        .effect-anniversary {
+            border: 1px solid rgba(255, 215, 0, 0.6);
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.3);
+            background: linear-gradient(135deg, rgba(255,215,0,0.05), rgba(0,0,0,0.2));
+            position: relative;
+        }
+        .effect-anniversary::before {
+            content: ''; position: absolute; inset: -2px; 
+            background: linear-gradient(45deg, transparent, gold, transparent);
+            z-index: -1; border-radius: 1rem; opacity: 0.3;
+            animation: rotateBorder 4s linear infinite;
+        }
+
+        /* Utilities */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Horizontal Scroll Mask (Fade Effect) */
         .scroll-mask-right {
             mask-image: linear-gradient(to right, black 85%, transparent 100%);
             -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
@@ -92,134 +114,102 @@
         const { useState, useEffect, useRef, useMemo } = React;
         const { motion, AnimatePresence } = window.Motion;
 
-        // --- Data Configuration ---
-        
-        // Helper to generate dummy data (Replace these with real URLs later)
-        const generatePhotos = (seed, context) => {
-            return [1, 2, 3, 4, 5].map(i => ({
+        // --- Data Generation Helper ---
+        const generatePhotos = (seed, context, count = 5) => {
+            return Array.from({ length: count }, (_, i) => ({
                 id: `${seed}-${i}`,
-                src: `https://picsum.photos/seed/${seed * i}/600/800`,
-                note: `Note for ${context} #${i}. This is a long scrolling note to demonstrate the horizontal scroll functionality. We were listening to Radiohead and the vibe was absolutely perfect. I remember exactly how you looked in this moment.`
+                src: `https://picsum.photos/seed/${seed * (i + 1)}/600/800`,
+                note: `Memory #${i + 1} from ${context}. We were here, in this moment, and time seemed to stop. Listening to our song, I knew this was exactly where I belonged.`
             }));
         };
 
+        // --- Configuration Data ---
         const CHAPTERS = [
             {
                 id: 1,
                 title: "Chapter 1",
                 subtitle: "Unknowing & Joy",
-                // Separator Colors: Muted Teal, Moss Green, Off-white
-                theme: { 
-                    from: "#132a26", // Deep Teal/Green
-                    to: "#0f172a", 
-                    accent: "#99f6e4", // Teal 200
-                    glow: "rgba(153, 246, 228, 0.4)"
-                },
+                theme: { from: "#132a26", to: "#0f172a", accent: "#99f6e4" },
                 song: { title: "Separator", id: "KmpzIU301VU" },
                 albums: [
-                    { title: "First Glances", photos: generatePhotos(101, "First Glances") },
-                    { title: "The Uncertainty", photos: generatePhotos(102, "The Uncertainty") },
-                    { title: "First Laughs", photos: generatePhotos(103, "First Laughs") },
-                    { title: "Nervous Hands", photos: generatePhotos(104, "Nervous Hands") },
-                    { title: "Pure Joy", photos: generatePhotos(105, "Pure Joy") }
+                    { title: "First Glances", date: "Jan 15", photos: generatePhotos(101, "First Glances") },
+                    { title: "Her Birthday", date: "March 20", type: "birthday", photos: generatePhotos(102, "Her Birthday") }, // Birthday
+                    { title: "First Laughs", date: "April 02", photos: generatePhotos(103, "First Laughs") },
+                    { title: "Nervous Hands", date: "May 10", photos: generatePhotos(104, "Nervous Hands") },
+                    { title: "Pure Joy", date: "June 22", photos: generatePhotos(105, "Pure Joy") }
                 ]
             },
             {
                 id: 2,
                 title: "Chapter 2",
                 subtitle: "Golden Hour",
-                // Weird Fishes: Warm, Dim, Golden, Orange
-                theme: { 
-                    from: "#451a03", // Dark Amber/Brown
-                    to: "#000000", 
-                    accent: "#fbbf24", // Amber 400
-                    glow: "rgba(251, 191, 36, 0.4)"
-                },
+                theme: { from: "#451a03", to: "#000000", accent: "#fbbf24" },
                 song: { title: "Weird Fishes", id: "TNRCvG9YtYI" },
                 albums: [
-                    { title: "Sunsets", photos: generatePhotos(201, "Sunsets") },
-                    { title: "Warm Nights", photos: generatePhotos(202, "Warm Nights") },
-                    { title: "Road Trips", photos: generatePhotos(203, "Road Trips") },
-                    { title: "Golden Light", photos: generatePhotos(204, "Golden Light") },
-                    { title: "Deep Talks", photos: generatePhotos(205, "Deep Talks") }
+                    { title: "Sunsets", date: "July 04", photos: generatePhotos(201, "Sunsets") },
+                    { title: "His Birthday", date: "August 12", type: "birthday", photos: generatePhotos(202, "His Birthday") }, // Birthday
+                    { title: "Warm Nights", date: "Sept 01", photos: generatePhotos(203, "Warm Nights") },
+                    { title: "Golden Light", date: "Oct 15", photos: generatePhotos(204, "Golden Light") },
+                    { title: "Deep Talks", date: "Nov 20", photos: generatePhotos(205, "Deep Talks") }
                 ]
             },
             {
                 id: 3,
                 title: "Chapter 3",
                 subtitle: "Blood & Forever",
-                // Motion Picture Soundtrack: Blood Red, Magenta, Black
-                theme: { 
-                    from: "#450a0a", // Deep Red
-                    to: "#000000", 
-                    accent: "#e11d48", // Rose/Magenta
-                    glow: "rgba(225, 29, 72, 0.4)"
-                },
+                theme: { from: "#450a0a", to: "#000000", accent: "#e11d48" },
                 song: { title: "Motion Picture Soundtrack", id: "EcSvMFm2ABE" },
                 albums: [
-                    { title: "The Bond", photos: generatePhotos(301, "The Bond") },
-                    { title: "Intensity", photos: generatePhotos(302, "Intensity") },
-                    { title: "Forever", photos: generatePhotos(303, "Forever") },
-                    { title: "Next Life", photos: generatePhotos(304, "Next Life") },
-                    { title: "Always", photos: generatePhotos(305, "Always") }
+                    { title: "The Bond", date: "Dec 05", photos: generatePhotos(301, "The Bond") },
+                    { title: "Intensity", date: "Dec 25", photos: generatePhotos(302, "Intensity") },
+                    { title: "1st Anniversary", date: "Feb 14", type: "anniversary", photos: generatePhotos(303, "Our Anniversary", 8) }, // Anniversary
+                    { title: "Next Life", date: "Future", photos: generatePhotos(304, "Next Life") },
+                    { title: "Always", date: "Forever", photos: generatePhotos(305, "Always") }
                 ]
             }
         ];
 
         // --- Components ---
 
-        // 1. Music Player Button
+        // 1. Music Player
         const MusicPlayer = ({ song, accent, activeVideoId, onPlay }) => {
             const isPlaying = activeVideoId === song.id;
             return (
                 <div className="flex justify-center my-8">
                     <button 
                         onClick={() => onPlay(song.id)}
-                        className="relative group px-10 py-4 rounded-full flex items-center gap-4 transition-all duration-500 overflow-hidden liquid-glass"
+                        className="relative group px-10 py-4 rounded-full flex items-center gap-4 transition-all duration-500 overflow-hidden liquid-glass hover:scale-105"
                         style={{ borderColor: isPlaying ? accent : 'rgba(255,255,255,0.1)' }}
                     >
-                        <div 
-                            className={`absolute inset-0 transition-opacity duration-500`}
-                            style={{ backgroundColor: accent, opacity: isPlaying ? 0.2 : 0 }}
-                        ></div>
-                        
-                        {isPlaying && (
-                            <div className="absolute inset-0 animate-pulse" style={{ boxShadow: `inset 0 0 20px ${accent}` }}></div>
-                        )}
-
+                        <div className={`absolute inset-0 transition-opacity duration-500`} style={{ backgroundColor: accent, opacity: isPlaying ? 0.2 : 0 }}></div>
+                        {isPlaying && <div className="absolute inset-0 animate-pulse" style={{ boxShadow: `inset 0 0 20px ${accent}` }}></div>}
                         <span className="relative z-10 text-xl" style={{color: isPlaying ? accent : 'white'}}>{isPlaying ? '⏸' : '▶'}</span>
-                        <span className="relative z-10 font-sans font-bold uppercase tracking-[0.2em] text-sm text-white">
-                            {song.title}
-                        </span>
+                        <span className="relative z-10 font-sans font-bold uppercase tracking-[0.2em] text-sm text-white">{song.title}</span>
                     </button>
                 </div>
             );
         };
 
-        // 2. Carousel Component
-        const Carousel = ({ photos, onOpen }) => {
-            // Triple the data for smooth infinite loop
+        // 2. Carousel
+        const Carousel = ({ photos, onOpen, type }) => {
+            // Triple data for smooth infinite scroll illusion
             const displayPhotos = useMemo(() => [...photos, ...photos, ...photos], [photos]);
             
             return (
                 <div className="w-full overflow-hidden relative py-6 group">
-                    {/* Fade Edges */}
-                    <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-black/60 to-transparent pointer-events-none"></div>
-                    <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-black/60 to-transparent pointer-events-none"></div>
+                    <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-black/50 to-transparent pointer-events-none"></div>
+                    <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-black/50 to-transparent pointer-events-none"></div>
                     
                     <div className="flex w-max gap-6 animate-scroll hover:pause-scroll">
                         {displayPhotos.map((photo, idx) => (
                             <div
                                 key={`${photo.id}-${idx}`}
-                                className="relative w-[160px] h-[240px] sm:w-[200px] sm:h-[300px] flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border border-white/10 transition-transform duration-300 hover:scale-105 hover:border-white/30"
-                                onClick={() => onOpen(photo)}
+                                className={`relative flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border transition-transform duration-300 hover:scale-105
+                                    ${type === 'anniversary' ? 'w-[200px] h-[280px] border-yellow-500/50 sm:w-[240px] sm:h-[340px]' : 'w-[160px] h-[240px] sm:w-[200px] sm:h-[300px] border-white/10'}
+                                `}
+                                onClick={() => onOpen(idx % photos.length)} // Pass original index
                             >
-                                <img 
-                                    src={photo.src} 
-                                    alt="memory" 
-                                    loading="lazy"
-                                    className="w-full h-full object-cover"
-                                />
+                                <img src={photo.src} alt="memory" loading="lazy" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors"></div>
                             </div>
                         ))}
@@ -228,25 +218,22 @@
             );
         };
 
-        // 3. Minimal Heart Nav
-        const HeartNav = ({ direction, onClick, accent }) => {
-            const rotation = direction === -1 ? -90 : 90;
-            return (
-                <button 
-                    onClick={(e) => { e.stopPropagation(); onClick(); }}
-                    className="p-4 transition-transform active:scale-90 opacity-60 hover:opacity-100"
-                    style={{ color: accent }}
-                >
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style={{ transform: `rotate(${rotation}deg)` }}>
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            );
-        };
+        // 3. Lightbox
+        const Lightbox = ({ isOpen, albumPhotos, startIndex, onClose, accent }) => {
+            if (!isOpen || !albumPhotos) return null;
 
-        // 4. Lightbox Modal
-        const Lightbox = ({ isOpen, currentPhoto, onClose, accent, onNext, onPrev }) => {
-            if (!isOpen || !currentPhoto) return null;
+            const [currentIndex, setCurrentIndex] = useState(startIndex);
+
+            // Handle looping navigation
+            const navigate = (direction) => {
+                setCurrentIndex((prev) => {
+                    const count = albumPhotos.length;
+                    return (prev + direction + count) % count;
+                });
+            };
+
+            const currentPhoto = albumPhotos[currentIndex];
+            const progress = ((currentIndex + 1) / albumPhotos.length) * 100;
 
             return (
                 <motion.div 
@@ -254,56 +241,61 @@
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl"
                     onClick={onClose}
                 >
-                    {/* Minimal Close Button */}
-                    <button 
-                        onClick={onClose} 
-                        className="absolute top-6 right-6 p-4 opacity-50 hover:opacity-100 transition-opacity z-50"
-                    >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                    {/* Close Button */}
+                    <button onClick={onClose} className="absolute top-6 right-6 p-4 opacity-50 hover:opacity-100 transition-opacity z-50 text-white">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                     
-                    {/* Navigation */}
-                    <div className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-50">
-                        <HeartNav direction={-1} onClick={onPrev} accent={accent} />
-                    </div>
-                    <div className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-50">
-                        <HeartNav direction={1} onClick={onNext} accent={accent} />
-                    </div>
+                    {/* Nav Buttons */}
+                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-50 p-4 opacity-60 hover:opacity-100 text-white transition-transform active:scale-90">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{ transform: 'rotate(-90deg)', color: accent }}>
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-50 p-4 opacity-60 hover:opacity-100 text-white transition-transform active:scale-90">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{ transform: 'rotate(90deg)', color: accent }}>
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </button>
 
-                    {/* Content Container */}
-                    <div 
-                        className="w-full max-w-md md:max-w-xl flex flex-col items-center gap-6 p-4"
-                        onClick={e => e.stopPropagation()}
-                    >
+                    <div className="w-full max-w-md md:max-w-xl flex flex-col items-center gap-6 p-4" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Progress Bar & Counter */}
+                        <div className="w-full flex items-center gap-4 mb-2">
+                            <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                                <motion.div 
+                                    className="h-full" 
+                                    style={{ backgroundColor: accent }}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${progress}%` }}
+                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                />
+                            </div>
+                            <span className="text-xs font-sans font-bold text-white/60 tracking-widest">
+                                {currentIndex + 1} / {albumPhotos.length}
+                            </span>
+                        </div>
+
                         {/* Image */}
                         <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }} 
+                            key={currentIndex} // Re-render on index change for animation
+                            initial={{ scale: 0.95, opacity: 0 }} 
                             animate={{ scale: 1, opacity: 1 }}
-                            className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-lg overflow-hidden border border-white/10"
-                            style={{ boxShadow: `0 0 30px ${accent}20` }}
+                            transition={{ duration: 0.3 }}
+                            className="relative w-full aspect-[3/4] md:aspect-[4/5] rounded-lg overflow-hidden border border-white/10 shadow-2xl"
+                            style={{ boxShadow: `0 0 40px ${accent}30` }}
                         >
-                            <img 
-                                src={currentPhoto.src} 
-                                className="w-full h-full object-cover" 
-                                alt="Memory"
-                            />
+                            <img src={currentPhoto.src} className="w-full h-full object-cover" alt="Memory" />
                         </motion.div>
 
-                        {/* Horizontal Scrolling Note */}
+                        {/* Note Box */}
                         <div className="w-full relative">
-                            <div 
-                                className="liquid-glass rounded-xl p-4 md:p-6 w-full overflow-x-auto hide-scrollbar scroll-mask-right whitespace-nowrap"
-                                style={{ borderLeft: `2px solid ${accent}` }}
-                            >
+                            <div className="liquid-glass rounded-xl p-4 md:p-6 w-full overflow-x-auto hide-scrollbar scroll-mask-right whitespace-nowrap" style={{ borderLeft: `3px solid ${accent}` }}>
                                 <p className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide inline-block pr-12">
                                     {currentPhoto.note}
                                 </p>
                             </div>
-                            {/* Visual cue for scroll */}
-                            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/20 to-transparent pointer-events-none rounded-r-xl"></div>
+                            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black/40 to-transparent pointer-events-none rounded-r-xl"></div>
                         </div>
                     </div>
                 </motion.div>
@@ -313,21 +305,32 @@
         // --- Main App ---
         const App = () => {
             const [activeChapter, setActiveChapter] = useState(0);
-            const [lightboxOpen, setLightboxOpen] = useState(false);
-            const [activePhoto, setActivePhoto] = useState(null);
+            const [lightboxState, setLightboxState] = useState({ open: false, photos: null, index: 0 });
             const [activeVideoId, setActiveVideoId] = useState(null);
             const playerRef = useRef(null);
 
-            // Remove loading screen on mount
+            // 1. Loader Logic (Optimization)
             useEffect(() => {
-                const loader = document.getElementById('initial-loader');
-                if(loader) {
-                    loader.style.opacity = '0';
-                    setTimeout(() => loader.remove(), 500);
+                const removeLoader = () => {
+                    const loader = document.getElementById('initial-loader');
+                    if(loader) {
+                        loader.style.opacity = '0';
+                        setTimeout(() => loader.remove(), 500);
+                    }
+                };
+                
+                // Try window load
+                if (document.readyState === 'complete') {
+                    removeLoader();
+                } else {
+                    window.addEventListener('load', removeLoader);
+                    // Failsafe timer: Force remove after 3s if load hangs
+                    setTimeout(removeLoader, 3000); 
                 }
+                return () => window.removeEventListener('load', removeLoader);
             }, []);
 
-            // Setup YouTube
+            // 2. YouTube Setup
             useEffect(() => {
                 window.onYouTubeIframeAPIReady = () => {
                     playerRef.current = new YT.Player('player-frame', {
@@ -337,13 +340,12 @@
                 };
             }, []);
 
-            // Scroll Listener for Dynamic Themes
+            // 3. Scroll Theme Logic
             useEffect(() => {
                 const handleScroll = () => {
                     const sections = document.querySelectorAll('.chapter-section');
                     sections.forEach((sec, index) => {
                         const rect = sec.getBoundingClientRect();
-                        // Trigger earlier for smoother transition
                         if (rect.top < window.innerHeight * 0.6 && rect.bottom > window.innerHeight * 0.4) {
                             setActiveChapter(index);
                         }
@@ -355,7 +357,6 @@
 
             const toggleMusic = (videoId) => {
                 if(!playerRef.current) return;
-                
                 if (activeVideoId === videoId) {
                     playerRef.current.pauseVideo();
                     setActiveVideoId(null);
@@ -368,115 +369,74 @@
 
             const currentTheme = CHAPTERS[activeChapter].theme;
 
-            // Lightbox Logic
-            const handlePhotoClick = (photo) => {
-                setActivePhoto(photo);
-                setLightboxOpen(true);
-            };
-
-            const navigateLightbox = (direction) => {
-                // Find current photo in current chapter's albums
-                // This is a simplified lookup. In a real app, you might flatten the array.
-                // For this demo, we cycle through the currently displayed album's context if possible, 
-                // but to keep it robust we will just stick to the current photo for now or use the ID to find neighbors.
-                // *Simulated navigation for demo:*
-                if(!activePhoto) return;
-                
-                // Extract seed from ID (e.g., "101-2" -> 101, 2)
-                const [seed, idx] = activePhoto.id.split('-').map(Number);
-                const nextIdx = idx + direction;
-                
-                // Simple boundary check for the generator logic (1 to 5)
-                if (nextIdx >= 1 && nextIdx <= 5) {
-                    const newId = `${seed}-${nextIdx}`;
-                    const newSrc = `https://picsum.photos/seed/${seed * nextIdx}/600/800`;
-                    // Regenerate note just for navigation visual
-                    setActivePhoto({
-                        id: newId,
-                        src: newSrc,
-                        note: activePhoto.note // Keeping same note for demo flow
-                    });
-                }
+            const openLightbox = (photos, index) => {
+                setLightboxState({ open: true, photos, index });
             };
 
             return (
-                <div 
-                    className="min-h-screen transition-colors duration-[2000ms] ease-in-out"
-                    style={{ 
-                        background: `radial-gradient(circle at top center, ${currentTheme.from} 0%, ${currentTheme.to} 100%)`
-                    }}
-                >
-                    {/* Stars Background */}
-                    <div className="fixed inset-0 pointer-events-none z-0 opacity-60">
-                        <div id="stars"></div>
-                    </div>
-
+                <div className="min-h-screen transition-colors duration-[2000ms] ease-in-out" style={{ background: `radial-gradient(circle at top center, ${currentTheme.from} 0%, ${currentTheme.to} 100%)` }}>
+                    <div className="fixed inset-0 pointer-events-none z-0 opacity-60"><div id="stars"></div></div>
                     <div id="player-frame" className="fixed top-0 left-0 w-0 h-0 overflow-hidden"></div>
 
-                    {/* Main Content */}
-                    <div className="relative z-10 max-w-4xl mx-auto px-4 pb-32">
-                        
+                    <div className="relative z-10 max-w-5xl mx-auto px-4 pb-32">
                         <header className="pt-32 pb-20 text-center animate-fade-in-up">
-                            <h1 className="font-script text-7xl sm:text-8xl md:text-9xl mb-6 text-white" style={{ textShadow: `0 0 40px ${currentTheme.accent}` }}>
-                                Our Memories
-                            </h1>
+                            <h1 className="font-script text-7xl sm:text-8xl md:text-9xl mb-6 text-white" style={{ textShadow: `0 0 40px ${currentTheme.accent}` }}>Our Memories</h1>
                         </header>
 
-                        {CHAPTERS.map((chapter, index) => (
-                            <section 
-                                key={chapter.id} 
-                                className="chapter-section py-24 min-h-[90vh] flex flex-col justify-center"
-                            >
-                                <div className="text-center mb-12">
-                                    <h2 className="font-script text-6xl text-white/90 mb-2 transition-colors duration-1000">
-                                        {chapter.title}
-                                    </h2>
-                                    <h3 
-                                        className="font-sans text-xl tracking-[0.3em] uppercase text-white/60 mb-8"
-                                        style={{ color: currentTheme.accent }}
-                                    >
-                                        {chapter.subtitle}
-                                    </h3>
-                                    
-                                    <MusicPlayer 
-                                        song={chapter.song} 
-                                        accent={currentTheme.accent} 
-                                        activeVideoId={activeVideoId}
-                                        onPlay={toggleMusic}
-                                    />
+                        {CHAPTERS.map((chapter) => (
+                            <section key={chapter.id} className="chapter-section py-24 min-h-[90vh] flex flex-col justify-center">
+                                <div className="text-center mb-16">
+                                    <h2 className="font-script text-6xl text-white/90 mb-2 transition-colors duration-1000">{chapter.title}</h2>
+                                    <h3 className="font-sans text-xl tracking-[0.3em] uppercase text-white/60 mb-8" style={{ color: currentTheme.accent }}>{chapter.subtitle}</h3>
+                                    <MusicPlayer song={chapter.song} accent={currentTheme.accent} activeVideoId={activeVideoId} onPlay={toggleMusic} />
                                 </div>
 
-                                <div className="space-y-20">
-                                    {chapter.albums.map((album, aIdx) => (
-                                        <div key={aIdx} className="liquid-glass rounded-2xl p-6 sm:p-8 hover:bg-white/5 transition-colors duration-500">
-                                            <h4 
-                                                className="font-sans font-bold text-lg mb-4 ml-2 border-l-4 pl-4 uppercase tracking-wider" 
-                                                style={{ borderColor: currentTheme.accent, color: 'rgba(255,255,255,0.9)' }}
-                                            >
-                                                {album.title}
-                                            </h4>
-                                            
-                                            <Carousel 
-                                                photos={album.photos} 
-                                                onOpen={handlePhotoClick}
-                                            />
-                                        </div>
-                                    ))}
+                                <div className="space-y-24">
+                                    {chapter.albums.map((album, aIdx) => {
+                                        // Determine CSS classes based on album type
+                                        let containerClass = "liquid-glass rounded-2xl p-6 sm:p-8 transition-all duration-500 hover:bg-white/5";
+                                        let titleColor = "rgba(255,255,255,0.9)";
+                                        
+                                        if (album.type === 'birthday') {
+                                            containerClass = "effect-birthday rounded-2xl p-6 sm:p-8 transition-all duration-500";
+                                            titleColor = "#ff69b4"; // Pink
+                                        } else if (album.type === 'anniversary') {
+                                            containerClass = "effect-anniversary rounded-2xl p-8 sm:p-10 transition-all duration-500 scale-105";
+                                            titleColor = "#ffd700"; // Gold
+                                        }
+
+                                        return (
+                                            <div key={aIdx} className={containerClass}>
+                                                <div className="flex items-end gap-4 mb-6 ml-2 border-l-4 pl-4" style={{ borderColor: album.type === 'birthday' ? '#ff69b4' : (album.type === 'anniversary' ? '#ffd700' : currentTheme.accent) }}>
+                                                    <div>
+                                                        <h4 className="font-sans font-bold text-lg uppercase tracking-wider" style={{ color: titleColor }}>{album.title}</h4>
+                                                        <span className="font-sans text-xs font-light tracking-widest text-white/50">{album.date}</span>
+                                                    </div>
+                                                    {album.type === 'birthday' && <span className="text-2xl animate-bounce">🎂</span>}
+                                                    {album.type === 'anniversary' && <span className="text-2xl animate-pulse">💖</span>}
+                                                </div>
+                                                
+                                                <Carousel 
+                                                    photos={album.photos} 
+                                                    onOpen={(index) => openLightbox(album.photos, index)}
+                                                    type={album.type}
+                                                />
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </section>
                         ))}
                     </div>
 
-                    {/* Lightbox */}
                     <AnimatePresence>
-                        {lightboxOpen && (
+                        {lightboxState.open && (
                             <Lightbox 
-                                isOpen={lightboxOpen} 
-                                currentPhoto={activePhoto}
-                                onClose={() => setLightboxOpen(false)}
+                                isOpen={lightboxState.open} 
+                                albumPhotos={lightboxState.photos}
+                                startIndex={lightboxState.index}
+                                onClose={() => setLightboxState({ ...lightboxState, open: false })}
                                 accent={currentTheme.accent}
-                                onNext={() => navigateLightbox(1)}
-                                onPrev={() => navigateLightbox(-1)}
                             />
                         )}
                     </AnimatePresence>
@@ -484,38 +444,22 @@
             );
         };
 
-        // --- Styles & Animation Injection ---
+        // --- Styles ---
         const styleSheet = document.createElement("style");
         styleSheet.innerText = `
-            @keyframes scroll {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(-33.33%); }
-            }
-            .animate-scroll {
-                animation: scroll 80s linear infinite; /* Slower Speed */
-            }
-            .hover\\:pause-scroll:hover {
-                animation-play-state: paused;
-            }
-            @keyframes fadeInUp {
-                from { opacity: 0; transform: translateY(30px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .animate-fade-in-up {
-                animation: fadeInUp 1.2s ease-out forwards;
-            }
-            #stars {
-                width: 2px; height: 2px; background: transparent;
-                box-shadow: ${Array(150).fill(0).map(() => `${Math.random()*100}vw ${Math.random()*2000}px #FFF`).join(',')};
-                animation: animStar 150s linear infinite;
-            }
+            @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
+            .animate-scroll { animation: scroll 80s linear infinite; }
+            .hover\\:pause-scroll:hover { animation-play-state: paused; }
+            @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+            .animate-fade-in-up { animation: fadeInUp 1.2s ease-out forwards; }
+            @keyframes rotateBorder { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+            #stars { width: 2px; height: 2px; background: transparent; box-shadow: ${Array(150).fill(0).map(() => `${Math.random()*100}vw ${Math.random()*2000}px #FFF`).join(',')}; animation: animStar 150s linear infinite; }
             @keyframes animStar { from { transform: translateY(0); } to { transform: translateY(-2000px); } }
         `;
         document.head.appendChild(styleSheet);
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
-
     </script>
 </body>
 </html>
