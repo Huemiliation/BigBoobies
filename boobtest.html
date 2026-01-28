@@ -24,6 +24,7 @@
                     animation: {
                         'breathe': 'breathe 3s ease-in-out infinite',
                         'shine': 'shine 3s linear infinite',
+                        'pulse-gold': 'pulseGold 2s ease-in-out infinite alternate',
                     },
                     keyframes: {
                         breathe: {
@@ -33,6 +34,10 @@
                         shine: {
                             '0%': { backgroundPosition: '200% center' },
                             '100%': { backgroundPosition: '-200% center' },
+                        },
+                        pulseGold: {
+                            '0%': { boxShadow: '0 0 40px rgba(255, 215, 0, 0.3)', transform: 'scale(1.02)', borderColor: 'rgba(255, 215, 0, 0.6)' },
+                            '100%': { boxShadow: '0 0 70px rgba(255, 215, 0, 0.8)', transform: 'scale(1.03)', borderColor: 'rgba(255, 215, 0, 1)' }
                         }
                     }
                 }
@@ -91,17 +96,21 @@
             transition: opacity 1s ease;
         }
 
-        /* Starfield Background */
+        /* Moving Starfield */
         #stars-container {
             position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            width: 100%; height: 200%; /* Double height for scrolling */
+            animation: moveStars 200s linear infinite;
         }
+        @keyframes moveStars { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+
         .star {
             position: absolute; background: white; border-radius: 50%;
             animation: twinkle var(--duration) linear infinite;
         }
         @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
 
-        /* Particle Hearts (Layered on top of stars) */
+        /* Particle Hearts */
         .heart-particle {
             position: fixed; pointer-events: none; z-index: 1;
             will-change: transform, opacity;
@@ -127,20 +136,20 @@
         }
         
         .effect-anniversary {
-            background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(0,0,0,0.4));
-            border: 1px solid rgba(255, 215, 0, 0.6);
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(0,0,0,0.6));
+            border: 2px solid rgba(255, 215, 0, 0.8);
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.5);
             position: relative;
             overflow: hidden;
+            animation: pulse-gold 3s infinite alternate; /* New Intense Pulse */
         }
-        /* Golden Shine */
         .effect-anniversary::after {
             content: '';
             position: absolute;
             top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255, 215, 0, 0.4), transparent);
+            background: linear-gradient(to right, transparent, rgba(255, 215, 0, 0.6), transparent);
             transform: skewX(-25deg);
-            animation: shine 6s infinite;
+            animation: shine 4s infinite; /* Faster shine */
         }
 
         .typing-cursor::after {
@@ -178,7 +187,6 @@
                 id: 1,
                 title: "Chapter 1",
                 subtitle: "Unknowing & Joy",
-                // Transition: Deep Cool Blue to Midnight
                 theme: { from: "#0f172a", to: "#172554", accent: "#38bdf8" }, 
                 song: { 
                     title: "a Vivid dream", 
@@ -196,8 +204,8 @@
                 id: 2,
                 title: "Chapter 2",
                 subtitle: "Golden Hour",
-                // Transition: Golden Brown / Dark Amber
-                theme: { from: "#451a03", to: "#78350f", accent: "#fbbf24" }, 
+                // Darkened: Deep Espresso to Dark Chocolate
+                theme: { from: "#1c1006", to: "#3a1d08", accent: "#fbbf24" }, 
                 song: { 
                     title: "I'll follow to the edge", 
                     url: "https://huemiliation.github.io/BigBoobies/04%20Radiohead%20-%20Weird%20Fishes_%20Arpeggi.mp3" 
@@ -214,8 +222,7 @@
                 id: 3,
                 title: "Chapter 3",
                 subtitle: "Blood & Forever",
-                // Transition: Deep Red / Black
-                theme: { from: "#450a0a", to: "#000000", accent: "#f43f5e" }, 
+                theme: { from: "#2a0a0a", to: "#000000", accent: "#f43f5e" }, 
                 song: { 
                     title: "to see you in the next life", 
                     url: "https://raw.githubusercontent.com/Huemiliation/BigBoobies/main/10%20Radiohead%20-%20Motion%20Picture%20Soundtrack.mp3" 
@@ -232,10 +239,10 @@
 
         // --- Helper Components ---
 
-        // 1. Static Starfield
+        // 1. Moving Starfield
         const Starfield = () => {
             const stars = useMemo(() => {
-                return Array.from({ length: 150 }).map((_, i) => ({
+                return Array.from({ length: 200 }).map((_, i) => ({
                     left: Math.random() * 100,
                     top: Math.random() * 100,
                     size: Math.random() * 2 + 1,
@@ -270,15 +277,18 @@
                 let spawnRate = 2000; 
                 let colors = ['#ffffff']; 
                 let opacity = 0.3;
+                let glow = false;
 
                 if (activeChapter === 1) {
                     spawnRate = 800; 
                     colors = ['#ffffff', '#fff5d0'];
                     opacity = 0.5;
                 } else if (activeChapter === 2) {
-                    spawnRate = 200; 
+                    // Chapter 3 (index 2)
+                    spawnRate = 400; // Adjusted from 200 to 400
                     colors = ['#ffffff', '#ff00ff', '#f43f5e']; 
                     opacity = 0.7;
+                    glow = true;
                 }
 
                 const spawnHeart = () => {
@@ -295,6 +305,11 @@
                     h.style.bottom = '-50px';
                     h.style.opacity = '0';
                     h.style.transform = 'rotate(45deg)';
+                    
+                    // Add Glow for Chapter 3
+                    if (glow) {
+                        h.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+                    }
                     
                     h.innerHTML = `
                         <div style="position:absolute; width:100%; height:100%; background:inherit; border-radius:50%; top:-50%; left:0;"></div>
@@ -344,53 +359,27 @@
             return <span className={`${className} typing-cursor`}>{displayed}</span>;
         };
 
-        // 4. Inline Music Button (Circle)
-        const InlineMusicButton = ({ song, accent, activeSong, onToggle }) => {
+        // 4. Expanding Music Controller (Unlimited Width / Responsive)
+        const MusicController = ({ song, accent, activeSong, onToggle, audioRef }) => {
             const isActive = activeSong === song.url;
-            return (
-                <div className="flex justify-center my-8 h-16">
-                     <motion.button 
-                        className={`relative rounded-full flex items-center justify-center liquid-glass cursor-pointer transition-all duration-500 overflow-hidden w-16 h-16 md:w-20 md:h-20`}
-                        initial={false}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        animate={{ 
-                            backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.02)',
-                            borderColor: isActive ? accent : 'rgba(255,255,255,0.1)'
-                        }}
-                        onClick={() => onToggle(song.url)}
-                    >
-                        {!isActive && (
-                            <div className="absolute inset-0 animate-breathe opacity-50 bg-white/5"></div>
-                        )}
-                        <span className="text-2xl md:text-3xl" style={{ color: isActive ? accent : 'white' }}>
-                            {isActive ? '⏸' : '▶'}
-                        </span>
-                    </motion.button>
-                </div>
-            )
-        };
-
-        // 5. Sticky Bottom Player (No Pause Btn, Darker, Rounded)
-        const StickyPlayer = ({ activeSong, accent, songTitle, audioRef }) => {
-            if (!activeSong) return null;
-            
             const [progress, setProgress] = useState(0);
             const [timeLeft, setTimeLeft] = useState(0);
 
             useEffect(() => {
+                let frame;
                 const update = () => {
-                    const audio = audioRef.current;
-                    if(audio && audio.duration) {
-                        const current = audio.currentTime;
-                        const total = audio.duration;
-                        setProgress((current / total) * 100);
-                        setTimeLeft(total - current);
+                    if (isActive && audioRef.current) {
+                        const audio = audioRef.current;
+                        if(audio.duration) {
+                            setProgress((audio.currentTime / audio.duration) * 100);
+                            setTimeLeft(audio.duration - audio.currentTime);
+                        }
+                        frame = requestAnimationFrame(update);
                     }
                 };
-                const interval = setInterval(update, 500);
-                return () => clearInterval(interval);
-            }, [activeSong]);
+                if(isActive) update();
+                return () => cancelAnimationFrame(frame);
+            }, [isActive]);
 
             const formatTime = (seconds) => {
                 if (!seconds || isNaN(seconds)) return "0:00";
@@ -400,35 +389,58 @@
             };
 
             return (
-                <motion.div 
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 50 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg bg-black/90 backdrop-blur-2xl rounded-full p-4 flex items-center gap-4 border border-white/10 shadow-2xl"
-                    style={{ boxShadow: `0 10px 40px -10px ${accent}40` }}
-                >
-                    {/* Song Info (No Pause Button) */}
-                    <div className="flex-1 px-2">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-bold font-sans text-white uppercase tracking-widest truncate max-w-[200px]">{songTitle}</span>
-                            <span className="text-[10px] font-sans text-gray-400 font-mono">{formatTime(timeLeft)}</span>
-                        </div>
-                        
-                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                            <motion.div 
-                                className="h-full rounded-full"
-                                style={{ backgroundColor: accent, width: `${progress}%` }}
-                            />
-                        </div>
-                    </div>
-                </motion.div>
-            );
+                <div className="flex justify-center my-8 h-16 relative z-30">
+                     <motion.div 
+                        layout
+                        className={`relative rounded-full flex items-center overflow-hidden liquid-glass cursor-pointer transition-colors duration-500 ease-out`}
+                        initial={false}
+                        animate={{ 
+                            backgroundColor: isActive ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.05)'
+                        }}
+                        style={{ 
+                            borderColor: isActive ? accent : 'rgba(255,255,255,0.1)',
+                            width: 'fit-content',
+                            minWidth: isActive ? '300px' : '100px',
+                            maxWidth: '95vw' /* Mobile Safety */
+                        }}
+                        onClick={() => !isActive && onToggle(song.url)}
+                    >
+                        {!isActive && (
+                            <div className="flex items-center justify-center animate-breathe w-full gap-3 px-10 py-4">
+                                <span className="text-xl" style={{color: 'white'}}>▶</span>
+                                <span className="font-sans font-bold uppercase tracking-widest text-xs text-white whitespace-nowrap">
+                                    {song.title}
+                                </span>
+                            </div>
+                        )}
+
+                        {isActive && (
+                            <div className="w-full px-6 py-4 flex items-center gap-4 min-w-[300px]">
+                                <button onClick={(e) => { e.stopPropagation(); onToggle(song.url); }} className="hover:scale-110 transition-transform flex-shrink-0">
+                                    <span className="text-lg" style={{color: accent}}>⏸</span>
+                                </button>
+                                
+                                <div className="flex-1 flex flex-col justify-center gap-1 min-w-[150px]">
+                                    <div className="flex justify-between text-[10px] font-sans text-gray-400 uppercase tracking-wider gap-4">
+                                        <span className="font-bold text-white whitespace-nowrap">{song.title}</span>
+                                        <span>{formatTime(timeLeft)}</span>
+                                    </div>
+                                    <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                                        <motion.div 
+                                            className="h-full rounded-full"
+                                            style={{ backgroundColor: accent, width: `${progress}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
+            )
         };
 
-        // 6. Carousel (Fixed Animation)
+        // 5. Carousel
         const Carousel = ({ photos, onOpen, type }) => {
-            // Triple data for smooth loop
             const displayPhotos = useMemo(() => [...photos, ...photos, ...photos], [photos]);
             
             const cardClass = type === 'anniversary' 
@@ -456,7 +468,7 @@
             );
         };
 
-        // 7. Lightbox (PC Fixed)
+        // 6. Lightbox
         const Lightbox = ({ isOpen, albumPhotos, startIndex, onClose, accent }) => {
             if (!isOpen || !albumPhotos) return null;
             const [currentIndex, setCurrentIndex] = useState(startIndex);
@@ -489,10 +501,10 @@
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{ transform: 'rotate(90deg)', color: accent }}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
 
-                    <div className="relative w-full max-w-6xl h-full flex flex-col items-center justify-center gap-6 p-4" onClick={e => e.stopPropagation()}>
+                    <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-center gap-6 p-4" onClick={e => e.stopPropagation()}>
                         
-                        {/* Image Container (Fixed Scaling) */}
-                        <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden">
+                        {/* Image Container */}
+                        <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden min-h-0">
                             <motion.img 
                                 key={currentIndex}
                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -504,23 +516,20 @@
                         </div>
 
                         {/* Info Container */}
-                        <div className="w-full max-w-lg flex flex-col gap-3">
-                            {/* Counter */}
-                            <div className="flex items-center gap-4">
-                                <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <motion.div className="h-full" style={{ backgroundColor: accent }} initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
-                                </div>
-                                <span className="text-xs font-sans font-bold text-white/50">{currentIndex + 1}/{albumPhotos.length}</span>
-                            </div>
-
+                        <div className="w-full max-w-lg flex flex-col gap-3 flex-shrink-0">
                             {/* Scrollable Note */}
-                            <div className="liquid-glass rounded-xl p-4 w-full overflow-x-auto hide-scrollbar scroll-mask-right whitespace-nowrap border-l-2" style={{ borderColor: accent }}>
+                            <div className="liquid-glass rounded-xl p-4 md:p-6 w-full overflow-x-auto hide-scrollbar scroll-mask-right whitespace-nowrap border-l-2" style={{ borderColor: accent }}>
                                 <Typewriter 
                                     text={currentPhoto.note} 
                                     speed={30} 
                                     delay={200}
                                     className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide inline-block pr-12"
                                 />
+                            </div>
+
+                            {/* Visual Progress Bar (No Text) under note */}
+                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mt-1">
+                                <motion.div className="h-full" style={{ backgroundColor: accent }} initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
                             </div>
                         </div>
                     </div>
@@ -617,12 +626,13 @@
                                     <h2 className="font-script text-5xl md:text-7xl text-white/90 mb-2 transition-colors duration-1000">{chapter.title}</h2>
                                     <h3 className="font-sans text-sm md:text-lg tracking-[0.3em] uppercase text-white/60 mb-6" style={{ color: currentTheme.accent }}>{chapter.subtitle}</h3>
                                     
-                                    {/* Circular Button */}
-                                    <InlineMusicButton 
+                                    {/* Expanding Music Controller */}
+                                    <MusicController 
                                         song={chapter.song} 
                                         accent={currentTheme.accent} 
                                         activeSong={activeSong ? activeSong.url : null}
-                                        onToggle={(url) => setActiveSong(activeSong && activeSong.url === url ? null : { url, title: chapter.song.title })} 
+                                        onToggle={(url) => setActiveSong(activeSong && activeSong.url === url ? null : { url, title: chapter.song.title })}
+                                        audioRef={audioRef}
                                     />
                                 </div>
 
@@ -662,15 +672,6 @@
                                 startIndex={lightboxState.index}
                                 onClose={() => setLightboxState({ ...lightboxState, open: false })}
                                 accent={currentTheme.accent}
-                            />
-                        )}
-                        {/* Sticky Player (No Pause Btn) */}
-                        {activeSong && (
-                             <StickyPlayer 
-                                activeSong={activeSong.url}
-                                songTitle={activeSong.title}
-                                accent={currentTheme.accent}
-                                audioRef={audioRef}
                             />
                         )}
                     </AnimatePresence>
