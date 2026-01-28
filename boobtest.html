@@ -23,11 +23,16 @@
                     },
                     animation: {
                         'breathe': 'breathe 3s ease-in-out infinite',
+                        'star-fade': 'starFade 1s ease-out forwards',
                     },
                     keyframes: {
                         breathe: {
                             '0%, 100%': { boxShadow: '0 0 15px rgba(255,255,255,0.1)', transform: 'scale(1)' },
                             '50%': { boxShadow: '0 0 30px rgba(255,255,255,0.4)', transform: 'scale(1.02)' },
+                        },
+                        starFade: {
+                            '0%': { opacity: 1, transform: 'scale(1) rotate(0deg)' },
+                            '100%': { opacity: 0, transform: 'scale(0) rotate(180deg)' },
                         }
                     }
                 }
@@ -45,14 +50,13 @@
         body { 
             overflow-x: hidden; 
             background-color: #000;
-            transition: background 3s ease-in-out; /* Super smooth transition */
         }
         
         /* Loading Screen */
         #initial-loader {
             position: fixed; inset: 0; z-index: 9999;
             background: #000;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.8s ease;
         }
         .loader-heart {
@@ -68,11 +72,25 @@
         .loader-heart::after { top: -25px; }
         @keyframes heartPulse { 0% { transform: rotate(45deg) scale(0.8); opacity: 0.8; } 50% { transform: rotate(45deg) scale(1); opacity: 1; } 100% { transform: rotate(45deg) scale(0.8); opacity: 0.8; } }
 
-        /* Scrollbar Hiding */
+        .loader-text {
+            margin-top: 40px;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        /* Particle System */
+        .heart-particle {
+            position: fixed; pointer-events: none; z-index: 1;
+            will-change: transform, opacity;
+        }
+
+        /* Utility Classes */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Utility Classes */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -80,7 +98,20 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
 
-        /* Cursor */
+        /* Special Effects */
+        .effect-birthday {
+            background: rgba(255, 192, 203, 0.05);
+            border: 1px solid rgba(255, 105, 180, 0.4);
+            box-shadow: 0 0 25px rgba(255, 105, 180, 0.2);
+            animation: breathe 4s infinite;
+        }
+        .effect-anniversary {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.3);
+            animation: breathe 3s infinite;
+        }
+
         .typing-cursor::after {
             content: '|';
             animation: blink 1s step-end infinite;
@@ -92,6 +123,7 @@
 
     <div id="initial-loader">
         <div class="loader-heart"></div>
+        <div class="loader-text" id="loader-msg">Refresh if you've waited a while</div>
     </div>
 
     <div id="root"></div>
@@ -101,13 +133,11 @@
         const { motion, AnimatePresence } = window.Motion;
 
         // --- Data ---
-        // Helper to generate photos (replace src with your real images later)
         const generatePhotos = (seed, context, count = 5) => {
             return Array.from({ length: count }, (_, i) => ({
                 id: `${seed}-${i}`,
                 src: `https://picsum.photos/seed/${seed * (i + 1)}/600/800`, 
-                // Shortened note to test scrolling
-                note: `Memory #${i + 1} from ${context}. We were here, in this moment, and time seemed to stop.`
+                note: `Memory #${i + 1} from ${context}. We were here, in this moment, and time seemed to stop. It was absolutely perfect.`
             }));
         };
 
@@ -116,8 +146,8 @@
                 id: 1,
                 title: "Chapter 1",
                 subtitle: "Unknowing & Joy",
-                // Updated: Cooler, Calmer Blue Tone
-                theme: { from: "#0f172a", to: "#1e3a8a", accent: "#38bdf8" }, // Slate 900 -> Blue 900
+                // Transition: Deep Cool Blue to Midnight
+                theme: { from: "#0f172a", to: "#172554", accent: "#38bdf8" }, 
                 song: { 
                     title: "a Vivid dream", 
                     url: "https://huemiliation.github.io/BigBoobies/08%20Radiohead%20-%20Separator.mp3" 
@@ -134,7 +164,8 @@
                 id: 2,
                 title: "Chapter 2",
                 subtitle: "Golden Hour",
-                theme: { from: "#271a0c", to: "#451a03", accent: "#fbbf24" }, // Deep Warm Brown
+                // Transition: Warm Browns/Gold
+                theme: { from: "#271a0c", to: "#451a03", accent: "#fbbf24" }, 
                 song: { 
                     title: "I'll follow to the edge", 
                     url: "https://huemiliation.github.io/BigBoobies/04%20Radiohead%20-%20Weird%20Fishes_%20Arpeggi.mp3" 
@@ -151,10 +182,10 @@
                 id: 3,
                 title: "Chapter 3",
                 subtitle: "Blood & Forever",
-                theme: { from: "#2a0a0a", to: "#000000", accent: "#f43f5e" }, // Deep Red/Black
+                // Transition: Deep Magenta/Black
+                theme: { from: "#2a0a0a", to: "#000000", accent: "#f43f5e" }, 
                 song: { 
                     title: "to see you in the next life", 
-                    // Note: Converted blob link to raw content for audio playback
                     url: "https://raw.githubusercontent.com/Huemiliation/BigBoobies/main/10%20Radiohead%20-%20Motion%20Picture%20Soundtrack.mp3" 
                 },
                 albums: [
@@ -169,12 +200,75 @@
 
         // --- Helper Components ---
 
-        // 1. Typewriter Hook
+        // 1. Dynamic Particle System
+        const ParticleSystem = ({ activeChapter }) => {
+            useEffect(() => {
+                const container = document.getElementById('particle-container');
+                
+                // Config based on chapter
+                let spawnRate = 2000; // Slow
+                let colors = ['#ffffff']; 
+                let opacity = 0.3;
+
+                if (activeChapter === 1) {
+                    spawnRate = 800; // Faster
+                    colors = ['#ffffff', '#fff5d0'];
+                    opacity = 0.5;
+                } else if (activeChapter === 2) {
+                    spawnRate = 200; // Intense
+                    colors = ['#ffffff', '#ff00ff', '#f43f5e']; // White + Magenta
+                    opacity = 0.7;
+                }
+
+                const spawnHeart = () => {
+                    if (document.hidden) return;
+                    const h = document.createElement('div');
+                    h.className = 'heart-particle';
+                    const size = Math.random() * 15 + 10;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    
+                    // Styles
+                    h.style.width = `${size}px`;
+                    h.style.height = `${size}px`;
+                    h.style.background = color;
+                    h.style.left = Math.random() * 100 + 'vw';
+                    h.style.bottom = '-50px';
+                    h.style.opacity = '0';
+                    h.style.transform = 'rotate(45deg)';
+                    
+                    // CSS Shape
+                    h.innerHTML = `
+                        <div style="position:absolute; width:100%; height:100%; background:inherit; border-radius:50%; top:-50%; left:0;"></div>
+                        <div style="position:absolute; width:100%; height:100%; background:inherit; border-radius:50%; top:0; left:-50%;"></div>
+                    `;
+                    
+                    container.appendChild(h);
+
+                    // Animate
+                    const anim = h.animate([
+                        { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
+                        { opacity: opacity, offset: 0.2 },
+                        { transform: `translateY(-${80 + Math.random()*20}vh) rotate(90deg) scale(1)`, opacity: 0 }
+                    ], {
+                        duration: 5000 + Math.random() * 5000,
+                        easing: 'linear'
+                    });
+
+                    anim.onfinish = () => h.remove();
+                };
+
+                const intervalId = setInterval(spawnHeart, spawnRate);
+                return () => clearInterval(intervalId);
+            }, [activeChapter]);
+
+            return <div id="particle-container" className="fixed inset-0 pointer-events-none z-0"></div>;
+        };
+
+        // 2. Typewriter
         const Typewriter = ({ text, delay = 0, speed = 50, className = "" }) => {
             const [displayed, setDisplayed] = useState("");
-            
             useEffect(() => {
-                setDisplayed(""); // Reset when text changes
+                setDisplayed(""); 
                 const timeout = setTimeout(() => {
                     let i = 0;
                     const interval = setInterval(() => {
@@ -189,125 +283,89 @@
                 }, delay);
                 return () => clearTimeout(timeout);
             }, [text, delay, speed]);
-
             return <span className={`${className} typing-cursor`}>{displayed}</span>;
         };
 
-        // 2. Music Player (Expanded & Optimized)
-        const MusicController = ({ song, accent, activeSong, onToggle }) => {
+        // 3. Inline Music Button
+        const InlineMusicButton = ({ song, accent, activeSong, onToggle }) => {
             const isActive = activeSong === song.url;
-            const audioRef = useRef(null);
+            return (
+                <div className="flex justify-center my-8 h-16">
+                     <motion.button 
+                        className={`relative rounded-full flex items-center justify-center liquid-glass cursor-pointer transition-all duration-500 overflow-hidden px-8 py-4`}
+                        initial={false}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        animate={{ 
+                            backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.02)',
+                            borderColor: isActive ? accent : 'rgba(255,255,255,0.1)'
+                        }}
+                        onClick={() => onToggle(song.url)}
+                    >
+                        {!isActive && (
+                            <div className="absolute inset-0 animate-breathe opacity-50 bg-white/5"></div>
+                        )}
+                        <span className="font-sans font-bold uppercase tracking-widest text-xs md:text-sm text-white whitespace-nowrap z-10">
+                            {isActive ? 'Playing...' : song.title}
+                        </span>
+                    </motion.button>
+                </div>
+            )
+        };
+
+        // 4. Sticky Bottom Player
+        const StickyPlayer = ({ activeSong, accent, songTitle, onToggle, audioRef }) => {
+            if (!activeSong) return null;
+            
             const [progress, setProgress] = useState(0);
-            const [duration, setDuration] = useState(0);
-            const [isPlaying, setIsPlaying] = useState(false);
-            const [expanded, setExpanded] = useState(false);
 
             useEffect(() => {
-                if (isActive) {
-                    setExpanded(true);
-                    setIsPlaying(true);
-                } else {
-                    setExpanded(false);
-                    setIsPlaying(false);
-                }
-            }, [isActive]);
-
-            const handleTimeUpdate = (e) => {
-                const current = e.target.currentTime;
-                const total = e.target.duration;
-                if(total) {
-                    setProgress((current / total) * 100);
-                    setDuration(total - current);
-                }
-            };
-
-            const formatTime = (seconds) => {
-                if (!seconds) return "0:00";
-                const m = Math.floor(seconds / 60);
-                const s = Math.floor(seconds % 60);
-                return `${m}:${s < 10 ? '0' : ''}${s}`;
-            };
-
-            const togglePlay = (e) => {
-                e.stopPropagation();
-                onToggle(song.url);
-            };
-
-            const handleBarClick = () => {
-                if (!expanded) onToggle(song.url);
-            };
+                const update = () => {
+                    const audio = audioRef.current;
+                    if(audio) setProgress((audio.currentTime / audio.duration) * 100 || 0);
+                };
+                const interval = setInterval(update, 500);
+                return () => clearInterval(interval);
+            }, [activeSong]);
 
             return (
-                <div className="flex justify-center my-8 h-16"> 
-                    {/* Audio Element (Hidden) handled in parent or here? 
-                        To simplify state, let's keep one global audio in App, 
-                        or handle it here if only one plays at a time.
-                        Actually, moving audio to parent is safer to prevent overlaps. 
-                        But for UI, we just render controls here.
-                    */}
+                <motion.div 
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0, rotate: 180 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md liquid-glass rounded-2xl p-4 flex items-center gap-4 border border-white/20 backdrop-blur-xl shadow-2xl"
+                    style={{ borderColor: accent }}
+                >
+                    <button onClick={() => onToggle(activeSong)} className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
+                        <span className="text-xl">⏸</span>
+                    </button>
                     
-                    <motion.div 
-                        className={`relative rounded-full flex items-center overflow-hidden liquid-glass cursor-pointer transition-all duration-500 ease-out`}
-                        initial={false}
-                        animate={{ 
-                            width: expanded ? '320px' : '200px',
-                            backgroundColor: expanded ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.05)'
-                        }}
-                        onClick={handleBarClick}
-                        style={{ borderColor: expanded ? accent : 'rgba(255,255,255,0.1)' }}
-                    >
-                         {/* Button State (Collapsed) */}
-                        {!expanded && (
-                            <div className="absolute inset-0 flex items-center justify-center animate-breathe w-full">
-                                <span className="font-sans font-bold uppercase tracking-widest text-xs text-white">
-                                    {song.title}
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Expanded State (Progress Bar) */}
-                        {expanded && (
-                            <div className="w-full px-4 flex items-center gap-3">
-                                <button onClick={togglePlay} className="p-2 hover:scale-110 transition-transform">
-                                    <span className="text-xl" style={{color: accent}}>
-                                        {isPlaying ? '⏸' : '▶'}
-                                    </span>
-                                </button>
-                                
-                                <div className="flex-1 flex flex-col justify-center gap-1">
-                                    <div className="flex justify-between text-[10px] font-sans text-gray-400 uppercase tracking-wider">
-                                        <span>{song.title}</span>
-                                        <span>{formatTime(duration)}</span>
-                                    </div>
-                                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <motion.div 
-                                            className="h-full rounded-full"
-                                            style={{ backgroundColor: accent, width: `${progress}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                </div>
+                    <div className="flex-1 overflow-hidden">
+                        <div className="text-xs text-gray-400 uppercase tracking-wider mb-1 truncate">{songTitle}</div>
+                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <motion.div 
+                                className="h-full rounded-full"
+                                style={{ backgroundColor: accent, width: `${progress}%` }}
+                            />
+                        </div>
+                    </div>
+                </motion.div>
             );
         };
 
-        // 3. Carousel (Responsive & Infinite)
+        // 5. Carousel
         const Carousel = ({ photos, onOpen, type }) => {
             const displayPhotos = useMemo(() => [...photos, ...photos, ...photos], [photos]);
             
-            // Adjusted sizes for PC to prevent "way too big" issue
-            // Mobile: 140px wide, Desktop: 180px wide. 
-            // This is smaller than before to fit screens better.
             const cardClass = type === 'anniversary' 
                 ? 'w-[180px] h-[260px] md:w-[220px] md:h-[300px] border-yellow-500/50' 
                 : 'w-[140px] h-[200px] md:w-[180px] md:h-[260px] border-white/10';
 
             return (
                 <div className="w-full overflow-hidden relative py-6 group">
-                    <div className="absolute left-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-black/50 to-transparent pointer-events-none"></div>
-                    <div className="absolute right-0 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-black/50 to-transparent pointer-events-none"></div>
+                    <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-black/50 to-transparent pointer-events-none"></div>
+                    <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-black/50 to-transparent pointer-events-none"></div>
                     
                     <div className="flex w-max gap-4 md:gap-6 animate-scroll hover:pause-scroll pl-4">
                         {displayPhotos.map((photo, idx) => (
@@ -325,7 +383,7 @@
             );
         };
 
-        // 4. Lightbox (Optimized for PC view)
+        // 6. Lightbox
         const Lightbox = ({ isOpen, albumPhotos, startIndex, onClose, accent }) => {
             if (!isOpen || !albumPhotos) return null;
             const [currentIndex, setCurrentIndex] = useState(startIndex);
@@ -339,35 +397,29 @@
             return (
                 <motion.div 
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-8"
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
                     onClick={onClose}
                 >
-                    <button onClick={onClose} className="absolute top-4 right-4 md:top-8 md:right-8 p-2 opacity-50 hover:opacity-100 transition-opacity z-50">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    {/* Fixed X Button Top Right */}
+                    <button 
+                        onClick={onClose} 
+                        className="absolute top-4 right-4 p-3 bg-white/10 rounded-full opacity-70 hover:opacity-100 z-[110]"
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                     
-                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-50 p-4 opacity-60 hover:opacity-100 text-white hover:scale-110 transition-transform">
+                    {/* Navigation */}
+                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] p-4 opacity-60 hover:opacity-100 text-white hover:scale-110 transition-transform">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{ transform: 'rotate(-90deg)', color: accent }}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-50 p-4 opacity-60 hover:opacity-100 text-white hover:scale-110 transition-transform">
+                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] p-4 opacity-60 hover:opacity-100 text-white hover:scale-110 transition-transform">
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{ transform: 'rotate(90deg)', color: accent }}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
 
-                    {/* Content Container - Constrained height/width */}
-                    <div 
-                        className="w-full max-w-4xl h-full max-h-[90vh] flex flex-col items-center justify-center gap-4"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        {/* Progress */}
-                        <div className="w-full max-w-md flex items-center gap-4">
-                            <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
-                                <motion.div className="h-full" style={{ backgroundColor: accent }} initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
-                            </div>
-                            <span className="text-xs font-sans font-bold text-white/50">{currentIndex + 1}/{albumPhotos.length}</span>
-                        </div>
-
-                        {/* Image - Use object-contain to never overflow */}
-                        <div className="relative w-full flex-1 min-h-0 flex items-center justify-center">
+                    <div className="w-full max-w-5xl h-full flex flex-col md:flex-row items-center justify-center gap-6" onClick={e => e.stopPropagation()}>
+                        
+                        {/* Image Container */}
+                        <div className="relative flex-1 w-full max-h-[70vh] md:max-h-[85vh] flex items-center justify-center">
                             <motion.img 
                                 key={currentIndex}
                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -378,17 +430,25 @@
                             />
                         </div>
 
-                        {/* Note Box - Fixed height, scrollable */}
-                        <div className="w-full max-w-lg relative flex-shrink-0">
+                        {/* Info Container (Separate on mobile) */}
+                        <div className="w-full md:w-80 flex-shrink-0 flex flex-col gap-4">
+                            {/* Counter Bar */}
+                            <div className="flex items-center gap-4">
+                                <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <motion.div className="h-full" style={{ backgroundColor: accent }} initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
+                                </div>
+                                <span className="text-xs font-sans font-bold text-white/50">{currentIndex + 1}/{albumPhotos.length}</span>
+                            </div>
+
+                            {/* Scrollable Note */}
                             <div className="liquid-glass rounded-xl p-4 md:p-6 w-full overflow-x-auto hide-scrollbar scroll-mask-right whitespace-nowrap border-l-2" style={{ borderColor: accent }}>
                                 <Typewriter 
                                     text={currentPhoto.note} 
                                     speed={30} 
-                                    delay={300}
+                                    delay={200}
                                     className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide inline-block pr-12"
                                 />
                             </div>
-                            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black/40 to-transparent pointer-events-none rounded-r-xl"></div>
                         </div>
                     </div>
                 </motion.div>
@@ -399,13 +459,17 @@
         const App = () => {
             const [activeChapter, setActiveChapter] = useState(0);
             const [lightboxState, setLightboxState] = useState({ open: false, photos: null, index: 0 });
-            const [activeSongUrl, setActiveSongUrl] = useState(null);
-            
-            // Global Audio Ref
-            const audioRef = useRef(new Audio());
+            const [activeSong, setActiveSong] = useState(null); // stores { url, title }
+            const audioRef = useRef(null);
 
-            // Remove Loader
+            // Loader Logic
             useEffect(() => {
+                // Show text after 5s
+                const timer = setTimeout(() => {
+                    const text = document.getElementById('loader-msg');
+                    if(text) text.style.opacity = '1';
+                }, 5000);
+
                 const removeLoader = () => {
                     const loader = document.getElementById('initial-loader');
                     if(loader) {
@@ -413,30 +477,30 @@
                         setTimeout(() => loader.remove(), 800);
                     }
                 };
+
                 if (document.readyState === 'complete') removeLoader();
                 else window.addEventListener('load', removeLoader);
-                setTimeout(removeLoader, 3000); // Safety net
+                setTimeout(removeLoader, 8000); // Safety net
+                return () => clearTimeout(timer);
             }, []);
 
-            // Handle Audio Logic (HTML5)
+            // Audio Logic
             useEffect(() => {
                 const audio = audioRef.current;
+                if(!audio) return;
                 
-                const handleEnd = () => setActiveSongUrl(null); // Stop when done
+                const handleEnd = () => setActiveSong(null);
                 audio.addEventListener('ended', handleEnd);
 
-                if (activeSongUrl) {
-                    audio.src = activeSongUrl;
-                    audio.play().catch(e => console.log("Autoplay blocked", e));
+                if (activeSong) {
+                    audio.src = activeSong.url;
+                    audio.play().catch(e => console.error("Play error:", e));
                 } else {
                     audio.pause();
                 }
 
-                return () => {
-                    audio.pause();
-                    audio.removeEventListener('ended', handleEnd);
-                };
-            }, [activeSongUrl]);
+                return () => { audio.pause(); audio.removeEventListener('ended', handleEnd); };
+            }, [activeSong]);
 
             // Scroll Theme Logic
             useEffect(() => {
@@ -444,7 +508,6 @@
                     const sections = document.querySelectorAll('.chapter-section');
                     sections.forEach((sec, index) => {
                         const rect = sec.getBoundingClientRect();
-                        // Trigger when section fills majority of viewport
                         if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
                             setActiveChapter(index);
                         }
@@ -454,25 +517,19 @@
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
 
-            const toggleMusic = (url) => {
-                if (activeSongUrl === url) {
-                    setActiveSongUrl(null); // Pause
-                } else {
-                    setActiveSongUrl(url); // Play new
-                }
-            };
-
             const currentTheme = CHAPTERS[activeChapter].theme;
 
             return (
                 <div 
-                    className="min-h-screen transition-colors duration-[3000ms] ease-in-out" 
-                    style={{ background: `linear-gradient(to bottom, ${currentTheme.from}, ${currentTheme.to})` }}
+                    className="min-h-screen transition-colors ease-in-out" 
+                    style={{ 
+                        background: `linear-gradient(to bottom, ${currentTheme.from}, ${currentTheme.to})`,
+                        transitionDuration: '4000ms' // Smooth long transition
+                    }}
                 >
-                    {/* Background Stars */}
-                    <div className="fixed inset-0 pointer-events-none z-0 opacity-60"><div id="stars"></div></div>
+                    <ParticleSystem activeChapter={activeChapter} />
+                    <audio ref={audioRef} id="global-audio" />
 
-                    {/* Main Content */}
                     <div className="relative z-10 max-w-6xl mx-auto px-4 pb-40">
                         <header className="pt-32 pb-20 text-center animate-fade-in-up">
                             <h1 className="font-script text-6xl sm:text-8xl md:text-9xl mb-6 text-white drop-shadow-2xl">
@@ -486,29 +543,21 @@
                                     <h2 className="font-script text-5xl md:text-7xl text-white/90 mb-2 transition-colors duration-1000">{chapter.title}</h2>
                                     <h3 className="font-sans text-sm md:text-lg tracking-[0.3em] uppercase text-white/60 mb-6" style={{ color: currentTheme.accent }}>{chapter.subtitle}</h3>
                                     
-                                    {/* Music Button */}
-                                    <div className="relative z-20">
-                                        <MusicController 
-                                            song={chapter.song} 
-                                            accent={currentTheme.accent} 
-                                            activeSong={activeSongUrl}
-                                            onToggle={toggleMusic} 
-                                        />
-                                        {/* Pass current time updater to MusicController via ref if needed, 
-                                            but simpler to have MusicController manage its own update via one global audio context 
-                                            To make the progress bar work for real, we'd need to lift the timeUpdate event up. 
-                                            For this single-file simplicity, we will attach event listener to global audioRef inside MusicController.
-                                         */}
-                                        <AudioListener audioRef={audioRef} activeSong={activeSongUrl} songUrl={chapter.song.url} setUpdate={x => x} />
-                                    </div>
+                                    {/* Inline Button only plays/pauses logic */}
+                                    <InlineMusicButton 
+                                        song={chapter.song} 
+                                        accent={currentTheme.accent} 
+                                        activeSong={activeSong ? activeSong.url : null}
+                                        onToggle={(url) => setActiveSong(activeSong && activeSong.url === url ? null : { url, title: chapter.song.title })} 
+                                    />
                                 </div>
 
                                 <div className="space-y-16 md:space-y-24">
                                     {chapter.albums.map((album, aIdx) => (
                                         <div key={aIdx} className={`
                                             rounded-2xl p-4 md:p-8 transition-all duration-500 hover:bg-white/5
-                                            ${album.type === 'birthday' ? 'liquid-glass border-pink-400/30' : 
-                                              album.type === 'anniversary' ? 'liquid-glass border-yellow-400/30 scale-[1.02]' : 'liquid-glass'}
+                                            ${album.type === 'birthday' ? 'effect-birthday' : 
+                                              album.type === 'anniversary' ? 'effect-anniversary scale-[1.02]' : 'liquid-glass'}
                                         `}>
                                             <div className="flex items-end gap-3 mb-6 ml-2 border-l-4 pl-4" style={{ borderColor: currentTheme.accent }}>
                                                 <div>
@@ -541,250 +590,14 @@
                                 accent={currentTheme.accent}
                             />
                         )}
-                    </AnimatePresence>
-                </div>
-            );
-        };
-
-        // Helper component to bind the global audio progress to the specific MusicController UI
-        // This is a hack to get the progress bar working without prop drilling the raw audio element too deep
-        const AudioListener = ({ audioRef, activeSong, songUrl }) => {
-            const [dummy, setDummy] = useState(0); // Force re-render
-            
-            useEffect(() => {
-                const audio = audioRef.current;
-                const update = () => {
-                    // Only trigger update if this component matches the active song
-                    if(activeSong === songUrl) {
-                        // Dispatch custom event or just manipulate DOM? 
-                        // Actually, MusicController can listen to audioRef directly if passed.
-                        // Let's modify MusicController to accept audioRef.
-                    }
-                }
-                audio.addEventListener('timeupdate', update);
-                return () => audio.removeEventListener('timeupdate', update);
-            }, [activeSong, songUrl]);
-            return null;
-        }
-
-        // --- Improved Music Controller with Real Progress ---
-        // Redefining here to close over audioRef if passed from parent, 
-        // but simpler: logic inside App was cleaner. 
-        // Let's just fix the previous MusicController to use document.querySelector('audio')? No, using the Ref.
-        // Actually, the previous implementation had logic inside it. 
-        // To make it work perfect with global audio:
-        // We will pass the global audio object's data down.
-        
-        // RE-INJECTED UPDATED MUSIC CONTROLLER LOGIC INTO THE MAIN APP RENDER:
-        // *See MusicController usage inside App* -> Let's update the definition above App.
-        
-        // (Re-defined for context, replace the previous MusicController with this one)
-        const RealMusicController = ({ song, accent, activeSong, onToggle }) => {
-            const isActive = activeSong === song.url;
-            const [progress, setProgress] = useState(0);
-            const [duration, setDuration] = useState(0);
-            
-            useEffect(() => {
-                let animationFrame;
-                const update = () => {
-                    // Find the global audio created in App (we can assume it's the only audio tag created by Ref, or we can use an ID)
-                    // Since audioRef is in App, we need access. 
-                    // To solve this cleanly in one file without context:
-                    // We will cheat and query selector the active audio if we added it to DOM, 
-                    // but App uses `new Audio()` which is not in DOM.
-                    // FIX: App should render <audio id="bg-music" /> in JSX.
-                    
-                    const audio = document.getElementById('global-audio');
-                    if (audio && isActive) {
-                        setProgress((audio.currentTime / audio.duration) * 100 || 0);
-                        setDuration(audio.duration - audio.currentTime || 0);
-                        animationFrame = requestAnimationFrame(update);
-                    }
-                };
-                if(isActive) update();
-                return () => cancelAnimationFrame(animationFrame);
-            }, [isActive]);
-
-            const formatTime = (seconds) => {
-                if (!seconds || isNaN(seconds)) return "0:00";
-                const m = Math.floor(seconds / 60);
-                const s = Math.floor(seconds % 60);
-                return `${m}:${s < 10 ? '0' : ''}${s}`;
-            };
-
-            return (
-                <div className="flex justify-center my-8 h-16">
-                     <motion.div 
-                        className={`relative rounded-full flex items-center overflow-hidden liquid-glass cursor-pointer transition-all duration-500 ease-out`}
-                        initial={false}
-                        animate={{ 
-                            width: isActive ? '320px' : '220px',
-                            backgroundColor: isActive ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.05)'
-                        }}
-                        onClick={() => !isActive && onToggle(song.url)}
-                        style={{ borderColor: isActive ? accent : 'rgba(255,255,255,0.1)' }}
-                    >
-                        {!isActive && (
-                            <div className="absolute inset-0 flex items-center justify-center animate-breathe w-full">
-                                <span className="font-sans font-bold uppercase tracking-widest text-xs text-white truncate px-4">
-                                    {song.title}
-                                </span>
-                            </div>
-                        )}
-
-                        {isActive && (
-                            <div className="w-full px-5 flex items-center gap-4">
-                                <button onClick={(e) => { e.stopPropagation(); onToggle(song.url); }} className="hover:scale-110 transition-transform">
-                                    <span className="text-lg" style={{color: accent}}>⏸</span>
-                                </button>
-                                
-                                <div className="flex-1 flex flex-col justify-center gap-1">
-                                    <div className="flex justify-between text-[9px] font-sans text-gray-400 uppercase tracking-wider">
-                                        <span className="truncate max-w-[100px]">{song.title}</span>
-                                        <span>{formatTime(duration)}</span>
-                                    </div>
-                                    <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                                        <motion.div 
-                                            className="h-full rounded-full"
-                                            style={{ backgroundColor: accent, width: `${progress}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                </div>
-            )
-        }
-
-        // Override the previous MusicController definition with this real one
-        // and update App to render <audio id="global-audio" />
-        
-        // --- Styles Injection ---
-        const styleSheet = document.createElement("style");
-        styleSheet.innerText = `
-            @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
-            .animate-scroll { animation: scroll 80s linear infinite; }
-            .hover\\:pause-scroll:hover { animation-play-state: paused; }
-            @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-            .animate-fade-in-up { animation: fadeInUp 1.2s ease-out forwards; }
-            #stars { width: 2px; height: 2px; background: transparent; box-shadow: ${Array(150).fill(0).map(() => `${Math.random()*100}vw ${Math.random()*2000}px #FFF`).join(',')}; animation: animStar 150s linear infinite; }
-            @keyframes animStar { from { transform: translateY(0); } to { transform: translateY(-2000px); } }
-        `;
-        document.head.appendChild(styleSheet);
-
-        // --- Final Render with Audio Element Fix ---
-        // We modify App inside the render to include <audio id="global-audio" />
-        // Note: For this snippet to work perfectly as a copy-paste, 
-        // I will re-declare App in the final block below to include the audio tag modification.
-        
-        const AppFinal = () => {
-             const [activeChapter, setActiveChapter] = useState(0);
-            const [lightboxState, setLightboxState] = useState({ open: false, photos: null, index: 0 });
-            const [activeSongUrl, setActiveSongUrl] = useState(null);
-            
-            // Audio Element Ref for programmatic control
-            const audioRef = useRef(null);
-
-            useEffect(() => {
-                const removeLoader = () => {
-                    const loader = document.getElementById('initial-loader');
-                    if(loader) { loader.style.opacity = '0'; setTimeout(() => loader.remove(), 800); }
-                };
-                if (document.readyState === 'complete') removeLoader();
-                else window.addEventListener('load', removeLoader);
-                setTimeout(removeLoader, 3000);
-            }, []);
-
-            // Handle Audio
-            useEffect(() => {
-                const audio = audioRef.current;
-                if(!audio) return;
-                const handleEnd = () => setActiveSongUrl(null);
-                audio.addEventListener('ended', handleEnd);
-                if (activeSongUrl) {
-                    audio.src = activeSongUrl;
-                    audio.play().catch(console.error);
-                } else {
-                    audio.pause();
-                }
-                return () => { audio.pause(); audio.removeEventListener('ended', handleEnd); };
-            }, [activeSongUrl]);
-
-            // Scroll Theme
-            useEffect(() => {
-                const handleScroll = () => {
-                    const sections = document.querySelectorAll('.chapter-section');
-                    sections.forEach((sec, index) => {
-                        const rect = sec.getBoundingClientRect();
-                        if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
-                            setActiveChapter(index);
-                        }
-                    });
-                };
-                window.addEventListener('scroll', handleScroll);
-                return () => window.removeEventListener('scroll', handleScroll);
-            }, []);
-
-            const currentTheme = CHAPTERS[activeChapter].theme;
-
-            return (
-                <div className="min-h-screen transition-colors duration-[3000ms] ease-in-out" style={{ background: `linear-gradient(to bottom, ${currentTheme.from}, ${currentTheme.to})` }}>
-                    <div className="fixed inset-0 pointer-events-none z-0 opacity-60"><div id="stars"></div></div>
-                    
-                    {/* The Global Audio Element */}
-                    <audio ref={audioRef} id="global-audio" />
-
-                    <div className="relative z-10 max-w-6xl mx-auto px-4 pb-40">
-                        <header className="pt-32 pb-20 text-center animate-fade-in-up">
-                            <h1 className="font-script text-6xl sm:text-8xl md:text-9xl mb-6 text-white drop-shadow-2xl">
-                                <Typewriter text="Our Memories" speed={150} delay={500} />
-                            </h1>
-                        </header>
-
-                        {CHAPTERS.map((chapter) => (
-                            <section key={chapter.id} className="chapter-section py-20 min-h-[85vh] flex flex-col justify-center">
-                                <div className="text-center mb-12">
-                                    <h2 className="font-script text-5xl md:text-7xl text-white/90 mb-2 transition-colors duration-1000">{chapter.title}</h2>
-                                    <h3 className="font-sans text-sm md:text-lg tracking-[0.3em] uppercase text-white/60 mb-6" style={{ color: currentTheme.accent }}>{chapter.subtitle}</h3>
-                                    
-                                    <div className="relative z-20">
-                                        <RealMusicController 
-                                            song={chapter.song} 
-                                            accent={currentTheme.accent} 
-                                            activeSong={activeSongUrl}
-                                            onToggle={(url) => setActiveSongUrl(activeSongUrl === url ? null : url)} 
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-16 md:space-y-24">
-                                    {chapter.albums.map((album, aIdx) => (
-                                        <div key={aIdx} className={`rounded-2xl p-4 md:p-8 transition-all duration-500 hover:bg-white/5 ${album.type === 'birthday' ? 'liquid-glass border-pink-400/30' : album.type === 'anniversary' ? 'liquid-glass border-yellow-400/30 scale-[1.02]' : 'liquid-glass'}`}>
-                                            <div className="flex items-end gap-3 mb-6 ml-2 border-l-4 pl-4" style={{ borderColor: currentTheme.accent }}>
-                                                <div>
-                                                    <h4 className="font-sans font-bold text-base md:text-lg uppercase tracking-wider text-white/90">{album.title}</h4>
-                                                    <span className="font-sans text-[10px] md:text-xs font-light tracking-widest text-white/50">{album.date}</span>
-                                                </div>
-                                                {album.type === 'birthday' && <span className="text-xl animate-bounce">🎂</span>}
-                                                {album.type === 'anniversary' && <span className="text-xl animate-pulse">💖</span>}
-                                            </div>
-                                            <Carousel photos={album.photos} onOpen={(idx) => setLightboxState({ open: true, photos: album.photos, index: idx })} type={album.type} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
-                    </div>
-
-                    <AnimatePresence>
-                        {lightboxState.open && (
-                            <Lightbox 
-                                isOpen={lightboxState.open} 
-                                albumPhotos={lightboxState.photos} 
-                                startIndex={lightboxState.index}
-                                onClose={() => setLightboxState({ ...lightboxState, open: false })}
+                        {/* Sticky Player */}
+                        {activeSong && (
+                             <StickyPlayer 
+                                activeSong={activeSong.url}
+                                songTitle={activeSong.title}
                                 accent={currentTheme.accent}
+                                onToggle={() => setActiveSong(null)}
+                                audioRef={audioRef}
                             />
                         )}
                     </AnimatePresence>
@@ -793,7 +606,7 @@
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<AppFinal />);
+        root.render(<App />);
     </script>
 </body>
 </html>
