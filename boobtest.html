@@ -14,31 +14,16 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        script: ['"Great Vibes"', 'cursive'],
-                        sans: ['"Montserrat"', 'sans-serif'],
-                    },
-                    colors: {
-                        glass: "rgba(255, 255, 255, 0.05)",
-                    },
+                    fontFamily: { script: ['"Great Vibes"', 'cursive'], sans: ['"Montserrat"', 'sans-serif'] },
+                    colors: { glass: "rgba(255, 255, 255, 0.05)" },
                     animation: {
-                        'breathe': 'breathe 3s ease-in-out infinite',
-                        'shine': 'shine 3s linear infinite',
-                        'pulse-gold': 'pulseGold 2s ease-in-out infinite alternate',
+                        'scroll': 'scroll 60s linear infinite',
+                        'spin-slow': 'spin 8s linear infinite',
+                        'shimmer': 'shimmer 2s linear infinite',
                     },
                     keyframes: {
-                        breathe: {
-                            '0%, 100%': { boxShadow: '0 0 15px rgba(255,255,255,0.1)', transform: 'scale(1)' },
-                            '50%': { boxShadow: '0 0 30px rgba(255,255,255,0.4)', transform: 'scale(1.02)' },
-                        },
-                        shine: {
-                            '0%': { backgroundPosition: '200% center' },
-                            '100%': { backgroundPosition: '-200% center' },
-                        },
-                        pulseGold: {
-                            '0%': { boxShadow: '0 0 40px rgba(255, 215, 0, 0.3)', transform: 'scale(1.02)', borderColor: 'rgba(255, 215, 0, 0.6)' },
-                            '100%': { boxShadow: '0 0 70px rgba(255, 215, 0, 0.8)', transform: 'scale(1.03)', borderColor: 'rgba(255, 215, 0, 1)' }
-                        }
+                        scroll: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-33.33%)' } },
+                        shimmer: { '0%': { backgroundPosition: '-1000px 0' }, '100%': { backgroundPosition: '1000px 0' } }
                     }
                 }
             }
@@ -51,134 +36,105 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
-        /* Base Styles */
-        body { 
-            overflow-x: hidden; 
-            background-color: #000;
-        }
+        body { overflow-x: hidden; background-color: #000; transition: background 1.5s ease-in-out; }
         
-        /* Loading Screen */
+        /* Initial Loader */
         #initial-loader {
-            position: fixed; inset: 0; z-index: 9999;
-            background: #000;
+            position: fixed; inset: 0; z-index: 9999; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.8s ease;
         }
         .loader-heart {
-            width: 50px; height: 50px; background: #fff;
-            transform: rotate(45deg);
-            animation: heartPulse 1.5s infinite;
-            margin-bottom: 20px;
+            width: 50px; height: 50px; background: #e11d48; transform: rotate(45deg);
+            animation: heartPulse 1.2s infinite; position: relative;
         }
         .loader-heart::before, .loader-heart::after {
-            content: ""; position: absolute; width: 50px; height: 50px;
-            border-radius: 50%; background: #fff;
+            content: ""; position: absolute; width: 50px; height: 50px; border-radius: 50%; background: #e11d48;
         }
-        .loader-heart::before { left: -25px; }
-        .loader-heart::after { top: -25px; }
-        @keyframes heartPulse { 0% { transform: rotate(45deg) scale(0.8); opacity: 0.8; } 50% { transform: rotate(45deg) scale(1); opacity: 1; } 100% { transform: rotate(45deg) scale(0.8); opacity: 0.8; } }
+        .loader-heart::before { left: -25px; } .loader-heart::after { top: -25px; }
+        @keyframes heartPulse { 0%, 100% { transform: rotate(45deg) scale(0.8); } 50% { transform: rotate(45deg) scale(1); } }
 
-        .loading-text-main {
-            font-family: 'Montserrat', sans-serif;
-            color: white;
-            letter-spacing: 2px;
-            font-size: 1.2rem;
-            animation: pulseText 2s infinite;
+        /* Liquid Glass */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
-        @keyframes pulseText { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        .loader-subtext {
-            margin-top: 10px;
-            color: rgba(255,255,255,0.4);
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: opacity 1s ease;
+        
+        /* Special Golden Effect */
+        .special-border {
+            position: relative;
+            background: rgba(20, 10, 5, 0.4);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
         }
-
-        /* Moving Starfield */
-        #stars-container {
-            position: fixed; inset: 0; z-index: 0; pointer-events: none;
-            width: 100%; height: 200%; /* Double height for scrolling */
-            animation: moveStars 200s linear infinite;
+        .special-border::before {
+            content: ""; position: absolute; inset: -2px; z-index: -1;
+            background: linear-gradient(45deg, #fbbf24, #d97706, #fbbf24, #78350f);
+            background-size: 400%;
+            border-radius: 1.5rem;
+            animation: gradientBorder 5s ease infinite;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
         }
-        @keyframes moveStars { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+        @keyframes gradientBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        .star {
-            position: absolute; background: white; border-radius: 50%;
-            animation: twinkle var(--duration) linear infinite;
+        .gold-text {
+            background: linear-gradient(to right, #fcd34d, #f59e0b, #fff, #f59e0b);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 4s linear infinite;
         }
-        @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+        @keyframes shine { to { background-position: 200% center; } }
 
-        /* Particle Hearts */
-        .heart-particle {
-            position: fixed; pointer-events: none; z-index: 1;
-            will-change: transform, opacity;
-        }
-
-        /* Utility Classes */
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .liquid-glass {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-        }
-
-        /* Special Effects */
-        .effect-birthday {
-            background: rgba(255, 192, 203, 0.05);
-            border: 1px solid rgba(255, 105, 180, 0.4);
-            box-shadow: 0 0 25px rgba(255, 105, 180, 0.2);
-            animation: breathe 4s infinite;
-        }
-        
-        .effect-anniversary {
-            background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(0,0,0,0.6));
-            border: 2px solid rgba(255, 215, 0, 0.8);
-            box-shadow: 0 0 60px rgba(255, 215, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-            animation: pulse-gold 3s infinite alternate; /* New Intense Pulse */
-        }
-        .effect-anniversary::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255, 215, 0, 0.6), transparent);
-            transform: skewX(-25deg);
-            animation: shine 4s infinite; /* Faster shine */
-        }
-
-        .typing-cursor::after {
-            content: '|';
-            animation: blink 1s step-end infinite;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
+        #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.6; }
+        #particle-container { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+        .heart-particle { position: absolute; opacity: 0; }
     </style>
 </head>
 <body>
 
     <div id="initial-loader">
         <div class="loader-heart"></div>
-        <div class="loading-text-main">Loading...</div>
-        <div class="loader-subtext" id="loader-msg">Refresh if you've waited a while</div>
+        <p class="mt-8 text-white font-sans text-xs tracking-[0.3em] uppercase animate-pulse">Loading Memories...</p>
     </div>
 
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
-        const { motion, AnimatePresence } = window.Motion;
+        const { motion, AnimatePresence, useInView } = window.Motion;
 
-        // --- Data ---
-        const generatePhotos = (seed, context, count = 5) => {
+        // ==========================================
+        //  CONFIGURATION
+        // ==========================================
+        const BASE_URL = "https://huemiliation.github.io/BigBoobies/memories/";
+
+        const SHIRAZ_NOTES = {
+            1: "The moment we arrived in Shiraz.",
+            2: "Looking at you here, I felt so lucky.",
+            12: "The architecture was stunning.",
+            36: "I didn't want this trip to end.",
+        };
+
+        const getPhotos = (path, count, notesMap = {}, defaultNote = "") => {
+            return Array.from({ length: count }, (_, i) => ({
+                id: `${path}-${i+1}`,
+                src: `${BASE_URL}${path}/${i+1}.jpg`,
+                note: notesMap[i+1] || defaultNote
+            }));
+        };
+
+        const generatePlaceholders = (seed, context, count = 5) => {
             return Array.from({ length: count }, (_, i) => ({
                 id: `${seed}-${i}`,
-                src: `https://picsum.photos/seed/${seed * (i + 1)}/600/800`, 
-                note: `Memory #${i + 1} from ${context}. We were here, in this moment, and time seemed to stop. Listening to our song, I knew this was exactly where I belonged.`
+                src: `https://picsum.photos/seed/${seed * (i + 1)}/600/800`,
+                note: `Memory #${i + 1} from ${context}.`
             }));
         };
 
@@ -188,34 +144,23 @@
                 title: "Chapter 1",
                 subtitle: "Unknowing & Joy",
                 theme: { from: "#0f172a", to: "#172554", accent: "#38bdf8" }, 
-                song: { 
-                    title: "a Vivid dream", 
-                    url: "https://huemiliation.github.io/BigBoobies/08%20Radiohead%20-%20Separator.mp3" 
-                },
+                song: { title: "Separator", url: "https://huemiliation.github.io/BigBoobies/08%20Radiohead%20-%20Separator.mp3" },
                 albums: [
-                    { title: "First Glances", date: "Jan 15", photos: generatePhotos(101, "First Glances") },
-                    { title: "Her Birthday", date: "March 20", type: "birthday", photos: generatePhotos(102, "Her Birthday") },
-                    { title: "First Laughs", date: "April 02", photos: generatePhotos(103, "First Laughs") },
-                    { title: "Nervous Hands", date: "May 10", photos: generatePhotos(104, "Nervous Hands") },
-                    { title: "Pure Joy", date: "June 22", photos: generatePhotos(105, "Pure Joy") }
+                    { title: "First Glances", month: "JANUARY", photos: generatePlaceholders(101, "First Glances") },
+                    { title: "Her Birthday", month: "MARCH", type: "birthday", photos: generatePlaceholders(102, "Her Birthday") },
+                    { title: "First Laughs", month: "APRIL", photos: generatePlaceholders(103, "First Laughs") }
                 ]
             },
             {
                 id: 2,
                 title: "Chapter 2",
                 subtitle: "Golden Hour",
-                // Darkened: Deep Espresso to Dark Chocolate
                 theme: { from: "#1c1006", to: "#3a1d08", accent: "#fbbf24" }, 
-                song: { 
-                    title: "I'll follow to the edge", 
-                    url: "https://huemiliation.github.io/BigBoobies/04%20Radiohead%20-%20Weird%20Fishes_%20Arpeggi.mp3" 
-                },
+                song: { title: "Weird Fishes", url: "https://huemiliation.github.io/BigBoobies/04%20Radiohead%20-%20Weird%20Fishes_%20Arpeggi.mp3" },
                 albums: [
-                    { title: "Sunsets", date: "July 04", photos: generatePhotos(201, "Sunsets") },
-                    { title: "His Birthday", date: "August 12", type: "birthday", photos: generatePhotos(202, "His Birthday") },
-                    { title: "Warm Nights", date: "Sept 01", photos: generatePhotos(203, "Warm Nights") },
-                    { title: "Golden Light", date: "Oct 15", photos: generatePhotos(204, "Golden Light") },
-                    { title: "Deep Talks", date: "Nov 20", photos: generatePhotos(205, "Deep Talks") }
+                    { title: "Sunsets", month: "JULY", photos: generatePlaceholders(201, "Sunsets") },
+                    { title: "His Birthday", month: "AUGUST", type: "birthday", photos: generatePlaceholders(202, "His Birthday") },
+                    { title: "Warm Nights", month: "SEPTEMBER", photos: generatePlaceholders(203, "Warm Nights") }
                 ]
             },
             {
@@ -223,157 +168,109 @@
                 title: "Chapter 3",
                 subtitle: "Blood & Forever",
                 theme: { from: "#2a0a0a", to: "#000000", accent: "#f43f5e" }, 
-                song: { 
-                    title: "to see you in the next life", 
-                    url: "https://raw.githubusercontent.com/Huemiliation/BigBoobies/main/10%20Radiohead%20-%20Motion%20Picture%20Soundtrack.mp3" 
-                },
+                song: { title: "Motion Picture Soundtrack", url: "https://raw.githubusercontent.com/Huemiliation/BigBoobies/main/10%20Radiohead%20-%20Motion%20Picture%20Soundtrack.mp3" },
                 albums: [
-                    { title: "The Bond", date: "Dec 05", photos: generatePhotos(301, "The Bond") },
-                    { title: "Intensity", date: "Dec 25", photos: generatePhotos(302, "Intensity") },
-                    { title: "1st Anniversary", date: "Feb 14", type: "anniversary", photos: generatePhotos(303, "Our Anniversary", 8) },
-                    { title: "Next Life", date: "Future", photos: generatePhotos(304, "Next Life") },
-                    { title: "Always", date: "Forever", photos: generatePhotos(305, "Always") }
+                    { title: "Shiraz: The Best Trip", month: "JANUARY", isSpecial: true, photos: getPhotos("2025/january/shiraz", 36, SHIRAZ_NOTES, "A beautiful moment from Shiraz.") },
+                    { title: "Milad Moments", month: "JANUARY", photos: getPhotos("2025/january/milad", 12, {}, "Fun times at Milad.") },
+                    { title: "Snowy Days", month: "JANUARY", photos: getPhotos("2025/january/snow", 9, {}, "Playing around in the snow!") },
+                    { title: "Just Us", month: "JANUARY", photos: getPhotos("2025/january/other", 2, {}, "Cute little moments.") },
+                    { title: "Future Memories", month: "FOREVER", photos: generatePlaceholders(305, "The Future") }
                 ]
             }
         ];
 
-        // --- Helper Components ---
+        // ==========================================
+        //  COMPONENTS
+        // ==========================================
 
-        // 1. Moving Starfield
-        const Starfield = () => {
-            const stars = useMemo(() => {
-                return Array.from({ length: 200 }).map((_, i) => ({
-                    left: Math.random() * 100,
-                    top: Math.random() * 100,
-                    size: Math.random() * 2 + 1,
-                    duration: Math.random() * 3 + 2
-                }));
-            }, []);
+        const ParticleSystem = ({ activeChapter }) => {
+            useEffect(() => {
+                const container = document.getElementById('particle-container');
+                let colors = ['#ffffff'];
+                let spawnRate = 1500;
+                
+                if(activeChapter === 1) { colors = ['#fbbf24', '#ffffff']; spawnRate = 800; }
+                if(activeChapter === 2) { colors = ['#f43f5e', '#ff00ff']; spawnRate = 400; }
+
+                const interval = setInterval(() => {
+                    if (document.hidden) return;
+                    const h = document.createElement('div');
+                    h.innerHTML = '❤';
+                    h.className = 'heart-particle';
+                    h.style.left = Math.random() * 100 + 'vw';
+                    h.style.bottom = '-50px';
+                    h.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                    h.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    h.style.textShadow = activeChapter === 2 ? `0 0 10px ${h.style.color}` : 'none';
+                    
+                    h.animate([
+                        { transform: 'translateY(0) rotate(0deg)', opacity: 0 },
+                        { opacity: 0.8, offset: 0.1 },
+                        { transform: `translateY(-100vh) rotate(${Math.random()*360}deg)`, opacity: 0 }
+                    ], { duration: 5000 + Math.random() * 5000, easing: 'linear' }).onfinish = () => h.remove();
+
+                    container.appendChild(h);
+                }, spawnRate);
+                return () => clearInterval(interval);
+            }, [activeChapter]);
+            return null;
+        };
+
+        // Scroll Triggered Typewriter (1-1.5 seconds per word)
+        const ScrollRevealer = ({ text, accent }) => {
+            const ref = useRef(null);
+            const isInView = useInView(ref, { once: true, amount: 0.5 });
+            const [display, setDisplay] = useState("");
+
+            useEffect(() => {
+                if (isInView) {
+                    const totalDuration = 1200; // 1.2 seconds for full text
+                    const charDelay = Math.max(100, totalDuration / text.length); // Calculate delay per char
+                    
+                    let i = 0;
+                    const t = setInterval(() => {
+                        if (i < text.length) {
+                            setDisplay(prev => prev + text.charAt(i));
+                            i++;
+                        } else clearInterval(t);
+                    }, charDelay);
+                    return () => clearInterval(t);
+                }
+            }, [isInView, text]);
 
             return (
-                <div id="stars-container">
-                    {stars.map((s, i) => (
-                        <div 
-                            key={i} 
-                            className="star" 
-                            style={{ 
-                                left: `${s.left}%`, 
-                                top: `${s.top}%`, 
-                                width: `${s.size}px`, 
-                                height: `${s.size}px`,
-                                '--duration': `${s.duration}s`
-                            }} 
-                        />
-                    ))}
+                <div ref={ref} className="font-sans font-black text-2xl md:text-4xl tracking-widest uppercase opacity-90 min-h-[40px]" style={{ color: accent }}>
+                    {display}
+                    {isInView && display.length < text.length && <span className="animate-pulse">|</span>}
                 </div>
             );
         };
 
-        // 2. Dynamic Particle System (Hearts)
-        const ParticleSystem = ({ activeChapter }) => {
+        const Typewriter = ({ text, speed = 30 }) => {
+            const [disp, setDisp] = useState("");
             useEffect(() => {
-                const container = document.getElementById('particle-container');
-                
-                let spawnRate = 2000; 
-                let colors = ['#ffffff']; 
-                let opacity = 0.3;
-                let glow = false;
-
-                if (activeChapter === 1) {
-                    spawnRate = 800; 
-                    colors = ['#ffffff', '#fff5d0'];
-                    opacity = 0.5;
-                } else if (activeChapter === 2) {
-                    // Chapter 3 (index 2)
-                    spawnRate = 400; // Adjusted from 200 to 400
-                    colors = ['#ffffff', '#ff00ff', '#f43f5e']; 
-                    opacity = 0.7;
-                    glow = true;
-                }
-
-                const spawnHeart = () => {
-                    if (document.hidden) return;
-                    const h = document.createElement('div');
-                    h.className = 'heart-particle';
-                    const size = Math.random() * 15 + 10;
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    h.style.width = `${size}px`;
-                    h.style.height = `${size}px`;
-                    h.style.background = color;
-                    h.style.left = Math.random() * 100 + 'vw';
-                    h.style.bottom = '-50px';
-                    h.style.opacity = '0';
-                    h.style.transform = 'rotate(45deg)';
-                    
-                    // Add Glow for Chapter 3
-                    if (glow) {
-                        h.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
-                    }
-                    
-                    h.innerHTML = `
-                        <div style="position:absolute; width:100%; height:100%; background:inherit; border-radius:50%; top:-50%; left:0;"></div>
-                        <div style="position:absolute; width:100%; height:100%; background:inherit; border-radius:50%; top:0; left:-50%;"></div>
-                    `;
-                    
-                    container.appendChild(h);
-
-                    const anim = h.animate([
-                        { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
-                        { opacity: opacity, offset: 0.2 },
-                        { transform: `translateY(-${80 + Math.random()*20}vh) rotate(90deg) scale(1)`, opacity: 0 }
-                    ], {
-                        duration: 5000 + Math.random() * 5000,
-                        easing: 'linear'
-                    });
-
-                    anim.onfinish = () => h.remove();
-                };
-
-                const intervalId = setInterval(spawnHeart, spawnRate);
-                return () => clearInterval(intervalId);
-            }, [activeChapter]);
-
-            return <div id="particle-container" className="fixed inset-0 pointer-events-none z-0"></div>;
+                setDisp("");
+                let i = 0;
+                const t = setInterval(() => {
+                    if(i < text.length) { setDisp(p => p + text.charAt(i)); i++; }
+                    else clearInterval(t);
+                }, speed);
+                return () => clearInterval(t);
+            }, [text]);
+            return <span>{disp}</span>;
         };
 
-        // 3. Typewriter
-        const Typewriter = ({ text, delay = 0, speed = 50, className = "" }) => {
-            const [displayed, setDisplayed] = useState("");
-            useEffect(() => {
-                setDisplayed(""); 
-                const timeout = setTimeout(() => {
-                    let i = 0;
-                    const interval = setInterval(() => {
-                        if (i < text.length) {
-                            setDisplayed((prev) => prev + text.charAt(i));
-                            i++;
-                        } else {
-                            clearInterval(interval);
-                        }
-                    }, speed);
-                    return () => clearInterval(interval);
-                }, delay);
-                return () => clearTimeout(timeout);
-            }, [text, delay, speed]);
-            return <span className={`${className} typing-cursor`}>{displayed}</span>;
-        };
-
-        // 4. Expanding Music Controller (Unlimited Width / Responsive)
+        // --- Smooth Transition Music Controller ---
         const MusicController = ({ song, accent, activeSong, onToggle, audioRef }) => {
             const isActive = activeSong === song.url;
             const [progress, setProgress] = useState(0);
-            const [timeLeft, setTimeLeft] = useState(0);
 
             useEffect(() => {
                 let frame;
                 const update = () => {
                     if (isActive && audioRef.current) {
-                        const audio = audioRef.current;
-                        if(audio.duration) {
-                            setProgress((audio.currentTime / audio.duration) * 100);
-                            setTimeLeft(audio.duration - audio.currentTime);
-                        }
+                        const aud = audioRef.current;
+                        if(aud.duration) setProgress((aud.currentTime / aud.duration) * 100);
                         frame = requestAnimationFrame(update);
                     }
                 };
@@ -381,85 +278,89 @@
                 return () => cancelAnimationFrame(frame);
             }, [isActive]);
 
-            const formatTime = (seconds) => {
-                if (!seconds || isNaN(seconds)) return "0:00";
-                const m = Math.floor(seconds / 60);
-                const s = Math.floor(seconds % 60);
-                return `${m}:${s < 10 ? '0' : ''}${s}`;
-            };
-
             return (
-                <div className="flex justify-center my-8 h-16 relative z-30">
-                     <motion.div 
+                <div className="flex justify-center my-6 h-20 z-30 relative">
+                    <motion.div 
                         layout
-                        className={`relative rounded-full flex items-center overflow-hidden liquid-glass cursor-pointer transition-colors duration-500 ease-out`}
                         initial={false}
-                        animate={{ 
-                            backgroundColor: isActive ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.05)'
-                        }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className={`relative rounded-full flex items-center overflow-hidden cursor-pointer backdrop-blur-md`}
                         style={{ 
-                            borderColor: isActive ? accent : 'rgba(255,255,255,0.1)',
-                            width: 'fit-content',
-                            minWidth: isActive ? '300px' : '100px',
-                            maxWidth: '95vw' /* Mobile Safety */
+                            backgroundColor: isActive ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.05)',
+                            borderColor: accent, 
+                            borderWidth: isActive ? '1px' : '2px',
+                        }}
+                        // Idle Animation: Pulse & Glow
+                        animate={!isActive ? {
+                            boxShadow: `0 0 20px ${accent}`,
+                            scale: [1, 1.05, 1],
+                        } : {
+                            boxShadow: 'none',
+                            scale: 1
                         }}
                         onClick={() => !isActive && onToggle(song.url)}
                     >
-                        {!isActive && (
-                            <div className="flex items-center justify-center animate-breathe w-full gap-3 px-10 py-4">
-                                <span className="text-xl" style={{color: 'white'}}>▶</span>
-                                <span className="font-sans font-bold uppercase tracking-widest text-xs text-white whitespace-nowrap">
-                                    {song.title}
-                                </span>
-                            </div>
-                        )}
-
-                        {isActive && (
-                            <div className="w-full px-6 py-4 flex items-center gap-4 min-w-[300px]">
-                                <button onClick={(e) => { e.stopPropagation(); onToggle(song.url); }} className="hover:scale-110 transition-transform flex-shrink-0">
-                                    <span className="text-lg" style={{color: accent}}>⏸</span>
-                                </button>
-                                
-                                <div className="flex-1 flex flex-col justify-center gap-1 min-w-[150px]">
-                                    <div className="flex justify-between text-[10px] font-sans text-gray-400 uppercase tracking-wider gap-4">
-                                        <span className="font-bold text-white whitespace-nowrap">{song.title}</span>
-                                        <span>{formatTime(timeLeft)}</span>
+                        <AnimatePresence mode="wait">
+                            {!isActive ? (
+                                <motion.div 
+                                    key="play"
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="flex items-center justify-center px-10 py-4 gap-3 min-w-[200px]"
+                                >
+                                    <span className="text-2xl text-white drop-shadow-md">▶</span>
+                                    <span className="text-sm font-bold uppercase tracking-widest text-white whitespace-nowrap drop-shadow-md">{song.title}</span>
+                                </motion.div>
+                            ) : (
+                                <motion.div 
+                                    key="controls"
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="px-6 py-3 flex items-center gap-4 min-w-[320px]"
+                                >
+                                    <button onClick={(e) => { e.stopPropagation(); onToggle(song.url); }} className="hover:scale-110 active:scale-95 transition-transform">
+                                        <span className="text-xl" style={{color: accent}}>⏸</span>
+                                    </button>
+                                    <div className="flex-1 flex flex-col gap-1">
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-white">{song.title}</span>
+                                        <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                                            <div className="h-full transition-all duration-100" style={{ backgroundColor: accent, width: `${progress}%` }}></div>
+                                        </div>
                                     </div>
-                                    <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                                        <motion.div 
-                                            className="h-full rounded-full"
-                                            style={{ backgroundColor: accent, width: `${progress}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 </div>
-            )
+            );
         };
 
-        // 5. Carousel
-        const Carousel = ({ photos, onOpen, type }) => {
+        const Carousel = ({ photos, onOpen, isSpecial }) => {
+            const speed = Math.max(40, photos.length * 3) + 's';
             const displayPhotos = useMemo(() => [...photos, ...photos, ...photos], [photos]);
-            
-            const cardClass = type === 'anniversary' 
-                ? 'w-[180px] h-[260px] md:w-[220px] md:h-[300px] border-yellow-500/50' 
-                : 'w-[140px] h-[200px] md:w-[180px] md:h-[260px] border-white/10';
 
             return (
                 <div className="w-full overflow-hidden relative py-6 group">
                     <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-black/50 to-transparent pointer-events-none"></div>
                     <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-black/50 to-transparent pointer-events-none"></div>
                     
-                    <div className="flex w-max gap-4 md:gap-6 animate-scroll hover:pause-scroll pl-4">
+                    <div 
+                        className="flex w-max gap-4 md:gap-6 animate-scroll hover:[animation-play-state:paused]"
+                        style={{ animationDuration: speed }}
+                    >
                         {displayPhotos.map((photo, idx) => (
                             <div
                                 key={`${photo.id}-${idx}`}
-                                className={`relative flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border transition-transform duration-300 hover:scale-105 hover:z-10 shadow-lg ${cardClass}`}
+                                className={`relative flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border transition-transform duration-300 hover:scale-105 
+                                    ${isSpecial 
+                                        ? 'w-[180px] h-[260px] border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)]' 
+                                        : 'w-[140px] h-[200px] border-white/10'}`}
                                 onClick={() => onOpen(idx % photos.length)}
                             >
-                                <img src={photo.src} alt="memory" loading="lazy" className="w-full h-full object-cover" />
+                                <img 
+                                    src={photo.src} alt="memory" loading="lazy" className="w-full h-full object-cover"
+                                    onError={(e) => e.target.src = 'https://picsum.photos/200/300'}
+                                />
                                 <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors"></div>
                             </div>
                         ))}
@@ -468,15 +369,23 @@
             );
         };
 
-        // 6. Lightbox
+        // Heart Icon Component
+        const HeartIcon = ({ rotate, color }) => (
+            <svg 
+                width="40" height="40" viewBox="0 0 24 24" fill="currentColor" 
+                style={{ transform: `rotate(${rotate}deg)`, color: color, filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.5))' }}
+            >
+                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        );
+
         const Lightbox = ({ isOpen, albumPhotos, startIndex, onClose, accent }) => {
             if (!isOpen || !albumPhotos) return null;
-            const [currentIndex, setCurrentIndex] = useState(startIndex);
-            const currentPhoto = albumPhotos[currentIndex];
-            const progress = ((currentIndex + 1) / albumPhotos.length) * 100;
+            const [idx, setIdx] = useState(startIndex);
+            const photo = albumPhotos[idx];
 
             const navigate = (dir) => {
-                setCurrentIndex((prev) => (prev + dir + albumPhotos.length) % albumPhotos.length);
+                setIdx((prev) => (prev + dir + albumPhotos.length) % albumPhotos.length);
             };
 
             return (
@@ -485,51 +394,42 @@
                     className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
                     onClick={onClose}
                 >
-                    {/* Fixed X Button Top Right */}
-                    <button 
-                        onClick={onClose} 
-                        className="absolute top-4 right-4 p-3 bg-white/10 rounded-full opacity-70 hover:opacity-100 z-[110]"
-                    >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <button onClick={onClose} className="absolute top-4 right-4 p-3 bg-white/10 rounded-full hover:bg-white/20 z-[110]">
+                        <svg width="24" height="24" viewBox="0 0 24 24" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                     
-                    {/* Navigation */}
-                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] p-4 opacity-60 hover:opacity-100 text-white hover:scale-110 transition-transform">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{ transform: 'rotate(-90deg)', color: accent }}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    {/* Heart Navigation */}
+                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] p-4 transition-transform active:scale-75 hover:scale-110 cursor-pointer">
+                        <HeartIcon rotate={-90} color={accent} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] p-4 opacity-60 hover:opacity-100 text-white hover:scale-110 transition-transform">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{ transform: 'rotate(90deg)', color: accent }}><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] p-4 transition-transform active:scale-75 hover:scale-110 cursor-pointer">
+                        <HeartIcon rotate={90} color={accent} />
                     </button>
 
-                    <div className="relative w-full max-w-5xl h-full flex flex-col items-center justify-center gap-6 p-4" onClick={e => e.stopPropagation()}>
-                        
-                        {/* Image Container */}
-                        <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden min-h-0">
+                    <div className="flex flex-col items-center gap-4 w-full max-w-4xl h-full justify-center" onClick={e => e.stopPropagation()}>
+                        <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden">
                             <motion.img 
-                                key={currentIndex}
+                                key={photo.src}
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                src={currentPhoto.src}
-                                className="max-w-full max-h-[70vh] md:max-h-[80vh] w-auto h-auto object-contain rounded-lg shadow-2xl border border-white/10"
+                                src={photo.src}
+                                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
                                 style={{ boxShadow: `0 0 40px ${accent}20` }}
                             />
                         </div>
 
-                        {/* Info Container */}
-                        <div className="w-full max-w-lg flex flex-col gap-3 flex-shrink-0">
-                            {/* Scrollable Note */}
-                            <div className="liquid-glass rounded-xl p-4 md:p-6 w-full overflow-x-auto hide-scrollbar scroll-mask-right whitespace-nowrap border-l-2" style={{ borderColor: accent }}>
-                                <Typewriter 
-                                    text={currentPhoto.note} 
-                                    speed={30} 
-                                    delay={200}
-                                    className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide inline-block pr-12"
-                                />
+                        <div className="w-full max-w-lg flex-shrink-0">
+                            <div className="liquid-glass rounded-xl p-4 w-full overflow-x-auto hide-scrollbar border-l-4 mb-2" style={{ borderColor: accent }}>
+                                <p className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide whitespace-nowrap pr-8">
+                                    <Typewriter text={photo.note} speed={20} />
+                                </p>
                             </div>
-
-                            {/* Visual Progress Bar (No Text) under note */}
-                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mt-1">
-                                <motion.div className="h-full" style={{ backgroundColor: accent }} initial={{ width: 0 }} animate={{ width: `${progress}%` }} />
+                            <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-mono text-gray-400">{idx + 1}</span>
+                                <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <motion.div className="h-full" style={{ backgroundColor: accent }} animate={{ width: `${((idx + 1) / albumPhotos.length) * 100}%` }} />
+                                </div>
+                                <span className="text-[10px] font-mono text-gray-400">{albumPhotos.length}</span>
                             </div>
                         </div>
                     </div>
@@ -537,141 +437,117 @@
             );
         };
 
-        // --- Main App ---
         const App = () => {
             const [activeChapter, setActiveChapter] = useState(0);
-            const [lightboxState, setLightboxState] = useState({ open: false, photos: null, index: 0 });
-            const [activeSong, setActiveSong] = useState(null); 
+            const [lightbox, setLightbox] = useState({ open: false, photos: [], index: 0 });
+            const [activeSong, setActiveSong] = useState(null);
             const audioRef = useRef(null);
 
-            // Loader
             useEffect(() => {
-                const timer = setTimeout(() => {
-                    const text = document.getElementById('loader-msg');
-                    if(text) text.style.opacity = '1';
-                }, 5000);
-
-                const removeLoader = () => {
-                    const loader = document.getElementById('initial-loader');
-                    if(loader) {
-                        loader.style.opacity = '0';
-                        setTimeout(() => loader.remove(), 800);
-                    }
-                };
-
-                if (document.readyState === 'complete') removeLoader();
-                else window.addEventListener('load', removeLoader);
-                setTimeout(removeLoader, 8000); 
-                return () => clearTimeout(timer);
+                const l = document.getElementById('initial-loader');
+                if(l) setTimeout(() => { l.style.opacity = '0'; setTimeout(() => l.remove(), 800); }, 2000);
             }, []);
 
-            // Audio
             useEffect(() => {
-                const audio = audioRef.current;
-                if(!audio) return;
-                
-                const handleEnd = () => setActiveSong(null);
-                audio.addEventListener('ended', handleEnd);
-
-                if (activeSong) {
-                    audio.src = activeSong.url;
-                    audio.play().catch(e => console.error("Play error:", e));
-                } else {
-                    audio.pause();
-                }
-
-                return () => { audio.pause(); audio.removeEventListener('ended', handleEnd); };
-            }, [activeSong]);
-
-            // Scroll Theme Logic
-            useEffect(() => {
-                const handleScroll = () => {
-                    const sections = document.querySelectorAll('.chapter-section');
-                    sections.forEach((sec, index) => {
-                        const rect = sec.getBoundingClientRect();
-                        // Trigger earlier/smoother
-                        if (rect.top <= window.innerHeight * 0.6 && rect.bottom >= window.innerHeight * 0.4) {
-                            setActiveChapter(index);
-                        }
+                const onScroll = () => {
+                    document.querySelectorAll('.chapter-section').forEach((sec, i) => {
+                        const r = sec.getBoundingClientRect();
+                        if (r.top <= window.innerHeight * 0.6 && r.bottom >= window.innerHeight * 0.4) setActiveChapter(i);
                     });
                 };
-                window.addEventListener('scroll', handleScroll);
-                return () => window.removeEventListener('scroll', handleScroll);
+                window.addEventListener('scroll', onScroll);
+                return () => window.removeEventListener('scroll', onScroll);
             }, []);
 
-            const currentTheme = CHAPTERS[activeChapter].theme;
+            useEffect(() => {
+                const aud = audioRef.current;
+                if(!aud) return;
+                const onEnd = () => setActiveSong(null);
+                aud.addEventListener('ended', onEnd);
+                if(activeSong) { aud.src = activeSong; aud.play().catch(e => console.log(e)); }
+                else aud.pause();
+                return () => { aud.pause(); aud.removeEventListener('ended', onEnd); }
+            }, [activeSong]);
+
+            const theme = CHAPTERS[activeChapter].theme;
 
             return (
-                <div 
-                    className="min-h-screen transition-colors ease-in-out relative" 
-                    style={{ 
-                        background: `linear-gradient(to bottom, ${currentTheme.from}, ${currentTheme.to})`,
-                        transitionDuration: '3000ms'
-                    }}
-                >
-                    <Starfield />
+                <div className="min-h-screen transition-colors duration-[2000ms]" style={{ background: `linear-gradient(to bottom, ${theme.from}, ${theme.to})` }}>
+                    <div id="stars"></div>
+                    <div id="particle-container"></div>
                     <ParticleSystem activeChapter={activeChapter} />
-                    <audio ref={audioRef} id="global-audio" />
+                    <audio ref={audioRef} />
 
-                    <div className="relative z-10 max-w-6xl mx-auto px-4 pb-40">
+                    <div className="relative z-10 max-w-6xl mx-auto px-4 pb-32">
                         <header className="pt-32 pb-20 text-center animate-fade-in-up">
-                            <h1 className="font-script text-6xl sm:text-8xl md:text-9xl mb-6 text-white drop-shadow-2xl">
-                                <Typewriter text="Our Memories" speed={150} delay={500} />
-                            </h1>
+                            <h1 className="font-script text-7xl md:text-9xl text-white mb-4 drop-shadow-xl">Our Memories</h1>
                         </header>
 
                         {CHAPTERS.map((chapter) => (
-                            <section key={chapter.id} className="chapter-section py-20 min-h-[85vh] flex flex-col justify-center">
-                                <div className="text-center mb-12">
-                                    <h2 className="font-script text-5xl md:text-7xl text-white/90 mb-2 transition-colors duration-1000">{chapter.title}</h2>
-                                    <h3 className="font-sans text-sm md:text-lg tracking-[0.3em] uppercase text-white/60 mb-6" style={{ color: currentTheme.accent }}>{chapter.subtitle}</h3>
+                            <section key={chapter.id} className="chapter-section py-24 min-h-[85vh]">
+                                <div className="text-center mb-16">
+                                    <h2 className="font-script text-6xl text-white/90 mb-2">{chapter.title}</h2>
+                                    <h3 className="font-sans text-sm tracking-[0.4em] uppercase opacity-70" style={{ color: theme.accent }}>{chapter.subtitle}</h3>
                                     
-                                    {/* Expanding Music Controller */}
                                     <MusicController 
-                                        song={chapter.song} 
-                                        accent={currentTheme.accent} 
-                                        activeSong={activeSong ? activeSong.url : null}
-                                        onToggle={(url) => setActiveSong(activeSong && activeSong.url === url ? null : { url, title: chapter.song.title })}
-                                        audioRef={audioRef}
+                                        song={chapter.song} accent={theme.accent} activeSong={activeSong} 
+                                        audioRef={audioRef} onToggle={(url) => setActiveSong(activeSong === url ? null : url)} 
                                     />
                                 </div>
 
-                                <div className="space-y-16 md:space-y-24">
-                                    {chapter.albums.map((album, aIdx) => (
-                                        <div key={aIdx} className={`
-                                            rounded-2xl p-4 md:p-8 transition-all duration-500 hover:bg-white/5
-                                            ${album.type === 'birthday' ? 'effect-birthday' : 
-                                              album.type === 'anniversary' ? 'effect-anniversary scale-[1.02]' : 'liquid-glass'}
-                                        `}>
-                                            <div className="flex items-end gap-3 mb-6 ml-2 border-l-4 pl-4" style={{ borderColor: currentTheme.accent }}>
-                                                <div>
-                                                    <h4 className="font-sans font-bold text-base md:text-lg uppercase tracking-wider text-white/90">{album.title}</h4>
-                                                    <span className="font-sans text-[10px] md:text-xs font-light tracking-widest text-white/50">{album.date}</span>
+                                <div className="space-y-16">
+                                    {chapter.albums.map((album, idx) => {
+                                        const showMonth = idx === 0 || album.month !== chapter.albums[idx-1].month;
+                                        return (
+                                            <div key={idx}>
+                                                {showMonth && (
+                                                    <div className="mb-8 mt-12 flex items-center gap-4">
+                                                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/20"></div>
+                                                        <ScrollRevealer text={album.month} accent={theme.accent} />
+                                                        <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/20"></div>
+                                                    </div>
+                                                )}
+
+                                                {/* Album Container - SPECIAL DESIGN APPLIED HERE */}
+                                                <div className={`rounded-3xl p-6 transition-all duration-500 
+                                                    ${album.isSpecial 
+                                                        ? 'special-border' // NEW CLASS FOR ANIMATED BORDER
+                                                        : 'liquid-glass hover:bg-white/5'}`
+                                                }>
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        {/* Special Title Styling */}
+                                                        <h4 className={`font-sans font-bold text-lg ml-2 ${album.isSpecial ? 'gold-text text-xl' : 'text-white'}`}>
+                                                            {album.title}
+                                                        </h4>
+                                                        {album.isSpecial && (
+                                                            <div className="bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded shadow-[0_0_10px_rgba(251,191,36,0.5)] animate-pulse">
+                                                                SPECIAL
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <Carousel 
+                                                        photos={album.photos} 
+                                                        isSpecial={album.isSpecial}
+                                                        onOpen={(i) => setLightbox({ open: true, photos: album.photos, index: i })}
+                                                    />
                                                 </div>
-                                                {album.type === 'birthday' && <span className="text-xl animate-bounce">🎂</span>}
-                                                {album.type === 'anniversary' && <span className="text-xl animate-pulse">💖</span>}
                                             </div>
-                                            
-                                            <Carousel 
-                                                photos={album.photos} 
-                                                onOpen={(idx) => setLightboxState({ open: true, photos: album.photos, index: idx })}
-                                                type={album.type}
-                                            />
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </section>
                         ))}
                     </div>
 
                     <AnimatePresence>
-                        {lightboxState.open && (
+                        {lightbox.open && (
                             <Lightbox 
-                                isOpen={lightboxState.open} 
-                                albumPhotos={lightboxState.photos} 
-                                startIndex={lightboxState.index}
-                                onClose={() => setLightboxState({ ...lightboxState, open: false })}
-                                accent={currentTheme.accent}
+                                isOpen={lightbox.open} 
+                                albumPhotos={lightbox.photos} 
+                                startIndex={lightbox.index} 
+                                onClose={() => setLightbox({ ...lightbox, open: false })} 
+                                accent={theme.accent}
                             />
                         )}
                     </AnimatePresence>
@@ -679,14 +555,14 @@
             );
         };
 
-        // --- Styles Injection ---
         const styleSheet = document.createElement("style");
         styleSheet.innerText = `
             @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
             .animate-scroll { animation: scroll 80s linear infinite; }
-            .hover\\:pause-scroll:hover { animation-play-state: paused; }
-            @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
             .animate-fade-in-up { animation: fadeInUp 1.2s ease-out forwards; }
+            @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+            #stars { background-image: radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)), radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)); background-size: 200px 200px; animation: zoom 100s infinite; }
+            @keyframes zoom { 0% { transform: scale(1); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
         `;
         document.head.appendChild(styleSheet);
 
