@@ -19,11 +19,9 @@
                     animation: {
                         'scroll': 'scroll 60s linear infinite',
                         'spin-slow': 'spin 8s linear infinite',
-                        'shimmer': 'shimmer 2s linear infinite',
                     },
                     keyframes: {
                         scroll: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-33.33%)' } },
-                        shimmer: { '0%': { backgroundPosition: '-1000px 0' }, '100%': { backgroundPosition: '1000px 0' } }
                     }
                 }
             }
@@ -38,41 +36,56 @@
     <style>
         body { overflow-x: hidden; background-color: #000; transition: background 1.5s ease-in-out; }
         
-        /* Initial Loader */
+        /* --- Improved Loader Animations --- */
         #initial-loader {
             position: fixed; inset: 0; z-index: 9999; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.8s ease;
         }
+        
+        /* Container Spins */
+        .loader-wrapper {
+            animation: spin 3s linear infinite;
+        }
+
+        /* Heart Beats & Glows */
         .loader-heart {
-            width: 50px; height: 50px; background: #e11d48; transform: rotate(45deg);
-            animation: heartPulse 1.2s infinite; position: relative;
+            width: 50px; height: 50px; background: #e11d48; 
+            position: relative; transform: rotate(45deg);
+            box-shadow: 0 0 20px #e11d48;
+            animation: realHeartbeat 1.5s infinite;
         }
         .loader-heart::before, .loader-heart::after {
-            content: ""; position: absolute; width: 50px; height: 50px; border-radius: 50%; background: #e11d48;
+            content: ""; position: absolute; width: 50px; height: 50px; 
+            border-radius: 50%; background: #e11d48;
+            box-shadow: 0 0 20px #e11d48;
         }
         .loader-heart::before { left: -25px; } .loader-heart::after { top: -25px; }
-        @keyframes heartPulse { 0%, 100% { transform: rotate(45deg) scale(0.8); } 50% { transform: rotate(45deg) scale(1); } }
 
-        /* Liquid Glass */
+        @keyframes realHeartbeat {
+            0% { transform: rotate(45deg) scale(0.8); opacity: 0.8; box-shadow: 0 0 10px #e11d48; }
+            5% { transform: rotate(45deg) scale(0.95); opacity: 1; box-shadow: 0 0 30px #e11d48; }
+            10% { transform: rotate(45deg) scale(0.85); opacity: 0.9; box-shadow: 0 0 15px #e11d48; }
+            15% { transform: rotate(45deg) scale(1); opacity: 1; box-shadow: 0 0 40px #e11d48; }
+            50% { transform: rotate(45deg) scale(0.8); opacity: 0.8; box-shadow: 0 0 10px #e11d48; }
+            100% { transform: rotate(45deg) scale(0.8); opacity: 0.8; box-shadow: 0 0 10px #e11d48; }
+        }
+
+        /* --- Liquid Glass --- */
         .liquid-glass {
             background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
         }
         
-        /* Special Golden Effect */
+        /* --- Special Gold Effect --- */
         .special-border {
-            position: relative;
-            background: rgba(20, 10, 5, 0.4);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+            position: relative; background: rgba(20, 10, 5, 0.4); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 215, 0, 0.3); box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
         }
         .special-border::before {
             content: ""; position: absolute; inset: -2px; z-index: -1;
             background: linear-gradient(45deg, #fbbf24, #d97706, #fbbf24, #78350f);
-            background-size: 400%;
-            border-radius: 1.5rem;
+            background-size: 400%; border-radius: 1.5rem;
             animation: gradientBorder 5s ease infinite;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude;
@@ -81,10 +94,8 @@
 
         .gold-text {
             background: linear-gradient(to right, #fcd34d, #f59e0b, #fff, #f59e0b);
-            background-size: 200% auto;
-            color: transparent;
-            -webkit-background-clip: text;
-            background-clip: text;
+            background-size: 200% auto; color: transparent;
+            -webkit-background-clip: text; background-clip: text;
             animation: shine 4s linear infinite;
         }
         @keyframes shine { to { background-position: 200% center; } }
@@ -100,8 +111,10 @@
 <body>
 
     <div id="initial-loader">
-        <div class="loader-heart"></div>
-        <p class="mt-8 text-white font-sans text-xs tracking-[0.3em] uppercase animate-pulse">Loading Memories...</p>
+        <div class="loader-wrapper">
+            <div class="loader-heart"></div>
+        </div>
+        <p class="mt-12 text-white font-sans text-xs tracking-[0.3em] uppercase animate-pulse">Loading Memories...</p>
     </div>
 
     <div id="root"></div>
@@ -216,7 +229,6 @@
             return null;
         };
 
-        // Scroll Triggered Typewriter (1-1.5 seconds per word)
         const ScrollRevealer = ({ text, accent }) => {
             const ref = useRef(null);
             const isInView = useInView(ref, { once: true, amount: 0.5 });
@@ -224,9 +236,8 @@
 
             useEffect(() => {
                 if (isInView) {
-                    const totalDuration = 1200; // 1.2 seconds for full text
-                    const charDelay = Math.max(100, totalDuration / text.length); // Calculate delay per char
-                    
+                    const totalDuration = 1200; 
+                    const charDelay = Math.max(100, totalDuration / text.length); 
                     let i = 0;
                     const t = setInterval(() => {
                         if (i < text.length) {
@@ -246,7 +257,8 @@
             );
         };
 
-        const Typewriter = ({ text, speed = 30 }) => {
+        // Slowed Down Typewriter (50ms per char)
+        const Typewriter = ({ text, speed = 50 }) => {
             const [disp, setDisp] = useState("");
             useEffect(() => {
                 setDisp("");
@@ -256,21 +268,25 @@
                     else clearInterval(t);
                 }, speed);
                 return () => clearInterval(t);
-            }, [text]);
+            }, [text, speed]);
             return <span>{disp}</span>;
         };
 
-        // --- Smooth Transition Music Controller ---
+        // --- Compact & Smooth Music Controller ---
         const MusicController = ({ song, accent, activeSong, onToggle, audioRef }) => {
             const isActive = activeSong === song.url;
             const [progress, setProgress] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(0);
 
             useEffect(() => {
                 let frame;
                 const update = () => {
                     if (isActive && audioRef.current) {
                         const aud = audioRef.current;
-                        if(aud.duration) setProgress((aud.currentTime / aud.duration) * 100);
+                        if(aud.duration) {
+                            setProgress((aud.currentTime / aud.duration) * 100);
+                            setTimeLeft(aud.duration - aud.currentTime);
+                        }
                         frame = requestAnimationFrame(update);
                     }
                 };
@@ -278,21 +294,27 @@
                 return () => cancelAnimationFrame(frame);
             }, [isActive]);
 
+            const formatTime = (seconds) => {
+                if(!seconds) return "0:00";
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `-${m}:${s < 10 ? '0' : ''}${s}`;
+            };
+
             return (
-                <div className="flex justify-center my-6 h-20 z-30 relative">
+                <div className="flex justify-center my-6 h-14 z-30 relative">
                     <motion.div 
                         layout
                         initial={false}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         className={`relative rounded-full flex items-center overflow-hidden cursor-pointer backdrop-blur-md`}
                         style={{ 
-                            backgroundColor: isActive ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.05)',
+                            backgroundColor: isActive ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.05)',
                             borderColor: accent, 
                             borderWidth: isActive ? '1px' : '2px',
                         }}
-                        // Idle Animation: Pulse & Glow
                         animate={!isActive ? {
-                            boxShadow: `0 0 20px ${accent}`,
+                            boxShadow: `0 0 15px ${accent}`,
                             scale: [1, 1.05, 1],
                         } : {
                             boxShadow: 'none',
@@ -306,23 +328,26 @@
                                     key="play"
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                     transition={{ duration: 0.2 }}
-                                    className="flex items-center justify-center px-10 py-4 gap-3 min-w-[200px]"
+                                    className="flex items-center justify-center px-8 py-2 gap-3 min-w-[180px]"
                                 >
-                                    <span className="text-2xl text-white drop-shadow-md">▶</span>
-                                    <span className="text-sm font-bold uppercase tracking-widest text-white whitespace-nowrap drop-shadow-md">{song.title}</span>
+                                    <span className="text-xl text-white drop-shadow-md">▶</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest text-white whitespace-nowrap drop-shadow-md">{song.title}</span>
                                 </motion.div>
                             ) : (
                                 <motion.div 
                                     key="controls"
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                     transition={{ duration: 0.3 }}
-                                    className="px-6 py-3 flex items-center gap-4 min-w-[320px]"
+                                    className="px-5 py-2 flex items-center gap-3 min-w-[280px]"
                                 >
                                     <button onClick={(e) => { e.stopPropagation(); onToggle(song.url); }} className="hover:scale-110 active:scale-95 transition-transform">
-                                        <span className="text-xl" style={{color: accent}}>⏸</span>
+                                        <span className="text-lg" style={{color: accent}}>⏸</span>
                                     </button>
-                                    <div className="flex-1 flex flex-col gap-1">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-white">{song.title}</span>
+                                    <div className="flex-1 flex flex-col gap-0.5">
+                                        <div className="flex justify-between items-end">
+                                            <span className="text-[9px] font-bold uppercase tracking-wider text-white">{song.title}</span>
+                                            <span className="text-[9px] font-mono text-gray-400">{formatTime(timeLeft)}</span>
+                                        </div>
                                         <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
                                             <div className="h-full transition-all duration-100" style={{ backgroundColor: accent, width: `${progress}%` }}></div>
                                         </div>
@@ -369,11 +394,11 @@
             );
         };
 
-        // Heart Icon Component
+        // Heart Icon Component (No Glow)
         const HeartIcon = ({ rotate, color }) => (
             <svg 
-                width="40" height="40" viewBox="0 0 24 24" fill="currentColor" 
-                style={{ transform: `rotate(${rotate}deg)`, color: color, filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.5))' }}
+                width="32" height="32" viewBox="0 0 24 24" fill="currentColor" 
+                style={{ transform: `rotate(${rotate}deg)`, color: color }}
             >
                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
@@ -398,11 +423,11 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                     
-                    {/* Heart Navigation */}
-                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] p-4 transition-transform active:scale-75 hover:scale-110 cursor-pointer">
+                    {/* Small Heart Navigation */}
+                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] p-2 transition-transform active:scale-75 hover:scale-110 cursor-pointer">
                         <HeartIcon rotate={-90} color={accent} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] p-4 transition-transform active:scale-75 hover:scale-110 cursor-pointer">
+                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] p-2 transition-transform active:scale-75 hover:scale-110 cursor-pointer">
                         <HeartIcon rotate={90} color={accent} />
                     </button>
 
@@ -421,7 +446,7 @@
                         <div className="w-full max-w-lg flex-shrink-0">
                             <div className="liquid-glass rounded-xl p-4 w-full overflow-x-auto hide-scrollbar border-l-4 mb-2" style={{ borderColor: accent }}>
                                 <p className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide whitespace-nowrap pr-8">
-                                    <Typewriter text={photo.note} speed={20} />
+                                    <Typewriter text={photo.note} speed={50} />
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
@@ -508,14 +533,12 @@
                                                     </div>
                                                 )}
 
-                                                {/* Album Container - SPECIAL DESIGN APPLIED HERE */}
                                                 <div className={`rounded-3xl p-6 transition-all duration-500 
                                                     ${album.isSpecial 
-                                                        ? 'special-border' // NEW CLASS FOR ANIMATED BORDER
+                                                        ? 'special-border' 
                                                         : 'liquid-glass hover:bg-white/5'}`
                                                 }>
                                                     <div className="flex items-center gap-3 mb-4">
-                                                        {/* Special Title Styling */}
                                                         <h4 className={`font-sans font-bold text-lg ml-2 ${album.isSpecial ? 'gold-text text-xl' : 'text-white'}`}>
                                                             {album.title}
                                                         </h4>
