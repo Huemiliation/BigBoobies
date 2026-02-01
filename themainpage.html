@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Counting Down</title>
+    <title>Counting Up</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600;900&display=swap" rel="stylesheet">
@@ -215,7 +215,7 @@
 
     <div id="content">
         <div class="timer-wrapper">
-            <h1 class="main-title" id="title-text">Oops, the code was messed up</h1>
+            <h1 class="main-title" id="title-text">Thanks a lot for remembering</h1>
             <div class="sub-text" id="rotating-msg">Loading...</div>
 
             <div class="countdown-grid">
@@ -244,20 +244,17 @@
             'use strict';
 
             // --- Config ---
-            // Date: Feb 1st, 2026, 10:00 PM Venlo
-            // We use 'let' so we can modify it for the loop logic
-            let targetDate = new Date("2026-02-01T22:00:00+01:00").getTime();
-            const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+            // Start Date: Feb 1st, 2026, 10:30 PM Venlo Time
+            // This is the point in time the stopwatch counts UP from.
+            const START_DATE = new Date("2026-02-01T22:30:00+01:00").getTime();
             
             const MESSAGES = [
-                "Just a little bit longer", 
-                "It'll be worth the wait", 
+                "It's been amazing", 
                 "You're lucky to have me!", 
-                "Counting down every second",
-                "Patience is a virtue (I promise)", 
-                "Almost there...",
+                "Counting every second with you",
+                "Time flies when you're having fun",
                 "The best things take time", 
-                "Preparing something special"
+                "Creating memories"
             ];
 
             // --- Elements ---
@@ -274,30 +271,16 @@
                 hearts: document.getElementById('hearts-container')
             };
 
-            // --- 1. Timer Logic (Updated for Loops) ---
+            // --- 1. Stopwatch Logic (Count Up) ---
             function updateTimer() {
                 const now = Date.now();
                 
-                // If the target date has passed, keep adding 24 hours until it is in the future
-                let diff = targetDate - now;
-                let hasLooped = false;
+                // Stopwatch: Now minus Start Date
+                let diff = now - START_DATE;
+                
+                // If the start time hasn't happened yet (unlikely based on request), show 0
+                if (diff < 0) diff = 0;
 
-                // Loop Logic: If diff is 0 or negative, we jump to the next 24h cycle
-                while (diff <= 0) {
-                    targetDate += ONE_DAY_MS; // Add 24 hours
-                    diff = targetDate - now;  // Recalculate diff
-                    hasLooped = true;
-                }
-
-                // If we are in a loop (overtime), change the text
-                if (hasLooped) {
-                    els.title.textContent = "I lied, you have to wait!";
-                } else {
-                    // Standard text if we haven't reached the first deadline yet
-                    els.title.textContent = "Oops, the code was messed up";
-                }
-
-                // Standard Time Calculation
                 const sTotal = Math.floor(diff / 1000);
                 els.d.textContent = String(Math.floor(sTotal / 86400)).padStart(2, '0');
                 els.h.textContent = String(Math.floor((sTotal % 86400) / 3600)).padStart(2, '0');
@@ -309,7 +292,6 @@
 
             // --- 2. Message Logic ---
             function setDailyMessage() {
-                // Unique message per day of the year
                 const start = new Date(new Date().getFullYear(), 0, 0);
                 const diff = (new Date() - start) + ((start.getTimezoneOffset() - new Date().getTimezoneOffset()) * 60 * 1000);
                 const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -318,19 +300,17 @@
 
             // --- 3. Visuals (Stars & Hearts) ---
             function initVisuals() {
-                // Static Star Generation (Performance friendly)
                 let shadow = '';
                 for(let i=0; i<150; i++) {
                     shadow += `${Math.random()*100}vw ${Math.random()*2000}px #fff, `;
                 }
                 els.stars.style.boxShadow = shadow.slice(0, -2);
 
-                // Floating Hearts Loop
                 setInterval(spawnHeart, 800);
             }
 
             function spawnHeart() {
-                if(document.hidden) return; // Save battery if tab hidden
+                if(document.hidden) return;
 
                 const heart = document.createElement('div');
                 heart.className = 'heart';
@@ -348,7 +328,6 @@
 
                 els.hearts.appendChild(heart);
 
-                // CSS Animation via Web Animation API for better performance
                 const animation = heart.animate([
                     { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
                     { opacity: 0.6, offset: 0.2 },
@@ -361,7 +340,7 @@
                 animation.onfinish = () => heart.remove();
             }
 
-            // --- 4. Initialization & Safety ---
+            // --- 4. Initialization ---
             function start() {
                 try {
                     setDailyMessage();
@@ -370,7 +349,6 @@
                 } catch(e) {
                     console.error("Script error:", e);
                 } finally {
-                    // Reveal Content
                     setTimeout(() => {
                         els.loader.style.opacity = '0';
                         setTimeout(() => els.loader.remove(), 500);
@@ -379,7 +357,6 @@
                 }
             }
 
-            // Failsafe: If DOMContentLoaded fails, force start after 2 seconds
             const failsafe = setTimeout(start, 2000);
 
             if (document.readyState === 'loading') {
