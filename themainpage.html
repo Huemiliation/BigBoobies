@@ -244,8 +244,10 @@
             'use strict';
 
             // --- Config ---
-            // Date: Feb 1st, 2026, 10:00 PM Venlo (CET is UTC+1 in Feb)
-            const TARGET_DATE = new Date("2026-02-01T22:00:00+01:00").getTime();
+            // Date: Feb 1st, 2026, 10:00 PM Venlo
+            // We use 'let' so we can modify it for the loop logic
+            let targetDate = new Date("2026-02-01T22:00:00+01:00").getTime();
+            const ONE_DAY_MS = 24 * 60 * 60 * 1000;
             
             const MESSAGES = [
                 "Just a little bit longer", 
@@ -272,18 +274,30 @@
                 hearts: document.getElementById('hearts-container')
             };
 
-            // --- 1. Timer Logic ---
+            // --- 1. Timer Logic (Updated for Loops) ---
             function updateTimer() {
                 const now = Date.now();
-                const diff = TARGET_DATE - now;
+                
+                // If the target date has passed, keep adding 24 hours until it is in the future
+                let diff = targetDate - now;
+                let hasLooped = false;
 
-                if (diff <= 0) {
-                    els.title.textContent = "You'll love it, I know";
-                    els.msg.style.display = 'none';
-                    ['d','h','m','s'].forEach(k => els[k].textContent = "00");
-                    return;
+                // Loop Logic: If diff is 0 or negative, we jump to the next 24h cycle
+                while (diff <= 0) {
+                    targetDate += ONE_DAY_MS; // Add 24 hours
+                    diff = targetDate - now;  // Recalculate diff
+                    hasLooped = true;
                 }
 
+                // If we are in a loop (overtime), change the text
+                if (hasLooped) {
+                    els.title.textContent = "I lied, you have to wait!";
+                } else {
+                    // Standard text if we haven't reached the first deadline yet
+                    els.title.textContent = "Oops, the code was messed up";
+                }
+
+                // Standard Time Calculation
                 const sTotal = Math.floor(diff / 1000);
                 els.d.textContent = String(Math.floor(sTotal / 86400)).padStart(2, '0');
                 els.h.textContent = String(Math.floor((sTotal % 86400) / 3600)).padStart(2, '0');
