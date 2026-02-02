@@ -21,9 +21,9 @@
         }
 
         #counter {
-            color: #fff; font-size: 14px; margin-bottom: 10px;
+            color: #fff; font-size: 12px; margin-bottom: 10px;
             text-shadow: 2px 2px 0px #000;
-            background: rgba(0,0,0,0.5); padding: 12px 24px; border-radius: 8px;
+            background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 8px;
             border: 2px solid rgba(255,255,255,0.1);
             box-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
@@ -33,22 +33,23 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; 
             flex-direction: column; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: opacity 2s ease; /* 2s Fade to Black */
+            opacity: 0; pointer-events: none; transition: opacity 2s ease;
             background: rgba(0,0,0,0.95); z-index: 100; backdrop-filter: blur(5px);
+            padding: 20px; box-sizing: border-box;
         }
         #final-message.visible { display: flex; opacity: 1; pointer-events: auto; }
         
         h1 { 
-            color: #fff; font-size: 14px; margin: 0 30px; text-align: center;
-            line-height: 2.2; min-height: 100px;
+            color: #fff; 
+            /* Responsive HTML Text */
+            font-size: clamp(10px, 3.5vw, 16px);
+            margin: 0 10px; text-align: center;
+            line-height: 2.5; min-height: 100px;
+            word-spacing: 5px;
         }
 
         /* --- ANIMATIONS --- */
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         .wavy-wrapper {
             display: inline-block;
@@ -56,6 +57,7 @@
             background-size: 200%;
             -webkit-background-clip: text;
             background-clip: text;
+            -webkit-text-fill-color: transparent; /* Mobile Fix */
             color: transparent; 
             animation: rainbow 10s linear infinite, fadeIn 0.5s ease-out forwards;
             filter: drop-shadow(0 0 2px rgba(255,255,255,0.3));
@@ -64,10 +66,9 @@
 
         .wavy-wrapper span {
             display: inline-block;
-            font-size: 18px;
+            font-size: 1.4em;
             animation: wave 0.8s ease-in-out infinite;
         }
-
         .wavy-wrapper span:nth-child(1) { animation-delay: 0.0s; }
         .wavy-wrapper span:nth-child(2) { animation-delay: 0.1s; }
         .wavy-wrapper span:nth-child(3) { animation-delay: 0.2s; }
@@ -82,22 +83,13 @@
             animation: breathe 1.5s ease-in-out infinite; 
         }
 
-        @keyframes wave {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
-        }
-        @keyframes rainbow { 
-            0% { background-position: 0%; } 
-            100% { background-position: 200%; } 
-        }
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px rgba(232, 121, 249, 1); }
-        }
+        @keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes rainbow { 0% { background-position: 0%; } 100% { background-position: 200%; } }
+        @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px rgba(232, 121, 249, 1); } }
 
         button {
             background: transparent; border: 4px solid #f43f5e; color: #f43f5e;
-            padding: 15px 20px; font-family: 'Press Start 2P', cursive; font-size: 12px;
+            padding: 15px 20px; font-family: 'Press Start 2P', cursive; font-size: 10px;
             cursor: pointer; transition: all 0.3s; text-transform: uppercase;
             box-shadow: 0 0 10px #f43f5e; pointer-events: auto; margin-top: 40px;
             opacity: 0; transition: opacity 1s;
@@ -109,7 +101,7 @@
             position: absolute; bottom: 50px; width: 100%; text-align: center;
             color: rgba(255,255,255,0.8); font-size: 12px;
             animation: pulse 2s infinite; pointer-events: none; z-index: 15;
-            transition: opacity 1s; 
+            transition: opacity 1s ease-out;
         }
         @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
@@ -177,6 +169,8 @@
         const congratsString = "CONGRATULATIONS!";
         let typeIndex = 0;
         let typeTick = 0;
+        // Calculated font size for congrats
+        let calculatedFontSize = 30;
         
         let player = { x: 0, y: 0, trail: [] };
         let mouse = { x: 0, y: 0, active: false }; 
@@ -238,7 +232,9 @@
         function startMatch() {
             gameState = 'PLAYING';
             uiContainer.style.opacity = 1;
-            tutorialText.style.opacity = 0; // Fade out guide immediately
+            
+            tutorialText.style.opacity = '0';
+            setTimeout(() => { tutorialText.style.display = 'none'; }, 1000);
             
             bgHearts = [];
             for(let i=0; i<60; i++) {
@@ -391,7 +387,6 @@
 
             auroraTime += 0.01;
 
-            // Player Physics
             if (joystick.active) {
                 const speed = 5; 
                 player.x += joystick.dx * speed; player.y += joystick.dy * speed;
@@ -404,7 +399,6 @@
             player.trail.push({ x: player.x, y: player.y, life: 1 });
             if(player.trail.length > 20) player.trail.shift();
 
-            // --- INTRO ---
             if (gameState === 'INTRO') {
                 let allCollected = true;
                 introPath.forEach((p, i) => {
@@ -419,27 +413,22 @@
                 if (allCollected && introPath.length > 0) startMatch();
             }
 
-            // --- CONGRATS LOGIC ---
             if (gameState === 'CONGRATS') {
                 typeTick++;
-                
-                // Typing Speed: 3000ms / 16 chars ~ 11 frames @ 60fps
                 if (typeTick % 11 === 0 && typeIndex < congratsString.length) {
                     typeIndex++;
                 }
                 
                 if (typeIndex >= congratsString.length) {
                     finaleTimer++; 
-                    // 7 SECONDS WAIT = 420 frames at 60fps
                     if (finaleTimer > 420) { 
                         gameState = 'DARK_FADE';
-                        finalMsgDiv.classList.add('visible'); // Start Dark Fade (2s in CSS)
-                        setTimeout(startFinalText, 2000); // Start text after fade finishes
+                        finalMsgDiv.classList.add('visible'); 
+                        setTimeout(startFinalText, 2000); 
                     }
                 }
             }
 
-            // --- GAMEPLAY & PHYSICS ---
             if (gameState === 'PLAYING' || gameState === 'CONGRATS' || gameState === 'DARK_FADE' || gameState === 'FINALE_TEXT') {
                 if (target && gameState === 'PLAYING') {
                     if (Date.now() - target.spawnTime > 5000) {
@@ -484,7 +473,7 @@
                 }
 
                 // Physics
-                const gravity = 0.7; // Heavy
+                const gravity = 0.7; 
                 const floorY = height - 10;
                 
                 for (let i = 0; i < droppedImages.length; i++) {
@@ -500,7 +489,6 @@
                         ball.vy += gravity;
                         ball.x += ball.vx; ball.y += ball.vy;
                         ball.angle += ball.va; 
-                        
                         ball.va *= 0.9; 
 
                         if (ball.y + ball.radius > floorY) {
@@ -573,8 +561,8 @@
 
             for(let i=0; i<30; i++) createParticle(target.x, target.y, target.color, 5);
             
-            // Drop 3
-            spawnImageDrops(3);
+            let dropCount = (collected <= 5) ? 2 : 4;
+            spawnImageDrops(dropCount);
 
             let c = COLORS.phase1;
             if (collected >= 5) c = COLORS.phase2;
@@ -597,14 +585,12 @@
             gameState = 'CONGRATS';
             document.getElementById('ui').style.opacity = 0;
             
-            // Mega Confetti
             for(let i=0; i<300; i++) {
                 const colors = [COLORS.phase1, COLORS.phase2, COLORS.phase3, COLORS.final, {r:255,g:255,b:0}, {r:0,g:255,b:255}];
                 const c = colors[Math.floor(Math.random()*colors.length)];
                 createParticle(width/2, height/2, c, 15); 
             }
 
-            // Prep Queue: 16 unique images
             const combined = [...ALL_IMAGES];
             combined.sort(() => Math.random() - 0.5);
             const selected = [];
@@ -623,7 +609,6 @@
                 return { url, color: `rgb(${col.r},${col.g},${col.b})` };
             });
 
-            // Drop loop
             let dropInterval = setInterval(() => {
                 if(finaleQueue.length > 0) {
                     const next = finaleQueue.pop();
@@ -636,10 +621,7 @@
 
         function startFinalText() {
             gameState = 'FINALE_TEXT';
-            
             const h1 = document.getElementById('typewriter-target');
-            
-            // Content Config
             const content = [
                 { type: 'text', val: "now put your phones camera on the" },
                 { type: 'br' },
@@ -665,12 +647,10 @@
                 if (item.type === 'br') {
                     h1.appendChild(document.createElement('br'));
                     step++;
-                    currentContainer = null;
-                    setTimeout(typeLoop, 50); // Fast break
+                    setTimeout(typeLoop, 50); 
                 } 
                 else if (item.type === 'html') {
-                    // Boobie Fade In (Whole Block)
-                    if (!activeSpan) { // Use activeSpan just to track we did it
+                    if (!activeSpan) { 
                         const wrapper = document.createElement('span');
                         wrapper.innerHTML = " " + item.val + " ";
                         h1.appendChild(wrapper);
@@ -678,10 +658,9 @@
                     }
                     step++;
                     activeSpan = null;
-                    setTimeout(typeLoop, 600); // Pause after boobie
+                    setTimeout(typeLoop, 600); 
                 } 
                 else if (item.type === 'text') {
-                    // Plain Text Typewriter
                     if (!activeSpan) {
                         activeSpan = document.createElement('span');
                         h1.appendChild(activeSpan);
@@ -698,7 +677,6 @@
                     }
                 }
                 else if (item.type === 'styled-text') {
-                    // Flower Typewriter
                     if (!activeSpan) {
                         activeSpan = document.createElement('span');
                         activeSpan.className = item.className;
@@ -707,7 +685,7 @@
                     activeSpan.textContent += item.val[charIndex];
                     charIndex++;
                     if (charIndex < item.val.length) {
-                        setTimeout(typeLoop, 100); // Slow type for flower
+                        setTimeout(typeLoop, 100); 
                     } else {
                         charIndex = 0;
                         step++;
@@ -748,7 +726,6 @@
             });
         }
 
-        // --- DRAWING ---
         function drawPixelRect(x, y, size, color) {
             ctx.fillStyle = color;
             const px = Math.floor(x / PIXEL_SCALE) * PIXEL_SCALE;
@@ -794,7 +771,6 @@
                     if (p.collected) {
                         ctx.fillStyle = COLORS.final; ctx.shadowColor = COLORS.final; ctx.shadowBlur = 15;
                     } else {
-                        // WHITE DOTS when untraced
                         ctx.fillStyle = COLORS.white; ctx.shadowBlur = 0;
                     }
                     ctx.fillRect(p.x, p.y, PIXEL_SCALE*2, PIXEL_SCALE*2);
@@ -820,7 +796,6 @@
                     ctx.restore();
                 });
 
-                // IMAGES
                 droppedImages.forEach(ball => {
                     if(ball.sprite.ready) {
                         ctx.save();
@@ -869,13 +844,21 @@
                     ctx.globalCompositeOperation = 'source-over';
                 });
                 
-                // TYPEWRITER CONGRATS ON CANVAS
+                // TYPEWRITER CONGRATS
                 if (gameState === 'CONGRATS') {
                     ctx.save();
                     ctx.fillStyle = "#fff";
-                    ctx.font = `40px "Press Start 2P"`;
+                    // Responsive Measurement & Fitting
+                    let fontSize = Math.min(width / 15, 30);
+                    ctx.font = `${fontSize}px "Press Start 2P"`;
+                    let textWidth = ctx.measureText(congratsString).width;
+                    while (textWidth > width * 0.8) {
+                        fontSize -= 2;
+                        ctx.font = `${fontSize}px "Press Start 2P"`;
+                        textWidth = ctx.measureText(congratsString).width;
+                    }
+                    
                     ctx.textAlign = "center";
-                    // Breathing Cyan Glow
                     const pulse = Math.sin(Date.now() / 200) * 10 + 20; 
                     ctx.shadowColor = "#00ffff";
                     ctx.shadowBlur = pulse;
@@ -884,7 +867,6 @@
                 }
             }
 
-            // Draw Player
             player.trail.forEach((t, i) => {
                 ctx.globalAlpha = (i / player.trail.length) * 0.4;
                 drawPixelHeart(t.x, t.y, '#fff', 0.8);
@@ -905,7 +887,6 @@
             requestAnimationFrame(draw);
         }
 
-        // Initialize 
         resize();
         generateIntroPath(); 
         requestAnimationFrame(update);
