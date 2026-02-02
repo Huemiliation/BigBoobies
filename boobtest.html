@@ -744,5 +744,94 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<div class="void-gateway">
+    <div class="glitch-wrapper">
+        <a href="https://huemiliation.github.io/BigBoobies/game.html" class="void-trigger">
+            ONE LAST THING<span class="blinking-cursor">_</span>
+        </a>
+    </div>
+    <p class="sub-text">don't leave yet.</p>
+</div>
+
+<style>
+    /* Container that mimics the game background */
+    .void-gateway {
+        background-color: #020204; /* Deep void black */
+        width: 100%;
+        padding: 100px 20px;       /* Lots of vertical space */
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-top: 1px solid rgba(244, 63, 94, 0.2); /* Subtle red line separator */
+        box-shadow: 0 -20px 50px rgba(0,0,0,1);       /* Fade upwards into black */
+        margin-top: 50px;
+        box-sizing: border-box;    /* Prevents padding from breaking width */
+    }
+
+    /* The Main Link Text */
+    .void-trigger {
+        font-family: 'Press Start 2P', cursive;
+        font-size: clamp(14px, 4vw, 24px); /* Responsive size */
+        color: #f43f5e;                    /* The Heart Color */
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        transition: all 0.3s ease;
+        
+        /* The Glow Animation */
+        text-shadow: 0 0 5px rgba(244, 63, 94, 0.5);
+        animation: void-pulse 2s infinite alternate;
+    }
+
+    /* Hover Effect: It wakes up */
+    .void-trigger:hover {
+        color: #fff;
+        text-shadow: 
+            0 0 10px #f43f5e,
+            0 0 20px #f43f5e,
+            0 0 40px #f43f5e;
+        transform: scale(1.1);
+        cursor: pointer;
+    }
+
+    /* The Blinking Cursor */
+    .blinking-cursor {
+        animation: blink 1s step-end infinite;
+        color: #fff;
+        margin-left: 5px;
+    }
+
+    /* Small subtext */
+    .sub-text {
+        font-family: 'Courier New', monospace;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 12px;
+        margin-top: 20px;
+        letter-spacing: 1px;
+    }
+
+    /* --- Keyframe Animations --- */
+    
+    @keyframes void-pulse {
+        0% {
+            opacity: 0.8;
+            text-shadow: 0 0 5px rgba(244, 63, 94, 0.2);
+        }
+        100% {
+            opacity: 1;
+            text-shadow: 0 0 20px rgba(244, 63, 94, 0.8), 0 0 10px #fff;
+        }
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+</style>
 </body>
 </html>
