@@ -7,14 +7,18 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { script: ['"Great Vibes"', 'cursive'], sans: ['"Montserrat"', 'sans-serif'] },
+                    fontFamily: { 
+                        script: ['"Great Vibes"', 'cursive'], 
+                        sans: ['"Montserrat"', 'sans-serif'],
+                        pixel: ['"Press Start 2P"', 'cursive'] 
+                    },
                     colors: { glass: "rgba(255, 255, 255, 0.05)" },
                     animation: { 'scroll': 'scroll 60s linear infinite' },
                     keyframes: { scroll: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-33.33%)' } } }
@@ -33,7 +37,7 @@
         html, body { overscroll-behavior: none; background: #000; height: 100%; margin: 0; }
         body { overflow-x: hidden; touch-action: pan-y; transition: background 2s ease-in-out; }
         
-        /* --- LOADER --- */
+   /* --- LOADER --- */
         #initial-loader {
             position: fixed; inset: 0; z-index: 9999; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -97,65 +101,29 @@
         @keyframes gradientBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         @keyframes shine { to { background-position: 200% center; } }
         
-        /* 1. Gold */
+        /* Borders for special memories */
         .special-border-gold { position: relative; background: rgba(20, 10, 5, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 215, 0, 0.3); }
         .special-border-gold::before { content: ""; position: absolute; inset: -2px; z-index: -1; background: linear-gradient(45deg, #fbbf24, #d97706, #fbbf24, #78350f); background-size: 400%; border-radius: 1.5rem; animation: gradientBorder 5s ease infinite; mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
         .gold-text { background: linear-gradient(to right, #fcd34d, #f59e0b, #fff, #f59e0b); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
 
-        /* 2. Blue (Him) */
         .special-border-blue { position: relative; background: rgba(5, 10, 20, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 0 30px rgba(59, 130, 246, 0.2); animation: pulseBlue 3s infinite alternate; }
         .blue-text { background: linear-gradient(to right, #60a5fa, #93c5fd, #fff, #3b82f6); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
         @keyframes pulseBlue { from { box-shadow: 0 0 20px rgba(59,130,246,0.3); } to { box-shadow: 0 0 50px rgba(59,130,246,0.6); } }
 
-        /* 3. Magenta (Her) */
         .special-border-magenta { position: relative; background: rgba(20, 5, 10, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.2); animation: pulseMagenta 3s infinite alternate; }
         .magenta-text { background: linear-gradient(to right, #f472b6, #fbcfe8, #fff, #db2777); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
         @keyframes pulseMagenta { from { box-shadow: 0 0 20px rgba(236,72,153,0.3); } to { box-shadow: 0 0 50px rgba(236,72,153,0.6); } }
 
-        /* 4. Rainbow (Anniversary) */
-        .special-border-rainbow { 
-            position: relative; 
-            background: #151515;
-            border-radius: 1.5rem;
-            box-shadow: 0 0 35px rgba(255, 255, 255, 0.2);
-            border: 2px solid transparent;
-            background-clip: padding-box, border-box;
-            background-origin: padding-box, border-box;
-            background-image: linear-gradient(#151515, #151515), linear-gradient(45deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7, #ec4899, #ef4444);
-            background-size: 100% 100%, 300% 100%;
-            animation: rainbowMove 4s linear infinite;
-        }
+        .special-border-rainbow { position: relative; background: #151515; border-radius: 1.5rem; box-shadow: 0 0 35px rgba(255, 255, 255, 0.2); border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(#151515, #151515), linear-gradient(45deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7, #ec4899, #ef4444); background-size: 100% 100%, 300% 100%; animation: rainbowMove 4s linear infinite; }
         .rainbow-text { background: linear-gradient(to right, #ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 3s linear infinite; }
         @keyframes rainbowMove { 0% { background-position: 0 0, 0 0; } 100% { background-position: 0 0, 100% 0; } }
 
-        /* 5. Celebration (New Phone) */
-        .special-border-celebration { 
-            position: relative; background: rgba(5, 20, 20, 0.4); backdrop-filter: blur(16px); 
-            border: 1px solid rgba(34, 211, 238, 0.5); 
-            box-shadow: 0 0 30px rgba(34, 211, 238, 0.3); 
-            animation: pulseCelebration 2s infinite alternate;
-        }
+        .special-border-celebration { position: relative; background: rgba(5, 20, 20, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(34, 211, 238, 0.5); box-shadow: 0 0 30px rgba(34, 211, 238, 0.3); animation: pulseCelebration 2s infinite alternate; }
         .celebration-text { background: linear-gradient(to right, #22d3ee, #e0f2fe, #fff, #22d3ee); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
         @keyframes pulseCelebration { from { box-shadow: 0 0 20px rgba(34,211,238,0.2); } to { box-shadow: 0 0 50px rgba(34,211,238,0.7); } }
 
-        /* 6. Bittersweet (Joy & Grief - Final) */
-        .special-border-bittersweet {
-            position: relative;
-            background: #0f0f0f;
-            border-radius: 1.5rem;
-            box-shadow: 0 0 30px rgba(220, 38, 38, 0.2); 
-            border: 2px solid transparent;
-            background-clip: padding-box, border-box;
-            background-origin: padding-box, border-box;
-            background-image: linear-gradient(#0f0f0f, #0f0f0f), linear-gradient(120deg, #9f1239, #db2777, #4c0519);
-            background-size: 100% 100%, 300% 300%;
-            animation: bittersweetFlow 10s ease infinite alternate;
-        }
-        .bittersweet-text {
-            background: linear-gradient(to right, #f43f5e, #be185d, #881337);
-            background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text;
-            animation: shine 6s linear infinite;
-        }
+        .special-border-bittersweet { position: relative; background: #0f0f0f; border-radius: 1.5rem; box-shadow: 0 0 30px rgba(220, 38, 38, 0.2); border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(#0f0f0f, #0f0f0f), linear-gradient(120deg, #9f1239, #db2777, #4c0519); background-size: 100% 100%, 300% 300%; animation: bittersweetFlow 10s ease infinite alternate; }
+        .bittersweet-text { background: linear-gradient(to right, #f43f5e, #be185d, #881337); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 6s linear infinite; }
         @keyframes bittersweetFlow { 0% { background-position: 0 0, 0% 50%; } 100% { background-position: 0 0, 100% 50%; } }
 
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -172,6 +140,72 @@
         .cursor-zoom-in { cursor: zoom-in; }
         .cursor-grab { cursor: grab; }
         .cursor-grabbing { cursor: grabbing; }
+
+        /* === VOID PORTAL STYLES === */
+        .void-gateway {
+            width: 100%;
+            padding: 150px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(to bottom, transparent, #000 30%);
+            margin-top: 50px;
+        }
+
+        .void-trigger {
+            display: inline-block;
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(12px, 3vw, 18px); 
+            color: #f43f5e;
+            background-color: #000;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 20px 40px;
+            border: 3px solid #f43f5e;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px #f43f5e, inset 0 0 15px #f43f5e;
+            animation: button-pulse 2s infinite;
+            overflow: hidden;
+        }
+
+        .void-trigger::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                transparent 0px,
+                transparent 2px,
+                rgba(244, 63, 94, 0.1) 3px,
+                rgba(244, 63, 94, 0.1) 4px
+            );
+            pointer-events: none;
+        }
+
+        .void-trigger:hover {
+            background-color: #f43f5e;
+            color: #000;
+            box-shadow: 0 0 40px #f43f5e, 0 0 80px #f43f5e;
+            transform: scale(1.05) translateY(-2px);
+            cursor: pointer;
+        }
+
+        .blinking-cursor {
+            animation: blink 0.8s step-end infinite;
+            color: inherit;
+            margin-left: 5px;
+        }
+
+        @keyframes button-pulse {
+            0% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px #f43f5e; border-color: #f43f5e; }
+            50% { box-shadow: 0 0 30px #f43f5e, inset 0 0 20px #f43f5e; border-color: #ff8fa3; }
+            100% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px #f43f5e; border-color: #f43f5e; }
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body>
@@ -245,25 +279,14 @@
             });
         };
 
-        const generatePlaceholders = (seed, context, count = 5) => {
-            return Array.from({ length: count }, (_, i) => ({
-                id: `${seed}-${i}`,
-                src: `https://picsum.photos/seed/${seed * (i + 1)}/600/800`,
-                type: 'image',
-                note: `Memory #${i + 1} from ${context}.`
-            }));
-        };
-
         const CHAPTERS = [
             {
                 id: 1,
                 title: "Chapter One",
                 subtitle: "Us",
-                // Theme: Midnight Blue -> Dark Coffee
                 theme: { from: "#0b2047", to: "#1c1006", accent: "#38bdf8" }, 
                 song: { title: "Separator", url: "https://huemiliation.github.io/BigBoobies/08%20Radiohead%20-%20Separator.mp3" },
                 albums: [
-                    // === 2023 ===
                     { title: "in the beninging", month: "FEB - JUNE 2023", photos: getMedia("2023/february - june/in the beninging", 11, NOTES_2023.beninging, [2,3,4,7,8,9,10]) },
                     { title: "where it all started", month: "OCTOBER 2023", photos: getMedia("2023/october/where it all started", 11, NOTES_2023.whereItAllStarted, [1,3]) },
                     { title: "in the park", month: "NOVEMBER 2023", photos: getMedia("2023/november/in the park", 9, NOTES_2023.inThePark, []) },
@@ -277,16 +300,12 @@
                     { title: "jer khordim", month: "DECEMBER 2023", photos: getMedia("2023/december/jer khordim", 4, NOTES_2023.jerKhordim, []) },
                     { title: "nose", month: "DECEMBER 2023", photos: getMedia("2023/december/nose", 28, NOTES_2023.nose, []) },
                     { title: "vijio cawl", month: "DECEMBER 2023", photos: getMedia("2023/december/vijio cawl", 4, NOTES_2023.vijioCawl, []) },
-
-                    // === 2024 ===
                     { title: "damdaran", month: "JANUARY 2024", photos: getMedia("2024/january/damdaran", 11, NOTES_2024.january.damdaran, [8, 9]) },
                     { title: "delishoos", month: "FEBRUARY 2024", photos: getMedia("2024/february/delishoos", 15, NOTES_2024.february.delishoos, []) },
                     { title: "harry pottler", month: "FEBRUARY 2024", photos: getMedia("2024/february/harry_pottler", 16, NOTES_2024.february.harry_pottler, []) },
                     { title: "hulu lost", month: "FEBRUARY 2024", photos: getMedia("2024/february/hulu_lost", 6, NOTES_2024.february.hulu_lost, []) },
                     { title: "humbududududum", month: "FEBRUARY 2024", photos: getMedia("2024/february/humbududududum", 24, NOTES_2024.february.humbududududum, [1, 7, 14, 23]) },
-                    
                     { title: "my birthday", month: "MARCH 2024", isSpecial: "bday_him", photos: getMedia("2024/march/my_birthday", 13, NOTES_2024.march.my_birthday, [9, 10, 11]) },
-
                     { title: "hulu perperi", month: "APRIL 2024", photos: getMedia("2024/april/hulu_perperi", 15, NOTES_2024.april.hulu_perperi, []) },
                     { title: "khojel", month: "APRIL 2024", photos: getMedia("2024/april/khojel", 17, NOTES_2024.april.khojel, [1, 2]) },
                     { title: "ching chang chung", month: "MAY 2024", photos: getMedia("2024/may/chingchangchung", 38, NOTES_2024.may.chingchangchung, []) },
@@ -297,14 +316,10 @@
                     { title: "gootbye partaaaayyyy", month: "JULY 2024", photos: getMedia("2024/july/gootbyepartaaaayyyy", 8, NOTES_2024.july.gootbyepartaaaayyyy, []) },
                     { title: "skery", month: "JULY 2024", photos: getMedia("2024/july/skery", 2, NOTES_2024.july.skery, [2]) },
                     { title: "bij boobie", month: "AUGUST 2024", photos: getMedia("2024/august/bij_boobie", 19, NOTES_2024.august.bij_boobie, []) },
-                    
                     { title: "your 19th birthday", month: "AUGUST 2024", isSpecial: "bday_her", photos: getMedia("2024/august/your_19th_birthday", 21, NOTES_2024.august.your_19th_birthday, []) },
-
                     { title: "booooooooooj", month: "SEPTEMBER 2024", photos: getMedia("2024/september/booooooooooj", 19, NOTES_2024.september.booooooooooj, []) },
                     { title: "ezteik friday", month: "OCTOBER 2024", photos: getMedia("2024/october/ezteik_friday", 15, NOTES_2024.october.ezteik_friday, []) },
-                    
                     { title: "our anniversary", month: "OCTOBER 2024", isSpecial: "anniversary", photos: getMedia("2024/october/our_anniversary", 8, NOTES_2024.october.our_anniversary, []) },
-
                     { title: "boojoo", month: "NOVEMBER 2024", photos: getMedia("2024/november/boojoo", 16, NOTES_2024.november.boojoo, []) },
                     { title: "youre a wizard", month: "NOVEMBER 2024", photos: getMedia("2024/november/youre_a_wizard", 30, NOTES_2024.november.youre_a_wizard, []) },
                     { title: "december moments", month: "DECEMBER 2024", photos: getMedia("2024/december", 5, NOTES_2024.december.dec_vids, [1]) }
@@ -314,7 +329,6 @@
                 id: 2,
                 title: "Chapter Two",
                 subtitle: "Love",
-                // THEME: Dark Coffee -> Very Dark Blood Red (Transition to Ch3)
                 theme: { from: "#1c1006", to: "#1a0202", accent: "#fbbf24" }, 
                 song: { title: "Weird Fishes", url: "https://huemiliation.github.io/BigBoobies/04%20Radiohead%20-%20Weird%20Fishes_%20Arpeggi.mp3" },
                 albums: [
@@ -322,15 +336,11 @@
                     { title: "boobje milad", month: "JANUARY 2025", photos: getMedia("2025/january/boobje_milad", 12, NOTES_2025.january.milad, []) },
                     { title: "boobje hulu", month: "JANUARY 2025", photos: getMedia("2025/january/boobje_hulu", 2, NOTES_2025.january.hulu, []) }, 
                     { title: "bubje baafbazzziiiii", month: "JANUARY 2025", photos: getMedia("2025/january/bubje_baafbazzziiiii", 9, NOTES_2025.january.baaf, []) },
-
                     { title: "it tasted great with you", month: "FEBRUARY 2025", photos: getMedia("2025/february/it_tasted_great_with_you", 6, NOTES_2025.february.tasted, []) },
-
                     { title: "my 22nd birthday", month: "MARCH 2025", isSpecial: "bday_him", photos: getMedia("2025/march/my_22nd_birthday", 8, NOTES_2025.march.birthday, []) },
                     { title: "your new phone", month: "MARCH 2025", isSpecial: "celebration", photos: getMedia("2025/march/your_new_phone", 20, NOTES_2025.march.phone, []) },
-
                     { title: "dochalkhe", month: "APRIL 2025", photos: getMedia("2025/april/dochalkhe", 12, NOTES_2025.april.dochalkhe, [1]) },
                     { title: "seshuareeeee", month: "APRIL 2025", photos: getMedia("2025/april/seshuareeeee", 10, NOTES_2025.april.seshuare, []) },
-
                     { title: "moms borthday", month: "MAY 2025", photos: getMedia("2025/may/moms_borthday", 6, NOTES_2025.may.mom, []) },
                     { title: "motorboobieeeeeeee", month: "MAY 2025", photos: getMedia("2025/may/motorboobieeeeeeee", 12, NOTES_2025.may.motor, [1, 5, 6]) },
                     { title: "pizzapizzapizza", month: "MAY 2025", photos: getMedia("2025/may/pizzapizzapizza", 6, NOTES_2025.may.pizza, [6]) },
@@ -340,12 +350,10 @@
                 id: 3,
                 title: "Chapter Three",
                 subtitle: "End of Beginning",
-                // THEME: Very Dark Blood Red (from Ch2) -> Pure Black
                 theme: { from: "#1a0202", to: "#000000", accent: "#f43f5e" }, 
                 song: { title: "Motion Picture Soundtrack", url: "https://raw.githubusercontent.com/Huemiliation/BigBoobies/main/10%20Radiohead%20-%20Motion%20Picture%20Soundtrack.mp3" },
                 albums: [
                     { title: "hulu jujulu", month: "JULY 2025", photos: getMedia("2025/july/hulu_jujulu", 15, NOTES_2025.july.hulu, [], "", "jpg") },
-
                     { 
                         title: "I'll see you in the next life", 
                         month: "AUGUST 2025", 
@@ -367,19 +375,9 @@
                 let spawnRate = 1500;
                 let glow = 'none';
 
-                if(activeChapter === 0) { // Ch 1
-                    colors = ['#ffffff', '#fbbf24']; 
-                    spawnRate = 1200; 
-                }
-                if(activeChapter === 1) { // Ch 2
-                    colors = ['#f472b6', '#fbbf24', '#ffffff']; 
-                    spawnRate = 600; 
-                }
-                if(activeChapter === 2) { // Ch 3 (Storm of hearts, Red/Ruby/Magenta)
-                    colors = ['#e11d48', '#be185d', '#a21caf', '#ffffff']; 
-                    spawnRate = 300; 
-                    glow = '0 0 10px currentColor'; 
-                }
+                if(activeChapter === 0) { colors = ['#ffffff']; spawnRate = 1200; }
+                if(activeChapter === 1) { colors = ['#ffffff', '#f472b6', '#fbbf24']; spawnRate = 600; }
+                if(activeChapter === 2) { colors = ['#e11d48', '#be185d', '#a21caf', '#ffffff']; spawnRate = 300; glow = '0 0 10px currentColor'; }
 
                 const interval = setInterval(() => {
                     if (document.hidden) return;
@@ -519,7 +517,6 @@
             </svg>
         );
 
-        // --- WORKING ZOOM CONTROLLER (Pointer Events) ---
         const ZoomableMedia = ({ media, accent, onRequestPauseMusic }) => {
             const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
             const containerRef = useRef(null);
@@ -552,8 +549,7 @@
             };
 
             const handleWheel = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+                e.preventDefault(); e.stopPropagation();
                 let newScale = transform.scale - (e.deltaY * 0.003);
                 newScale = Math.min(Math.max(1, newScale), 5); 
                 setTransform({ scale: newScale, x: newScale === 1 ? 0 : transform.x, y: newScale === 1 ? 0 : transform.y });
@@ -578,9 +574,9 @@
                     }} className="relative flex items-center justify-center max-w-full max-h-full">
                         {media.type === 'video' ? (
                              <video src={media.src} draggable={false} controls playsInline className="max-w-full max-h-[65vh] rounded-lg shadow-2xl" style={{ boxShadow: `0 0 40px ${accent}20` }} onPlay={onRequestPauseMusic} />
-                         ) : (
+                          ) : (
                              <img src={media.src} alt="Memory" draggable={false} className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl select-none" style={{ boxShadow: `0 0 40px ${accent}20` }} />
-                         )}
+                          )}
                     </div>
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg z-50" onClick={e => e.stopPropagation()}>
                          <button onClick={() => setTransform(p => ({ ...p, scale: Math.max(1, p.scale - 0.5), x: p.scale<=1.5?0:p.x, y: p.scale<=1.5?0:p.y }))} className="text-white hover:text-amber-400 font-bold text-xl px-2 active:scale-90 transition">-</button>
@@ -622,6 +618,19 @@
             );
         };
 
+        // --- THE VOID PORTAL COMPONENT ---
+        const VoidPortal = () => {
+            return (
+                <div className="void-gateway">
+                    <div className="glitch-wrapper">
+                        <a href="https://huemiliation.github.io/BigBoobies/game.html" className="void-trigger">
+                            ONE LAST THING<span className="blinking-cursor">_</span>
+                        </a>
+                    </div>
+                </div>
+            );
+        };
+
         const App = () => {
             const [activeChapter, setActiveChapter] = useState(0);
             const [lightbox, setLightbox] = useState({ open: false, photos: [], index: 0 });
@@ -656,8 +665,19 @@
                 if(!aud) return;
                 const onEnd = () => setActiveSong(null);
                 aud.addEventListener('ended', onEnd);
-                if(activeSong) { aud.src = activeSong; aud.play().catch(e => console.log(e)); }
-                else aud.pause();
+                
+                // Ensure audio plays in background
+                aud.preload = "auto";
+                
+                if(activeSong) { 
+                    aud.src = activeSong; 
+                    const playPromise = aud.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => console.log("Autoplay prevented:", error));
+                    }
+                } else {
+                    aud.pause();
+                }
                 return () => { aud.pause(); aud.removeEventListener('ended', onEnd); }
             }, [activeSong]);
 
@@ -671,7 +691,7 @@
                     <div id="stars"></div>
                     <div id="particle-container"></div>
                     <ParticleSystem activeChapter={activeChapter} />
-                    <audio ref={audioRef} />
+                    <audio ref={audioRef} preload="auto" />
 
                     <div className="relative z-10 max-w-6xl mx-auto px-4 pb-32">
                         <header className="pt-32 pb-20 text-center animate-fade-in-up">
@@ -744,6 +764,10 @@
                                 </div>
                             </section>
                         ))}
+                        
+                        {/* VOID PORTAL ADDED HERE */}
+                        <VoidPortal />
+                        
                     </div>
 
                     <AnimatePresence>
@@ -769,94 +793,5 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-
-<div class="void-gateway">
-    <div class="glitch-wrapper">
-        <a href="https://huemiliation.github.io/BigBoobies/game.html" class="void-trigger">
-            ONE LAST THING<span class="blinking-cursor">_</span>
-        </a>
-    </div>
-    <p class="sub-text">don't leave yet.</p>
-</div>
-
-<style>
-    /* Container that mimics the game background */
-    .void-gateway {
-        background-color: #020204; /* Deep void black */
-        width: 100%;
-        padding: 100px 20px;       /* Lots of vertical space */
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border-top: 1px solid rgba(244, 63, 94, 0.2); /* Subtle red line separator */
-        box-shadow: 0 -20px 50px rgba(0,0,0,1);       /* Fade upwards into black */
-        margin-top: 50px;
-        box-sizing: border-box;    /* Prevents padding from breaking width */
-    }
-
-    /* The Main Link Text */
-    .void-trigger {
-        font-family: 'Press Start 2P', cursive;
-        font-size: clamp(14px, 4vw, 24px); /* Responsive size */
-        color: #f43f5e;                    /* The Heart Color */
-        text-decoration: none;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        position: relative;
-        transition: all 0.3s ease;
-        
-        /* The Glow Animation */
-        text-shadow: 0 0 5px rgba(244, 63, 94, 0.5);
-        animation: void-pulse 2s infinite alternate;
-    }
-
-    /* Hover Effect: It wakes up */
-    .void-trigger:hover {
-        color: #fff;
-        text-shadow: 
-            0 0 10px #f43f5e,
-            0 0 20px #f43f5e,
-            0 0 40px #f43f5e;
-        transform: scale(1.1);
-        cursor: pointer;
-    }
-
-    /* The Blinking Cursor */
-    .blinking-cursor {
-        animation: blink 1s step-end infinite;
-        color: #fff;
-        margin-left: 5px;
-    }
-
-    /* Small subtext */
-    .sub-text {
-        font-family: 'Courier New', monospace;
-        color: rgba(255, 255, 255, 0.4);
-        font-size: 12px;
-        margin-top: 20px;
-        letter-spacing: 1px;
-    }
-
-    /* --- Keyframe Animations --- */
-    
-    @keyframes void-pulse {
-        0% {
-            opacity: 0.8;
-            text-shadow: 0 0 5px rgba(244, 63, 94, 0.2);
-        }
-        100% {
-            opacity: 1;
-            text-shadow: 0 0 20px rgba(244, 63, 94, 0.8), 0 0 10px #fff;
-        }
-    }
-
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
-    }
-</style>
 </body>
 </html>
