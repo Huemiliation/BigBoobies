@@ -53,30 +53,39 @@
             to { opacity: 1; transform: scale(1); } 
         }
 
+        /* THE BOOBIE TEXT (Pastel Gradient Animation) 
+           Note: We use -webkit-text-fill-color for mobile support.
+        */
         .wavy-wrapper {
             display: inline-block;
-            background-image: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+            
+            /* Harmonious Pastel Gradient: Red -> Pink -> Purple -> Magenta -> Loop */
+            background-image: linear-gradient(
+                90deg, 
+                #ff7eb3, /* Pink */
+                #ff758c, /* Reddish Pink */
+                #a259ff, /* Purple */
+                #ff7eb3  /* Loop back to Pink */
+            );
             background-size: 200% auto;
             
-            /* Text Clipping for Mobile */
+            /* The Magic Mobile Fixes */
             -webkit-background-clip: text;
             background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-text-fill-color: transparent; 
             color: transparent; 
             
-            animation: rainbow 10s linear infinite, fadeIn 0.5s ease-out forwards;
+            animation: pastelFlow 3s linear infinite, fadeIn 0.5s ease-out forwards;
             opacity: 0; 
-            
-            /* FORCE GPU RENDERING (Fixes disappearing text on Mobile) */
-            transform: translateZ(0); 
-            will-change: transform, opacity;
+            transform: translateZ(0); /* Force GPU */
         }
 
         .wavy-wrapper span {
             display: inline-block;
             font-size: 1.4em;
-            animation: wave 0.8s ease-in-out infinite;
+            animation: wave 1.2s ease-in-out infinite;
         }
+        
         .wavy-wrapper span:nth-child(1) { animation-delay: 0.0s; }
         .wavy-wrapper span:nth-child(2) { animation-delay: 0.1s; }
         .wavy-wrapper span:nth-child(3) { animation-delay: 0.2s; }
@@ -91,8 +100,12 @@
             animation: breathe 1.5s ease-in-out infinite; 
         }
 
+        @keyframes pastelFlow { 
+            0% { background-position: 0% 50%; } 
+            100% { background-position: 200% 50%; } 
+        }
+        
         @keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-        @keyframes rainbow { 0% { background-position: 0%; } 100% { background-position: 200%; } }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px rgba(232, 121, 249, 1); } }
 
         button {
@@ -239,7 +252,7 @@
             gameState = 'PLAYING';
             uiContainer.style.opacity = 1;
             
-            // FADE OUT TUTORIAL IMMEDIATELY
+            // FADE OUT TUTORIAL
             tutorialText.style.opacity = '0';
             setTimeout(() => { tutorialText.style.display = 'none'; }, 1000);
             
@@ -344,8 +357,15 @@
                 if (pool.length === 0) break;
                 
                 let imgUrl = pool[Math.floor(Math.random() * pool.length)];
+                
+                // --- FIX FOR INFINITE LOOP CRASH ---
+                // If we've seen almost all images, reset the visited set to prevent hanging
+                if (visitedImages.size >= pool.length - 1) {
+                    visitedImages.clear();
+                }
+
                 let safety = 0;
-                while (visitedImages.has(imgUrl) && safety < 30) {
+                while (visitedImages.has(imgUrl) && safety < 10) { // Reduced safety check limit
                     imgUrl = pool[Math.floor(Math.random() * pool.length)];
                     safety++;
                 }
@@ -355,10 +375,10 @@
                     droppedImages.shift();
                 }
 
-                // SIZE CALCULATION
+                // MOBILE SIZE ADJUSTMENT
                 const isMobile = width < 768;
                 const baseSize = 85 + Math.random() * 35;
-                const size = isMobile ? baseSize * 0.8 : baseSize; // 20% Smaller on mobile
+                const size = isMobile ? baseSize * 0.7 : baseSize; 
 
                 const spriteData = createCircleImageSprite(imgUrl, size, colorStr);
                 
@@ -488,7 +508,7 @@
                 }
 
                 // Physics
-                const gravity = 0.9; // HEAVIER GRAVITY
+                const gravity = 1.2; // HEAVY
                 const floorY = height - 10;
                 
                 for (let i = 0; i < droppedImages.length; i++) {
@@ -716,11 +736,14 @@
             const colorStr = `rgb(${c.r},${c.g},${c.b})`;
             const isTricky = (collected > 0 && Math.random() < TRICKY_CHANCE);
 
+            // SAFETY FIX: Prevent Infinite Loop on small screens
             let tx, ty;
+            let attempts = 0;
             do {
                 tx = Math.random() * (width - 200) + 100;
                 ty = Math.random() * (height - 200) + 100;
-            } while(Math.hypot(tx - player.x, ty - player.y) < 300);
+                attempts++;
+            } while(Math.hypot(tx - player.x, ty - player.y) < 250 && attempts < 50);
 
             target = {
                 x: tx, y: ty, vx: 0, vy: 0, color: colorStr,
