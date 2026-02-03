@@ -7,7 +7,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&amp;family=Montserrat:wght@300;400;600;800&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -37,7 +37,7 @@
         html, body { overscroll-behavior: none; background: #000; height: 100%; margin: 0; }
         body { overflow-x: hidden; touch-action: pan-y; transition: background 2s ease-in-out; }
         
-   /* --- LOADER --- */
+        /* --- FIXED LOADER --- */
         #initial-loader {
             position: fixed; inset: 0; z-index: 9999; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -45,37 +45,25 @@
         }
         
         .loader-wrapper { 
-            /* Centers the heart properly before animation */
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            width: 100px;
-            height: 100px;
+            display: flex; align-items: center; justify-content: center;
+            width: 100px; height: 100px;
         }
 
         .loader-heart {
-            width: 60px; 
-            height: 60px; 
-            background: #e11d48; 
+            width: 60px; height: 60px; background: #e11d48; 
             position: relative; 
-            /* Base rotation is handled in keyframes to prevent glitches */
             box-shadow: 0 0 30px #e11d48;
             animation: heartBeatMain 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
         }
 
         .loader-heart::before, .loader-heart::after {
-            content: ""; 
-            position: absolute; 
-            width: 60px; 
-            height: 60px; 
-            border-radius: 50%; 
-            background: #e11d48;
+            content: ""; position: absolute; width: 60px; height: 60px; 
+            border-radius: 50%; background: #e11d48;
             box-shadow: 0 0 30px #e11d48;
         }
         .loader-heart::before { left: -30px; } 
         .loader-heart::after { top: -30px; }
 
-        /* Smoother "Lub-Dub" Heartbeat */
         @keyframes heartBeatMain {
             0%   { transform: rotate(45deg) scale(0.8); }
             5%   { transform: rotate(45deg) scale(0.9); }
@@ -87,10 +75,8 @@
 
         .loading-bar { display: flex; gap: 8px; margin-top: 40px; }
         .mini-heart { color: #e11d48; font-size: 16px; animation: miniFade 1.5s infinite; opacity: 0.2; }
-        .mini-heart:nth-child(1) { animation-delay: 0.0s; } 
-        .mini-heart:nth-child(2) { animation-delay: 0.2s; }
-        .mini-heart:nth-child(3) { animation-delay: 0.4s; } 
-        .mini-heart:nth-child(4) { animation-delay: 0.6s; }
+        .mini-heart:nth-child(1) { animation-delay: 0.0s; } .mini-heart:nth-child(2) { animation-delay: 0.2s; }
+        .mini-heart:nth-child(3) { animation-delay: 0.4s; } .mini-heart:nth-child(4) { animation-delay: 0.6s; }
         .mini-heart:nth-child(5) { animation-delay: 0.8s; }
         @keyframes miniFade { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
 
@@ -144,13 +130,13 @@
         /* === VOID PORTAL STYLES === */
         .void-gateway {
             width: 100%;
-            padding: 150px 20px;
+            padding: 180px 20px 100px;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(to bottom, transparent, #000 30%);
+            background: linear-gradient(to bottom, transparent, #000 40%);
             margin-top: 50px;
         }
 
@@ -159,7 +145,7 @@
             font-family: 'Press Start 2P', cursive;
             font-size: clamp(12px, 3vw, 18px); 
             color: #f43f5e;
-            background-color: #000;
+            background-color: transparent;
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -167,8 +153,8 @@
             border: 3px solid #f43f5e;
             position: relative;
             transition: all 0.3s ease;
-            box-shadow: 0 0 15px #f43f5e, inset 0 0 15px #f43f5e;
-            animation: button-pulse 2s infinite;
+            box-shadow: 0 0 15px #f43f5e, inset 0 0 10px rgba(244, 63, 94, 0.2);
+            animation: button-pulse 3s infinite;
             overflow: hidden;
         }
 
@@ -186,10 +172,10 @@
         }
 
         .void-trigger:hover {
-            background-color: #f43f5e;
-            color: #000;
-            box-shadow: 0 0 40px #f43f5e, 0 0 80px #f43f5e;
+            background-color: rgba(244, 63, 94, 0.1);
+            box-shadow: 0 0 30px #f43f5e, inset 0 0 20px #f43f5e;
             transform: scale(1.05) translateY(-2px);
+            text-shadow: 0 0 8px #fff;
             cursor: pointer;
         }
 
@@ -200,9 +186,9 @@
         }
 
         @keyframes button-pulse {
-            0% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px #f43f5e; border-color: #f43f5e; }
-            50% { box-shadow: 0 0 30px #f43f5e, inset 0 0 20px #f43f5e; border-color: #ff8fa3; }
-            100% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px #f43f5e; border-color: #f43f5e; }
+            0% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px rgba(244, 63, 94, 0.1); border-color: #f43f5e; }
+            50% { box-shadow: 0 0 25px #f43f5e, inset 0 0 15px rgba(244, 63, 94, 0.3); border-color: #ff8fa3; }
+            100% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px rgba(244, 63, 94, 0.1); border-color: #f43f5e; }
         }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
