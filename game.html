@@ -53,45 +53,28 @@
             to { opacity: 1; transform: scale(1); } 
         }
 
-        /* THE BOOBIE TEXT (Pastel Gradient Animation) 
-           Note: We use -webkit-text-fill-color for mobile support.
-        */
-        .wavy-wrapper {
+        .boobie-wrapper {
             display: inline-block;
-            
-            /* Harmonious Pastel Gradient: Red -> Pink -> Purple -> Magenta -> Loop */
-            background-image: linear-gradient(
-                90deg, 
-                #ff7eb3, /* Pink */
-                #ff758c, /* Reddish Pink */
-                #a259ff, /* Purple */
-                #ff7eb3  /* Loop back to Pink */
-            );
-            background-size: 200% auto;
-            
-            /* The Magic Mobile Fixes */
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent; 
-            color: transparent; 
-            
-            animation: pastelFlow 3s linear infinite, fadeIn 0.5s ease-out forwards;
-            opacity: 0; 
-            transform: translateZ(0); /* Force GPU */
+            opacity: 0;
+            animation: fadeIn 1s forwards;
         }
 
-        .wavy-wrapper span {
+        /* INDIVIDUAL LETTERS: RAINBOW ANIMATION */
+        .boobie-letter {
             display: inline-block;
-            font-size: 1.4em;
-            animation: wave 1.2s ease-in-out infinite;
+            color: #ff0000; 
+            text-shadow: 0 0 5px currentColor;
+            /* Rainbow Cycle + Float */
+            animation: floaty 1.5s ease-in-out infinite, rainbowCycle 4s linear infinite;
+            font-size: 1.5em; 
         }
-        
-        .wavy-wrapper span:nth-child(1) { animation-delay: 0.0s; }
-        .wavy-wrapper span:nth-child(2) { animation-delay: 0.1s; }
-        .wavy-wrapper span:nth-child(3) { animation-delay: 0.2s; }
-        .wavy-wrapper span:nth-child(4) { animation-delay: 0.3s; }
-        .wavy-wrapper span:nth-child(5) { animation-delay: 0.4s; }
-        .wavy-wrapper span:nth-child(6) { animation-delay: 0.5s; }
+
+        .boobie-letter:nth-child(1) { animation-delay: 0.0s, -0.0s; }
+        .boobie-letter:nth-child(2) { animation-delay: 0.1s, -0.5s; }
+        .boobie-letter:nth-child(3) { animation-delay: 0.2s, -1.0s; }
+        .boobie-letter:nth-child(4) { animation-delay: 0.3s, -1.5s; }
+        .boobie-letter:nth-child(5) { animation-delay: 0.4s, -2.0s; }
+        .boobie-letter:nth-child(6) { animation-delay: 0.5s, -2.5s; }
 
         .flower {
             display: inline-block;
@@ -100,12 +83,18 @@
             animation: breathe 1.5s ease-in-out infinite; 
         }
 
-        @keyframes pastelFlow { 
-            0% { background-position: 0% 50%; } 
-            100% { background-position: 200% 50%; } 
-        }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         
-        @keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes rainbowCycle {
+            0% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+            16% { color: #ffff00; text-shadow: 0 0 10px #ffff00; }
+            33% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+            50% { color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+            66% { color: #0000ff; text-shadow: 0 0 10px #0000ff; }
+            83% { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+            100% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+        }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px rgba(232, 121, 249, 1); } }
 
         button {
@@ -159,8 +148,12 @@
         // --- CONFIG ---
         const TOTAL_MONTHS = 15;
         const TRICKY_CHANCE = 0.7;
-        const STATIC_TIME = 3000; 
-        const MAX_DROPPED_IMAGES = 12; 
+        
+        // PHYSICS CONFIG
+        const GRAVITY = 0.6;
+        const FRICTION = 0.99; 
+        const BOUNCE = 0.85; // High bounce
+        
         const COLORS = {
             phase1: { r: 56, g: 189, b: 248 }, 
             phase2: { r: 251, g: 191, b: 36 }, 
@@ -176,15 +169,17 @@
             phase3: [...genPath("2025/august/I'll_see_you_in_the_next_life", 10)]
         };
         const ALL_IMAGES = [...IMG_POOLS.phase1, ...IMG_POOLS.phase2, ...IMG_POOLS.phase3];
-        let visitedImages = new Set();
+        
+        // --- ASSET CACHE ---
+        const assetCache = {};
 
         // --- STATE ---
         let gameState = 'INTRO';
         let collected = 0;
         let auroraTime = 0;
         let finaleTimer = 0;
-        let finaleQueue = [];
         let gameFrozen = false;
+        let finaleStartTime = 0;
         
         // Typewriter Vars
         const congratsString = "CONGRATULATIONS!";
@@ -201,7 +196,9 @@
         let trailOrbs = []; 
         let bgHearts = [];
         let nebulas = [];
-        let droppedImages = [];
+        
+        // PHYSICS OBJECTS
+        let balls = [];
 
         // 8x8 Heart Mask
         const HEART_MASK = [
@@ -209,11 +206,21 @@
             [1,1,1,1,1,1,1,1],
             [1,1,1,1,1,1,1,1],
             [1,1,1,1,1,1,1,1],
-            [0,1,1,1,1,1,1,0],
+            [0,1,1,1,1,1,0,0],
             [0,0,1,1,1,1,0,0],
             [0,0,0,1,1,0,0,0],
             [0,0,0,0,0,0,0,0]
         ];
+
+        // --- PRELOADING SYSTEM ---
+        function preloadImages() {
+            ALL_IMAGES.forEach(url => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = url;
+                assetCache[url] = img; 
+            });
+        }
 
         // --- SETUP ---
         function resize() {
@@ -252,7 +259,6 @@
             gameState = 'PLAYING';
             uiContainer.style.opacity = 1;
             
-            // FADE OUT TUTORIAL
             tutorialText.style.opacity = '0';
             setTimeout(() => { tutorialText.style.display = 'none'; }, 1000);
             
@@ -314,101 +320,171 @@
             joystick.active = false; joystick.dx = 0; joystick.dy = 0;
         });
 
-        // --- SPRITE GENERATOR ---
-        function createCircleImageSprite(imgSrc, displaySize, colorStr) {
-            const cacheSize = Math.min(128, displaySize * 2); 
+        // --- SPRITE GENERATOR (Uses Cache) ---
+        function createCircleImageSprite(url, size, color) {
+            const cacheSize = Math.min(128, size * 2); 
             const c = document.createElement('canvas');
             c.width = cacheSize; c.height = cacheSize;
             const cx = c.getContext('2d');
-            const radius = cacheSize / 2;
+            
+            const cachedImg = assetCache[url];
+            const img = cachedImg || new Image();
+            if (!cachedImg) { img.crossOrigin = "Anonymous"; img.src = url; }
 
-            cx.beginPath();
-            cx.arc(radius, radius, radius - 2, 0, Math.PI * 2);
-            cx.closePath();
-            cx.save();
-            cx.clip();
+            const spriteObj = { canvas: c, ctx: cx, img: img, ready: false, cacheSize: cacheSize, borderColor: color };
+
+            const drawToCanvas = () => {
+                cx.beginPath();
+                cx.arc(cacheSize/2, cacheSize/2, cacheSize/2 - 2, 0, Math.PI * 2);
+                cx.closePath();
+                cx.save();
+                cx.clip();
+                cx.drawImage(img, 0, 0, cacheSize, cacheSize);
+                cx.restore();
+                cx.globalCompositeOperation = 'source-over';
+                cx.beginPath();
+                cx.arc(cacheSize/2, cacheSize/2, cacheSize/2 - 4, 0, Math.PI * 2);
+                cx.lineWidth = 8;
+                cx.strokeStyle = color;
+                cx.stroke();
+                spriteObj.ready = true;
+            };
+
+            if (img.complete) drawToCanvas();
+            else img.onload = drawToCanvas;
             
-            const img = new Image();
-            img.crossOrigin = "Anonymous"; 
-            img.src = imgSrc;
-            
-            return { canvas: c, ctx: cx, img: img, ready: false, cacheSize: cacheSize, displaySize: displaySize, borderColor: colorStr };
+            return spriteObj;
         }
 
+        // --- DECK SYSTEM ---
+        let currentImagePool = []; 
+
         function spawnImageDrops(amount = null, customPool = null) {
-            let pool = IMG_POOLS.phase1;
+            let sourcePool = IMG_POOLS.phase1;
             let phaseColor = COLORS.phase1;
 
             if (!customPool) {
-                if (collected >= 6) { pool = IMG_POOLS.phase2; phaseColor = COLORS.phase2; }
-                if (collected >= 11) { pool = IMG_POOLS.phase3; phaseColor = COLORS.phase3; }
+                if (collected >= 6) { sourcePool = IMG_POOLS.phase2; phaseColor = COLORS.phase2; }
+                if (collected >= 11) { sourcePool = IMG_POOLS.phase3; phaseColor = COLORS.phase3; }
             } else {
-                pool = customPool;
-                const r = Math.random();
-                if (r < 0.33) phaseColor = COLORS.phase1;
-                else if (r < 0.66) phaseColor = COLORS.phase2;
-                else phaseColor = COLORS.phase3;
+                sourcePool = customPool;
             }
 
             const colorStr = `rgb(${phaseColor.r},${phaseColor.g},${phaseColor.b})`;
             let count = amount || 3; 
             
             for(let i=0; i<count; i++) {
-                if (pool.length === 0) break;
+                if (currentImagePool.length === 0) {
+                    currentImagePool = [...sourcePool];
+                    currentImagePool.sort(() => Math.random() - 0.5);
+                }
                 
-                let imgUrl = pool[Math.floor(Math.random() * pool.length)];
-                
-                // --- FIX FOR INFINITE LOOP CRASH ---
-                // If we've seen almost all images, reset the visited set to prevent hanging
-                if (visitedImages.size >= pool.length - 1) {
-                    visitedImages.clear();
-                }
+                let imgUrl = currentImagePool.pop(); 
+                if(!imgUrl) imgUrl = sourcePool[0]; 
 
-                let safety = 0;
-                while (visitedImages.has(imgUrl) && safety < 10) { // Reduced safety check limit
-                    imgUrl = pool[Math.floor(Math.random() * pool.length)];
-                    safety++;
-                }
-                visitedImages.add(imgUrl);
-
-                if (gameState !== 'FINALE' && droppedImages.length > MAX_DROPPED_IMAGES) {
-                    droppedImages.shift();
-                }
-
-                // MOBILE SIZE ADJUSTMENT
                 const isMobile = width < 768;
                 const baseSize = 85 + Math.random() * 35;
                 const size = isMobile ? baseSize * 0.7 : baseSize; 
 
                 const spriteData = createCircleImageSprite(imgUrl, size, colorStr);
                 
-                spriteData.img.onload = () => {
-                    const cx = spriteData.ctx;
-                    cx.drawImage(spriteData.img, 0, 0, spriteData.cacheSize, spriteData.cacheSize);
-                    cx.restore();
-                    cx.globalCompositeOperation = 'source-over';
-                    cx.beginPath();
-                    cx.arc(spriteData.cacheSize/2, spriteData.cacheSize/2, spriteData.cacheSize/2 - 4, 0, Math.PI * 2);
-                    cx.lineWidth = 8;
-                    cx.strokeStyle = spriteData.borderColor;
-                    cx.stroke();
-                    spriteData.ready = true;
-                };
-
-                droppedImages.push({
+                balls.push({
                     sprite: spriteData,
                     x: Math.random() * (width - 100) + 50,
-                    y: -150 - (Math.random() * 300),
+                    y: -150 - (Math.random() * 200),
                     vx: (Math.random() - 0.5) * 4,
-                    vy: gameState === 'FINALE' ? Math.random() * 2 + 1 : Math.random() * 5 + 2, 
-                    angle: Math.random() * Math.PI,
-                    va: (Math.random() - 0.5) * 0.1, 
+                    vy: Math.random() * 5 + 2, 
                     radius: size/2,
-                    mass: size/2,
-                    bounciness: 0.8,
-                    spawnTime: Date.now(),
-                    isStatic: false
+                    angle: Math.random() * Math.PI,
+                    va: (Math.random() - 0.5) * 0.1,
+                    isStatic: false,
+                    spawnTime: Date.now(), // For freeze timer
+                    shrinking: false
                 });
+            }
+        }
+
+        // --- PHYSICS ENGINE (Impulse) ---
+        function updatePhysics() {
+            const now = Date.now();
+
+            for (let i = 0; i < balls.length; i++) {
+                let b = balls[i];
+                if (b.isStatic) continue;
+
+                // FREEZE TIMER: Force freeze after 3 seconds
+                if (now - b.spawnTime > 3000) {
+                    b.isStatic = true;
+                    b.vx = 0; b.vy = 0; b.va = 0; // Kill velocity
+                    continue;
+                }
+
+                // Gravity
+                b.vy += GRAVITY;
+                
+                // Air Resistance
+                b.vx *= FRICTION;
+                b.vy *= FRICTION;
+
+                // Move
+                b.x += b.vx;
+                b.y += b.vy;
+                b.angle += b.va;
+                b.va *= 0.99; 
+
+                // Floor Collision
+                if (b.y + b.radius > height) {
+                    b.y = height - b.radius;
+                    b.vy *= -BOUNCE;
+                    if(Math.abs(b.vy) < 1) b.vy = 0; 
+                    b.vx *= 0.8; 
+                }
+                if (b.x - b.radius < 0) { b.x = b.radius; b.vx *= -BOUNCE; }
+                if (b.x + b.radius > width) { b.x = width - b.radius; b.vx *= -BOUNCE; }
+            }
+
+            // Collisions
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    const b1 = balls[i];
+                    const b2 = balls[j];
+                    const dx = b2.x - b1.x;
+                    const dy = b2.y - b1.y;
+                    const dist = Math.hypot(dx, dy);
+                    const minDist = b1.radius + b2.radius;
+
+                    if (dist < minDist) {
+                        const angle = Math.atan2(dy, dx);
+                        const overlap = minDist - dist;
+                        
+                        const moveX = Math.cos(angle) * overlap * 0.5;
+                        const moveY = Math.sin(angle) * overlap * 0.5;
+                        
+                        if (b1.isStatic && !b2.isStatic) {
+                            b2.x += moveX * 2; b2.y += moveY * 2;
+                        } else if (!b1.isStatic && b2.isStatic) {
+                            b1.x -= moveX * 2; b1.y -= moveY * 2;
+                        } else if (!b1.isStatic && !b2.isStatic) {
+                            b1.x -= moveX; b1.y -= moveY;
+                            b2.x += moveX; b2.y += moveY;
+                        }
+
+                        const nx = dx / dist; const ny = dy / dist;
+                        const rvx = b2.vx - b1.vx; const rvy = b2.vy - b1.vy;
+                        const velAlongNormal = rvx * nx + rvy * ny;
+
+                        if (velAlongNormal > 0) continue;
+
+                        const e = 0.5; 
+                        let jVal = -(1 + e) * velAlongNormal;
+                        jVal /= ( (b1.isStatic ? 0 : 1) + (b2.isStatic ? 0 : 1) ); 
+
+                        const impulseX = jVal * nx; const impulseY = jVal * ny;
+                        
+                        if(!b1.isStatic) { b1.vx -= impulseX; b1.vy -= impulseY; }
+                        if(!b2.isStatic) { b2.vx += impulseX; b2.vy += impulseY; }
+                    }
+                }
             }
         }
 
@@ -418,7 +494,6 @@
 
             auroraTime += 0.01;
 
-            // Player Physics
             if (joystick.active) {
                 const speed = 5; 
                 player.x += joystick.dx * speed; player.y += joystick.dy * speed;
@@ -431,7 +506,6 @@
             player.trail.push({ x: player.x, y: player.y, life: 1 });
             if(player.trail.length > 20) player.trail.shift();
 
-            // --- INTRO ---
             if (gameState === 'INTRO') {
                 let allCollected = true;
                 introPath.forEach((p, i) => {
@@ -446,13 +520,36 @@
                 if (allCollected && introPath.length > 0) startMatch();
             }
 
-            // --- CONGRATS LOGIC ---
             if (gameState === 'CONGRATS') {
                 typeTick++;
                 if (typeTick % 11 === 0 && typeIndex < congratsString.length) {
                     typeIndex++;
                 }
                 
+                // --- FAST DISAPPEARANCE LOGIC ---
+                // We want all balls gone in 3 seconds.
+                // 3000ms. If we have 15 balls, we remove one every 200ms.
+                // 60fps -> 200ms is approx 12 frames.
+                const removeRate = Math.max(5, Math.floor(180 / (balls.length + 1))); 
+                
+                if (typeTick % removeRate === 0 && balls.length > 0) {
+                    // Find a non-shrinking ball
+                    const active = balls.filter(b => !b.shrinking);
+                    if (active.length > 0) {
+                        const randomBall = active[Math.floor(Math.random() * active.length)];
+                        randomBall.shrinking = true;
+                    }
+                }
+                
+                // Process shrinking
+                for (let i = balls.length - 1; i >= 0; i--) {
+                    let b = balls[i];
+                    if (b.shrinking) {
+                        b.radius *= 0.85; // Fast shrink
+                        if (b.radius < 2) balls.splice(i, 1);
+                    }
+                }
+
                 if (typeIndex >= congratsString.length) {
                     finaleTimer++; 
                     if (finaleTimer > 420) { 
@@ -463,7 +560,6 @@
                 }
             }
 
-            // --- GAMEPLAY & PHYSICS ---
             if (gameState === 'PLAYING' || gameState === 'CONGRATS' || gameState === 'DARK_FADE' || gameState === 'FINALE_TEXT') {
                 if (target && gameState === 'PLAYING') {
                     if (Date.now() - target.spawnTime > 5000) {
@@ -507,70 +603,8 @@
                     if (dist < 60 && (!target.isTricky || target.tired)) collectTarget();
                 }
 
-                // Physics
-                const gravity = 1.2; // HEAVY
-                const floorY = height - 10;
-                
-                for (let i = 0; i < droppedImages.length; i++) {
-                    let ball = droppedImages[i];
-                    
-                    if (!ball.isStatic && Date.now() - ball.spawnTime > STATIC_TIME) {
-                        if (Math.abs(ball.vy) < 0.5 && Math.abs(ball.vx) < 0.5) ball.isStatic = true;
-                    }
+                updatePhysics();
 
-                    if (ball.isStatic) {
-                        ball.vx = 0; ball.vy = 0; ball.va = 0;
-                    } else {
-                        ball.vy += gravity;
-                        ball.x += ball.vx; ball.y += ball.vy;
-                        ball.angle += ball.va; 
-                        ball.va *= 0.9; 
-
-                        if (ball.y + ball.radius > floorY) {
-                            ball.y = floorY - ball.radius; 
-                            ball.vy *= -ball.bounciness; 
-                            ball.vx *= 0.8;
-                        }
-                        if (ball.x - ball.radius < 0) { ball.x = ball.radius; ball.vx *= -0.7; }
-                        if (ball.x + ball.radius > width) { ball.x = width - ball.radius; ball.vx *= -0.7; }
-                    }
-
-                    for (let j = i + 1; j < droppedImages.length; j++) {
-                        let other = droppedImages[j];
-                        if (ball.isStatic && other.isStatic) continue;
-
-                        let dx = other.x - ball.x; let dy = other.y - ball.y;
-                        let dist = Math.hypot(dx, dy);
-                        let minDist = ball.radius + other.radius;
-                        
-                        if (dist < minDist) {
-                            let angle = Math.atan2(dy, dx);
-                            let overlap = minDist - dist;
-                            
-                            if (ball.isStatic) {
-                                let moveX = Math.cos(angle) * overlap; let moveY = Math.sin(angle) * overlap;
-                                other.x += moveX; other.y += moveY;
-                                other.vx += Math.cos(angle) * 2; other.vy += Math.sin(angle) * 2;
-                            } 
-                            else if (other.isStatic) {
-                                let moveX = Math.cos(angle) * overlap; let moveY = Math.sin(angle) * overlap;
-                                ball.x -= moveX; ball.y -= moveY;
-                                ball.vx -= Math.cos(angle) * 2; ball.vy -= Math.sin(angle) * 2;
-                            }
-                            else {
-                                let moveX = Math.cos(angle) * overlap * 0.5; let moveY = Math.sin(angle) * overlap * 0.5;
-                                ball.x -= moveX; ball.y -= moveY; other.x += moveX; other.y += moveY;
-                                let nx = dx/dist; let ny = dy/dist;
-                                let p = 2 * (ball.vx * nx + ball.vy * ny - other.vx * nx - other.vy * ny) / (ball.mass + other.mass);
-                                ball.vx -= p * other.mass * nx; ball.vy -= p * other.mass * ny;
-                                other.vx += p * ball.mass * nx; other.vy += p * ball.mass * ny;
-                                ball.va += (Math.random()-0.5)*0.1; other.va += (Math.random()-0.5)*0.1;
-                            }
-                        }
-                    }
-                }
-
-                // Entities
                 for(let i = trailOrbs.length-1; i>=0; i--) {
                     let o = trailOrbs[i]; o.life--;
                     const d = Math.hypot(player.x-o.x, player.y-o.y);
@@ -620,35 +654,8 @@
         function startCongrats() {
             gameState = 'CONGRATS';
             document.getElementById('ui').style.opacity = 0;
-            
             spawnParticles(width/2, height/2, COLORS.final, 300);
-
-            const combined = [...ALL_IMAGES];
-            combined.sort(() => Math.random() - 0.5);
-            const selected = [];
-            const seen = new Set();
-            for(const url of combined) {
-                if(!seen.has(url)) {
-                    selected.push(url);
-                    seen.add(url);
-                }
-                if(selected.length >= 16) break;
-            }
-            finaleQueue = selected.map(url => {
-                const r = Math.random();
-                let col = COLORS.phase1;
-                if(r < 0.33) col = COLORS.phase2; else if(r < 0.66) col = COLORS.phase3;
-                return { url, color: `rgb(${col.r},${col.g},${col.b})` };
-            });
-
-            let dropInterval = setInterval(() => {
-                if(finaleQueue.length > 0) {
-                    const next = finaleQueue.pop();
-                    spawnImageDrops(1, [next]);
-                } else {
-                    clearInterval(dropInterval);
-                }
-            }, 100);
+            finaleStartTime = Date.now();
         }
 
         function startFinalText() {
@@ -657,7 +664,7 @@
             const content = [
                 { type: 'text', val: "now put your phones camera on the" },
                 { type: 'br' },
-                { type: 'html', val: '<div class="wavy-wrapper"><span>b</span><span>o</span><span>o</span><span>b</span><span>i</span><span>e</span></div>' },
+                { type: 'html', val: '<div class="boobie-wrapper"><span class="boobie-letter">b</span><span class="boobie-letter">o</span><span class="boobie-letter">o</span><span class="boobie-letter">b</span><span class="boobie-letter">i</span><span class="boobie-letter">e</span></div>' },
                 { type: 'br' },
                 { type: 'text', val: "under your " },
                 { type: 'styled-text', val: 'flower', className: 'flower' }
@@ -736,14 +743,13 @@
             const colorStr = `rgb(${c.r},${c.g},${c.b})`;
             const isTricky = (collected > 0 && Math.random() < TRICKY_CHANCE);
 
-            // SAFETY FIX: Prevent Infinite Loop on small screens
             let tx, ty;
-            let attempts = 0;
+            let safety = 0;
             do {
                 tx = Math.random() * (width - 200) + 100;
                 ty = Math.random() * (height - 200) + 100;
-                attempts++;
-            } while(Math.hypot(tx - player.x, ty - player.y) < 250 && attempts < 50);
+                safety++;
+            } while(Math.hypot(tx - player.x, ty - player.y) < 250 && safety < 50);
 
             target = {
                 x: tx, y: ty, vx: 0, vy: 0, color: colorStr,
@@ -841,13 +847,13 @@
                     ctx.restore();
                 });
 
-                droppedImages.forEach(ball => {
+                balls.forEach(ball => {
                     if(ball.sprite.ready) {
                         ctx.save();
                         ctx.translate(ball.x, ball.y);
                         ctx.rotate(ball.angle);
-                        const r = ball.sprite.displaySize / 2;
-                        ctx.drawImage(ball.sprite.canvas, -r, -r, ball.sprite.displaySize, ball.sprite.displaySize);
+                        const drawSize = ball.radius * 2;
+                        ctx.drawImage(ball.sprite.canvas, -drawSize/2, -drawSize/2, drawSize, drawSize);
                         ctx.restore();
                     }
                 });
@@ -889,12 +895,9 @@
                     ctx.globalCompositeOperation = 'source-over';
                 });
                 
-                // TYPEWRITER CONGRATS ON CANVAS WITH RAINBOW GLOW
                 if (gameState === 'CONGRATS') {
                     ctx.save();
                     ctx.fillStyle = "#fff";
-                    
-                    // Responsive Measurement & Fitting
                     let fontSize = Math.min(width / 15, 30);
                     ctx.font = `${fontSize}px "Press Start 2P"`;
                     let textWidth = ctx.measureText(congratsString).width;
@@ -903,14 +906,10 @@
                         ctx.font = `${fontSize}px "Press Start 2P"`;
                         textWidth = ctx.measureText(congratsString).width;
                     }
-                    
                     ctx.textAlign = "center";
-                    
-                    // RAINBOW GLOW EFFECT
                     const hue = (Date.now() / 10) % 360;
                     ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
                     ctx.shadowBlur = 20;
-                    
                     ctx.fillText(congratsString.substring(0, typeIndex), width/2, height/2);
                     ctx.restore();
                 }
@@ -936,6 +935,9 @@
             requestAnimationFrame(draw);
         }
 
+        // PRELOAD ASSETS IMMEDIATELY
+        preloadImages();
+        
         resize();
         generateIntroPath(); 
         requestAnimationFrame(update);
