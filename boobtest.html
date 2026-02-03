@@ -33,46 +33,65 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
-        /* Base settings */
-        html, body { overscroll-behavior: none; background: #000; height: 100%; margin: 0; }
+        /* GLOBAL RESET */
+        html, body { overscroll-behavior: none; background: #000; height: 100%; margin: 0; padding: 0; }
         body { overflow-x: hidden; touch-action: pan-y; transition: background 2s ease-in-out; }
         
-        /* --- FIXED LOADER --- */
+        /* --- LAYERING SYSTEM --- */
+        /* 1. Stars (Deep Background) */
+        #stars { 
+            position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.6; 
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)), 
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), 
+                radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)); 
+            background-size: 200px 200px; 
+            animation: zoom 100s infinite; 
+        }
+        @keyframes zoom { 0% { transform: scale(1); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
+
+        /* 2. Nebula (Canvas Background) */
+        #nebula-canvas {
+            position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: 0.8;
+            width: 100%; height: 100%;
+        }
+
+        /* 3. Particles (Hearts) */
+        #particle-container { 
+            position: fixed; inset: 0; pointer-events: none; z-index: 2; 
+        }
+        .heart-particle { position: absolute; opacity: 0; }
+
+        /* 4. Content (React Root) */
+        #root { 
+            position: relative; z-index: 10; 
+        }
+
+        /* --- LOADER --- */
         #initial-loader {
             position: fixed; inset: 0; z-index: 9999; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             transition: opacity 0.8s ease, visibility 0.8s;
         }
-        
-        .loader-wrapper { 
-            display: flex; align-items: center; justify-content: center;
-            width: 100px; height: 100px;
-        }
-
+        .loader-wrapper { display: flex; align-items: center; justify-content: center; width: 100px; height: 100px; }
         .loader-heart {
-            width: 60px; height: 60px; background: #e11d48; 
-            position: relative; 
+            width: 60px; height: 60px; background: #e11d48; position: relative; 
             box-shadow: 0 0 30px #e11d48;
             animation: heartBeatMain 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
         }
-
         .loader-heart::before, .loader-heart::after {
             content: ""; position: absolute; width: 60px; height: 60px; 
-            border-radius: 50%; background: #e11d48;
-            box-shadow: 0 0 30px #e11d48;
+            border-radius: 50%; background: #e11d48; box-shadow: 0 0 30px #e11d48;
         }
-        .loader-heart::before { left: -30px; } 
-        .loader-heart::after { top: -30px; }
-
+        .loader-heart::before { left: -30px; } .loader-heart::after { top: -30px; }
         @keyframes heartBeatMain {
-            0%   { transform: rotate(45deg) scale(0.8); }
-            5%   { transform: rotate(45deg) scale(0.9); }
-            10%  { transform: rotate(45deg) scale(0.8); }
-            15%  { transform: rotate(45deg) scale(1.0); }
-            50%  { transform: rotate(45deg) scale(0.8); }
+            0% { transform: rotate(45deg) scale(0.8); }
+            5% { transform: rotate(45deg) scale(0.9); }
+            10% { transform: rotate(45deg) scale(0.8); }
+            15% { transform: rotate(45deg) scale(1.0); }
+            50% { transform: rotate(45deg) scale(0.8); }
             100% { transform: rotate(45deg) scale(0.8); }
         }
-
         .loading-bar { display: flex; gap: 8px; margin-top: 40px; }
         .mini-heart { color: #e11d48; font-size: 16px; animation: miniFade 1.5s infinite; opacity: 0.2; }
         .mini-heart:nth-child(1) { animation-delay: 0.0s; } .mini-heart:nth-child(2) { animation-delay: 0.2s; }
@@ -80,14 +99,13 @@
         .mini-heart:nth-child(5) { animation-delay: 0.8s; }
         @keyframes miniFade { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
 
-        /* --- STYLES --- */
+        /* --- GALLERY STYLES --- */
         .liquid-glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); }
         
-        /* === SPECIAL EFFECTS === */
+        /* Special Borders */
         @keyframes gradientBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         @keyframes shine { to { background-position: 200% center; } }
         
-        /* Borders for special memories */
         .special-border-gold { position: relative; background: rgba(20, 10, 5, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 215, 0, 0.3); }
         .special-border-gold::before { content: ""; position: absolute; inset: -2px; z-index: -1; background: linear-gradient(45deg, #fbbf24, #d97706, #fbbf24, #78350f); background-size: 400%; border-radius: 1.5rem; animation: gradientBorder 5s ease infinite; mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
         .gold-text { background: linear-gradient(to right, #fcd34d, #f59e0b, #fff, #f59e0b); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
@@ -114,9 +132,6 @@
 
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.6; }
-        #particle-container { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
-        .heart-particle { position: absolute; opacity: 0; }
         
         /* Music Slider */
         .music-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 5px; background: transparent; outline: none; cursor: pointer; }
@@ -192,6 +207,10 @@
         }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        .animate-fade-in-up { animation: fadeInUp 1.2s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-scroll { animation: scroll 80s linear infinite; }
     </style>
 </head>
 <body>
@@ -201,54 +220,22 @@
         <div class="loading-bar"><div class="mini-heart">❤</div><div class="mini-heart">❤</div><div class="mini-heart">❤</div><div class="mini-heart">❤</div><div class="mini-heart">❤</div></div>
     </div>
 
+    <div id="stars"></div>
+    <canvas id="nebula-canvas"></canvas>
+    <div id="particle-container"></div>
+
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
         const { motion, AnimatePresence, useInView } = window.Motion;
 
-        // ==========================================
-        //  CONFIG
-        // ==========================================
         const BASE_URL = "https://huemiliation.github.io/BigBoobies/memories/";
 
-        const NOTES_2023 = {
-            beninging: {}, whereItAllStarted: {}, inThePark: {}, onTheBridge: {},
-            tastyFood: {}, wattesigma: {}, baklava: {}, cafeKetab: {},
-            doretBegardam: {}, rambod: {}, jerKhordim: {}, nose: {}, vijioCawl: {}
-        };
-
-        const NOTES_2024 = {
-            january: { damdaran: {} },
-            february: { delishoos: {}, harry_pottler: {}, hulu_lost: {}, humbududududum: {} },
-            march: { my_birthday: {} },
-            april: { hulu_perperi: {}, khojel: {} },
-            may: { chingchangchung: {}, joogool: {}, makeup: {} },
-            june: { june_vids: {} },
-            july: { bootiful: {}, gootbyepartaaaayyyy: {}, skery: {} },
-            august: { bij_boobie: {}, your_19th_birthday: {} },
-            september: { booooooooooj: {} },
-            october: { ezteik_friday: {}, our_anniversary: {} },
-            november: { boojoo: {}, youre_a_wizard: {} },
-            december: { dec_vids: {} }
-        };
-
-        const NOTES_2025 = {
-            january: { hulu: {}, milad: {}, shiraz: {}, baaf: {} },
-            february: { tasted: {} },
-            march: { birthday: {}, phone: {} },
-            april: { dochalkhe: {}, seshuare: {} },
-            may: { mom: {}, motor: {}, pizza: {} },
-            july: { hulu: {} },
-            august: { next_life: {} }
-        };
-
-        const SHIRAZ_NOTES = {
-            1: "The moment we arrived in Shiraz.",
-            2: "Looking at you here, I felt so lucky.",
-            12: "The architecture was stunning.",
-            36: "I didn't want this trip to end.",
-        };
+        const NOTES_2023 = { beninging: {}, whereItAllStarted: {}, inThePark: {}, onTheBridge: {}, tastyFood: {}, wattesigma: {}, baklava: {}, cafeKetab: {}, doretBegardam: {}, rambod: {}, jerKhordim: {}, nose: {}, vijioCawl: {} };
+        const NOTES_2024 = { january: { damdaran: {} }, february: { delishoos: {}, harry_pottler: {}, hulu_lost: {}, humbududududum: {} }, march: { my_birthday: {} }, april: { hulu_perperi: {}, khojel: {} }, may: { chingchangchung: {}, joogool: {}, makeup: {} }, june: { june_vids: {} }, july: { bootiful: {}, gootbyepartaaaayyyy: {}, skery: {} }, august: { bij_boobie: {}, your_19th_birthday: {} }, september: { booooooooooj: {} }, october: { ezteik_friday: {}, our_anniversary: {} }, november: { boojoo: {}, youre_a_wizard: {} }, december: { dec_vids: {} } };
+        const NOTES_2025 = { january: { hulu: {}, milad: {}, shiraz: {}, baaf: {} }, february: { tasted: {} }, march: { birthday: {}, phone: {} }, april: { dochalkhe: {}, seshuare: {} }, may: { mom: {}, motor: {}, pizza: {} }, july: { hulu: {} }, august: { next_life: {} } };
+        const SHIRAZ_NOTES = { 1: "The moment we arrived in Shiraz.", 2: "Looking at you here, I felt so lucky.", 12: "The architecture was stunning.", 36: "I didn't want this trip to end." };
 
         const getMedia = (path, count, notesMap = {}, videoIndices = [], defaultNote = "", extension = "webp") => {
             const safePath = path.split('/').map(part => encodeURIComponent(part)).join('/');
@@ -267,10 +254,7 @@
 
         const CHAPTERS = [
             {
-                id: 1,
-                title: "Chapter One",
-                subtitle: "Us",
-                theme: { from: "#0b2047", to: "#1c1006", accent: "#38bdf8" }, 
+                id: 1, title: "Chapter One", subtitle: "Us", theme: { from: "#0b2047", to: "#1c1006", accent: "#38bdf8" }, 
                 song: { title: "Separator", url: "https://huemiliation.github.io/BigBoobies/08%20Radiohead%20-%20Separator.mp3" },
                 albums: [
                     { title: "in the beninging", month: "FEB - JUNE 2023", photos: getMedia("2023/february - june/in the beninging", 11, NOTES_2023.beninging, [2,3,4,7,8,9,10]) },
@@ -350,17 +334,11 @@
             }
         ];
 
-        // ==========================================
-        //  COMPONENTS
-        // ==========================================
-
+        // --- COMPONENTS ---
         const ParticleSystem = ({ activeChapter }) => {
             useEffect(() => {
                 const container = document.getElementById('particle-container');
-                let colors = ['#ffffff'];
-                let spawnRate = 1500;
-                let glow = 'none';
-
+                let colors = ['#ffffff']; let spawnRate = 1500; let glow = 'none';
                 if(activeChapter === 0) { colors = ['#ffffff']; spawnRate = 1200; }
                 if(activeChapter === 1) { colors = ['#ffffff', '#f472b6', '#fbbf24']; spawnRate = 600; }
                 if(activeChapter === 2) { colors = ['#e11d48', '#be185d', '#a21caf', '#ffffff']; spawnRate = 300; glow = '0 0 10px currentColor'; }
@@ -368,10 +346,8 @@
                 const interval = setInterval(() => {
                     if (document.hidden) return;
                     const h = document.createElement('div');
-                    h.innerHTML = '❤';
-                    h.className = 'heart-particle';
-                    h.style.left = Math.random() * 100 + 'vw';
-                    h.style.bottom = '-50px';
+                    h.innerHTML = '❤'; h.className = 'heart-particle';
+                    h.style.left = Math.random() * 100 + 'vw'; h.style.bottom = '-50px';
                     h.style.fontSize = (Math.random() * 20 + 10) + 'px';
                     h.style.color = colors[Math.floor(Math.random() * colors.length)];
                     h.style.textShadow = glow;
@@ -387,31 +363,13 @@
             return null;
         };
 
-        const MonthTitle = ({ text, accent }) => {
-            return (
-                <motion.div 
-                    initial={{ opacity: 0, y: 20, letterSpacing: "0.2em" }}
-                    whileInView={{ opacity: 1, y: 0, letterSpacing: "0.4em" }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="font-sans font-black text-2xl md:text-4xl uppercase opacity-90 px-4 text-center"
-                    style={{ color: accent }}
-                >
-                    {text}
-                </motion.div>
-            );
-        };
+        const MonthTitle = ({ text, accent }) => (
+            <motion.div initial={{ opacity: 0, y: 20, letterSpacing: "0.2em" }} whileInView={{ opacity: 1, y: 0, letterSpacing: "0.4em" }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="font-sans font-black text-2xl md:text-4xl uppercase opacity-90 px-4 text-center" style={{ color: accent }}>{text}</motion.div>
+        );
 
         const Typewriter = ({ text, speed = 50 }) => {
             const [disp, setDisp] = useState("");
-            useEffect(() => {
-                setDisp("");
-                let i = 0;
-                const t = setInterval(() => {
-                    if(i < (text || "").length) { setDisp(p => p + text.charAt(i)); i++; } else clearInterval(t);
-                }, speed);
-                return () => clearInterval(t);
-            }, [text, speed]);
+            useEffect(() => { setDisp(""); let i=0; const t=setInterval(()=>{if(i<(text||"").length){setDisp(p=>p+text.charAt(i));i++}else clearInterval(t)},speed); return ()=>clearInterval(t); }, [text, speed]);
             return <span>{disp}</span>;
         };
 
@@ -419,7 +377,6 @@
             const isActive = activeSong === song.url;
             const [currentTime, setCurrentTime] = useState(0);
             const [duration, setDuration] = useState(0);
-
             useEffect(() => {
                 if (isActive && audioRef.current) {
                     const aud = audioRef.current;
@@ -428,20 +385,12 @@
                     return () => aud.removeEventListener('timeupdate', update);
                 }
             }, [isActive, audioRef]);
-
             const handleSeek = (e) => { if(audioRef.current) { const val = Number(e.target.value); audioRef.current.currentTime = val; setCurrentTime(val); } };
             const fmt = (t) => { if(!t) return "0:00"; const m = Math.floor(t / 60); const s = Math.floor(t % 60); return `${m}:${s<10?'0':''}${s}`; };
             const progressPercent = duration ? (currentTime / duration) * 100 : 0;
-
             return (
                 <div className="flex justify-center my-6 h-14 z-30 relative">
-                    <motion.div 
-                        layout initial={false} transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                        className={`relative rounded-full flex items-center overflow-hidden backdrop-blur-md`}
-                        style={{ backgroundColor: isActive ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.05)', borderColor: accent, borderWidth: isActive ? '1px' : '2px' }}
-                        animate={!isActive ? { boxShadow: `0 0 15px ${accent}`, scale: [1, 1.05, 1], cursor: 'pointer' } : { boxShadow: 'none', scale: 1, cursor: 'default' }}
-                        onClick={() => !isActive && onToggle(song.url)}
-                    >
+                    <motion.div layout initial={false} transition={{ type: "spring", stiffness: 400, damping: 30 }} className={`relative rounded-full flex items-center overflow-hidden backdrop-blur-md`} style={{ backgroundColor: isActive ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.05)', borderColor: accent, borderWidth: isActive ? '1px' : '2px' }} animate={!isActive ? { boxShadow: `0 0 15px ${accent}`, scale: [1, 1.05, 1], cursor: 'pointer' } : { boxShadow: 'none', scale: 1, cursor: 'default' }} onClick={() => !isActive && onToggle(song.url)}>
                         <AnimatePresence mode="wait">
                             {!isActive ? (
                                 <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center px-8 py-2 gap-3 min-w-[180px]">
@@ -473,7 +422,6 @@
             if (isSpecial === 'anniversary') borderColor = 'border-transparent';
             if (isSpecial === 'celebration') borderColor = 'special-border-celebration';
             if (isSpecial === 'bittersweet') borderColor = 'special-border-bittersweet';
-
             return (
                 <div className="w-full overflow-hidden relative py-6 group">
                     <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-black/50 to-transparent pointer-events-none"></div>
@@ -505,64 +453,17 @@
 
         const ZoomableMedia = ({ media, accent, onRequestPauseMusic }) => {
             const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
-            const containerRef = useRef(null);
-            const isDragging = useRef(false);
-            const startCoords = useRef({ x: 0, y: 0 });
-            const startTransform = useRef({ x: 0, y: 0 });
-
+            const containerRef = useRef(null); const isDragging = useRef(false); const startCoords = useRef({ x: 0, y: 0 }); const startTransform = useRef({ x: 0, y: 0 });
             useEffect(() => { setTransform({ scale: 1, x: 0, y: 0 }); }, [media.src]);
-
-            const handlePointerDown = (e) => {
-                if (transform.scale > 1) {
-                    isDragging.current = true;
-                    startCoords.current = { x: e.clientX, y: e.clientY };
-                    startTransform.current = { x: transform.x, y: transform.y };
-                    e.currentTarget.setPointerCapture(e.pointerId);
-                }
-            };
-
-            const handlePointerMove = (e) => {
-                if (isDragging.current && transform.scale > 1) {
-                    const dx = e.clientX - startCoords.current.x;
-                    const dy = e.clientY - startCoords.current.y;
-                    setTransform(prev => ({ ...prev, x: startTransform.current.x + dx, y: startTransform.current.y + dy }));
-                }
-            };
-
-            const handlePointerUp = (e) => {
-                isDragging.current = false;
-                e.currentTarget.releasePointerCapture(e.pointerId);
-            };
-
-            const handleWheel = (e) => {
-                e.preventDefault(); e.stopPropagation();
-                let newScale = transform.scale - (e.deltaY * 0.003);
-                newScale = Math.min(Math.max(1, newScale), 5); 
-                setTransform({ scale: newScale, x: newScale === 1 ? 0 : transform.x, y: newScale === 1 ? 0 : transform.y });
-            };
-
-            const handleToggleZoom = () => {
-                if (transform.scale > 1) setTransform({ scale: 1, x: 0, y: 0 });
-                else setTransform({ scale: 2.5, x: 0, y: 0 });
-            };
-
+            const handlePointerDown = (e) => { if (transform.scale > 1) { isDragging.current = true; startCoords.current = { x: e.clientX, y: e.clientY }; startTransform.current = { x: transform.x, y: transform.y }; e.currentTarget.setPointerCapture(e.pointerId); } };
+            const handlePointerMove = (e) => { if (isDragging.current && transform.scale > 1) { const dx = e.clientX - startCoords.current.x; const dy = e.clientY - startCoords.current.y; setTransform(prev => ({ ...prev, x: startTransform.current.x + dx, y: startTransform.current.y + dy })); } };
+            const handlePointerUp = (e) => { isDragging.current = false; e.currentTarget.releasePointerCapture(e.pointerId); };
+            const handleWheel = (e) => { e.preventDefault(); e.stopPropagation(); let newScale = transform.scale - (e.deltaY * 0.003); newScale = Math.min(Math.max(1, newScale), 5); setTransform({ scale: newScale, x: newScale === 1 ? 0 : transform.x, y: newScale === 1 ? 0 : transform.y }); };
+            const handleToggleZoom = () => { if (transform.scale > 1) { setTransform({ scale: 1, x: 0, y: 0 }); } else { setTransform({ scale: 2.5, x: 0, y: 0 }); } };
             return (
-                <div className="relative w-full h-full flex items-center justify-center overflow-hidden" 
-                     ref={containerRef} onWheel={handleWheel} 
-                     onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}
-                     onDoubleClick={handleToggleZoom}
-                >
-                    <div style={{ 
-                        transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`,
-                        transition: isDragging.current ? 'none' : 'transform 0.2s ease-out',
-                        cursor: transform.scale > 1 ? 'grab' : 'zoom-in',
-                        touchAction: 'none' 
-                    }} className="relative flex items-center justify-center max-w-full max-h-full">
-                        {media.type === 'video' ? (
-                             <video src={media.src} draggable={false} controls playsInline className="max-w-full max-h-[65vh] rounded-lg shadow-2xl" style={{ boxShadow: `0 0 40px ${accent}20` }} onPlay={onRequestPauseMusic} />
-                          ) : (
-                             <img src={media.src} alt="Memory" draggable={false} className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl select-none" style={{ boxShadow: `0 0 40px ${accent}20` }} />
-                          )}
+                <div className="relative w-full h-full flex items-center justify-center overflow-hidden" ref={containerRef} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onDoubleClick={handleToggleZoom}>
+                    <div style={{ transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transition: isDragging.current ? 'none' : 'transform 0.2s ease-out', cursor: transform.scale > 1 ? 'grab' : 'zoom-in', touchAction: 'none' }} className="relative flex items-center justify-center max-w-full max-h-full">
+                        {media.type === 'video' ? ( <video src={media.src} draggable={false} controls playsInline className="max-w-full max-h-[65vh] rounded-lg shadow-2xl" style={{ boxShadow: `0 0 40px ${accent}20` }} onPlay={onRequestPauseMusic} /> ) : ( <img src={media.src} alt="Memory" draggable={false} className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl select-none" style={{ boxShadow: `0 0 40px ${accent}20` }} /> )}
                     </div>
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg z-50" onClick={e => e.stopPropagation()}>
                          <button onClick={() => setTransform(p => ({ ...p, scale: Math.max(1, p.scale - 0.5), x: p.scale<=1.5?0:p.x, y: p.scale<=1.5?0:p.y }))} className="text-white hover:text-amber-400 font-bold text-xl px-2 active:scale-90 transition">-</button>
@@ -579,16 +480,13 @@
             const photo = albumPhotos[idx];
             const navigate = (dir) => setIdx((prev) => (prev + dir + albumPhotos.length) % albumPhotos.length);
             useEffect(() => { document.body.style.overflow = 'hidden'; return () => document.body.style.overflow = ''; }, []);
-
             return (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4" onClick={onClose}>
                     <button onClick={onClose} className="absolute top-4 right-4 p-3 bg-white/10 rounded-full hover:bg-white/20 z-[110]"><svg width="24" height="24" viewBox="0 0 24 24" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                     <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] p-2 transition-transform active:scale-75 hover:scale-110 cursor-pointer"><HeartIcon rotate={-90} color={accent} /></button>
                     <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] p-2 transition-transform active:scale-75 hover:scale-110 cursor-pointer"><HeartIcon rotate={90} color={accent} /></button>
                     <div className="flex flex-col items-center gap-4 w-full max-w-4xl h-full justify-center" onClick={e => e.stopPropagation()}>
-                        <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden">
-                           <AnimatePresence mode="wait"><ZoomableMedia key={photo.src} media={photo} accent={accent} onRequestPauseMusic={onPauseMusic} /></AnimatePresence>
-                        </div>
+                        <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden"><AnimatePresence mode="wait"><ZoomableMedia key={photo.src} media={photo} accent={accent} onRequestPauseMusic={onPauseMusic} /></AnimatePresence></div>
                         <div className="w-full max-w-lg flex-shrink-0 relative z-[60]">
                             <div className="liquid-glass rounded-xl p-4 w-full overflow-x-auto hide-scrollbar border-l-4 mb-2 min-h-[80px] flex items-center" style={{ borderColor: accent }}>
                                 <p className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide whitespace-nowrap pr-8"><Typewriter text={photo.note} speed={50} /></p>
@@ -604,18 +502,16 @@
             );
         };
 
-        // --- THE VOID PORTAL COMPONENT ---
-        const VoidPortal = () => {
-            return (
-                <div className="void-gateway">
-                    <div className="glitch-wrapper">
-                        <a href="https://huemiliation.github.io/BigBoobies/game.html" className="void-trigger">
-                            ONE LAST THING<span className="blinking-cursor">_</span>
-                        </a>
-                    </div>
+        // --- GAME LAUNCHER ---
+        const VoidPortal = () => (
+            <div className="void-gateway">
+                <div className="glitch-wrapper">
+                    <a href="https://huemiliation.github.io/BigBoobies/game.html" className="void-trigger" target="_blank" rel="noopener noreferrer">
+                        ONE LAST THING<span className="blinking-cursor">_</span>
+                    </a>
                 </div>
-            );
-        };
+            </div>
+        );
 
         const App = () => {
             const [activeChapter, setActiveChapter] = useState(0);
@@ -624,6 +520,7 @@
             const audioRef = useRef(null);
             const [loadedImages, setLoadedImages] = useState(0);
 
+            // Loader
             useEffect(() => {
                 const loader = document.getElementById('initial-loader');
                 if (!loader) return;
@@ -633,6 +530,7 @@
                 return () => clearTimeout(timeout);
             }, [loadedImages]);
 
+            // Scroll Spy
             useEffect(() => {
                 const onScroll = () => {
                     const sections = document.querySelectorAll('.chapter-section');
@@ -646,35 +544,27 @@
                 window.addEventListener('scroll', onScroll); return () => window.removeEventListener('scroll', onScroll);
             }, []);
 
+            // Audio Player
             useEffect(() => {
                 const aud = audioRef.current;
                 if(!aud) return;
                 const onEnd = () => setActiveSong(null);
                 aud.addEventListener('ended', onEnd);
-                
-                // Ensure audio plays in background
-                aud.preload = "auto";
-                
+                aud.preload = "auto"; 
                 if(activeSong) { 
                     aud.src = activeSong; 
                     const playPromise = aud.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(error => console.log("Autoplay prevented:", error));
-                    }
-                } else {
-                    aud.pause();
-                }
+                    if (playPromise !== undefined) playPromise.catch(error => console.log("Autoplay prevented:", error));
+                } else { aud.pause(); }
                 return () => { aud.pause(); aud.removeEventListener('ended', onEnd); }
             }, [activeSong]);
 
             const theme = CHAPTERS[activeChapter].theme;
 
             return (
-                <div 
-                    className="min-h-screen transition-colors duration-[2000ms]" 
-                    style={{ background: `linear-gradient(to bottom, ${theme.from}, ${theme.to})` }}
-                >
+                <div id="gallery-container" className="min-h-screen transition-colors duration-[2000ms]" style={{ background: `linear-gradient(to bottom, ${theme.from}, ${theme.to})` }}>
                     <div id="stars"></div>
+                    <canvas id="nebula-canvas"></canvas>
                     <div id="particle-container"></div>
                     <ParticleSystem activeChapter={activeChapter} />
                     <audio ref={audioRef} preload="auto" />
@@ -694,7 +584,6 @@
                                 <div className="space-y-16">
                                     {chapter.albums.map((album, idx) => {
                                         const showMonth = idx === 0 || album.month !== (idx > 0 ? chapter.albums[idx-1].month : '');
-                                        
                                         let titleClass = 'text-white';
                                         if (album.isSpecial === 'gold') titleClass = 'gold-text text-xl';
                                         if (album.isSpecial === 'bday_him') titleClass = 'blue-text text-xl';
@@ -737,12 +626,7 @@
                                                         <h4 className={`font-sans font-bold text-lg ml-2 ${titleClass}`}>{album.title}</h4>
                                                         {badge}
                                                     </div>
-                                                    <Carousel 
-                                                        photos={album.photos} 
-                                                        isSpecial={album.isSpecial} 
-                                                        onOpen={(i) => setLightbox({ open: true, photos: album.photos, index: i })}
-                                                        onLoad={() => idx === 0 && setLoadedImages(p => p + 1)}
-                                                    />
+                                                    <Carousel photos={album.photos} isSpecial={album.isSpecial} onOpen={(i) => setLightbox({ open: true, photos: album.photos, index: i })} onLoad={() => idx === 0 && setLoadedImages(p => p + 1)} />
                                                 </div>
                                             </div>
                                         );
@@ -751,15 +635,11 @@
                             </section>
                         ))}
                         
-                        {/* VOID PORTAL ADDED HERE */}
                         <VoidPortal />
-                        
                     </div>
 
                     <AnimatePresence>
-                        {lightbox.open && (
-                            <Lightbox isOpen={lightbox.open} albumPhotos={lightbox.photos} startIndex={lightbox.index} onClose={() => setLightbox({ ...lightbox, open: false })} accent={theme.accent} onPauseMusic={() => setActiveSong(null)} />
-                        )}
+                        {lightbox.open && ( <Lightbox isOpen={lightbox.open} albumPhotos={lightbox.photos} startIndex={lightbox.index} onClose={() => setLightbox({ ...lightbox, open: false })} accent={theme.accent} onPauseMusic={() => setActiveSong(null)} /> )}
                     </AnimatePresence>
                 </div>
             );
@@ -778,6 +658,67 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
+        // --- NEBULA SCRIPT ---
+        (function() {
+            const canvas = document.getElementById('nebula-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let nebulas = [];
+
+            function resize() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+                initNebulas();
+            }
+
+            function initNebulas() {
+                nebulas = [];
+                for(let i=0; i<5; i++) {
+                    nebulas.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: 200 + Math.random() * 300,
+                        vx: (Math.random() - 0.5) * 0.2,
+                        vy: (Math.random() - 0.5) * 0.2,
+                        color: i % 2 === 0 ? 'rgba(10, 20, 40, 0.3)' : 'rgba(30, 10, 20, 0.3)' // Subtle colors
+                    });
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                // Draw Nebulas
+                ctx.globalCompositeOperation = 'lighter'; // Glow effect
+                nebulas.forEach(n => {
+                    n.x += n.vx;
+                    n.y += n.vy;
+
+                    // Wrap around screen
+                    if(n.x < -n.radius) n.x = width + n.radius;
+                    if(n.x > width + n.radius) n.x = -n.radius;
+                    if(n.y < -n.radius) n.y = height + n.radius;
+                    if(n.y > height + n.radius) n.y = -n.radius;
+
+                    const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
+                    g.addColorStop(0, n.color);
+                    g.addColorStop(1, 'rgba(0,0,0,0)');
+                    
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.globalCompositeOperation = 'source-over'; // Reset
+                requestAnimationFrame(animate);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            animate();
+        })();
     </script>
 </body>
 </html>
