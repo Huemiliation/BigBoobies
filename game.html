@@ -11,7 +11,7 @@
             touch-action: none; font-family: 'Press Start 2P', cursive;
             cursor: none; user-select: none; -webkit-user-select: none;
         }
-        canvas { display: block; image-rendering: pixelated; }
+        canvas { display: block; image-rendering: pixelated; width: 100%; height: 100%; }
 
         /* UI Layer */
         #ui {
@@ -28,7 +28,7 @@
             box-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
 
-        /* Final Message Container (Dark Overlay) */
+        /* Final Message Container */
         #final-message {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; 
@@ -41,7 +41,6 @@
         
         h1 { 
             color: #fff; 
-            /* Responsive HTML Text */
             font-size: clamp(10px, 3.5vw, 16px);
             margin: 0 10px; text-align: center;
             line-height: 2.5; min-height: 100px;
@@ -49,19 +48,28 @@
         }
 
         /* --- ANIMATIONS --- */
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: scale(0.9); } 
+            to { opacity: 1; transform: scale(1); } 
+        }
 
         .wavy-wrapper {
             display: inline-block;
-            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
-            background-size: 200%;
+            background-image: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+            background-size: 200% auto;
+            
+            /* Text Clipping for Mobile */
             -webkit-background-clip: text;
             background-clip: text;
-            -webkit-text-fill-color: transparent; /* Mobile Fix */
+            -webkit-text-fill-color: transparent;
             color: transparent; 
+            
             animation: rainbow 10s linear infinite, fadeIn 0.5s ease-out forwards;
-            filter: drop-shadow(0 0 2px rgba(255,255,255,0.3));
             opacity: 0; 
+            
+            /* FORCE GPU RENDERING (Fixes disappearing text on Mobile) */
+            transform: translateZ(0); 
+            will-change: transform, opacity;
         }
 
         .wavy-wrapper span {
@@ -99,7 +107,7 @@
 
         #tutorial {
             position: absolute; bottom: 50px; width: 100%; text-align: center;
-            color: rgba(255,255,255,0.8); font-size: 12px;
+            color: rgba(255,255,255,0.8); font-size: 10px;
             animation: pulse 2s infinite; pointer-events: none; z-index: 15;
             transition: opacity 1s ease-out;
         }
@@ -169,8 +177,6 @@
         const congratsString = "CONGRATULATIONS!";
         let typeIndex = 0;
         let typeTick = 0;
-        // Calculated font size for congrats
-        let calculatedFontSize = 30;
         
         let player = { x: 0, y: 0, trail: [] };
         let mouse = { x: 0, y: 0, active: false }; 
@@ -233,6 +239,7 @@
             gameState = 'PLAYING';
             uiContainer.style.opacity = 1;
             
+            // FADE OUT TUTORIAL IMMEDIATELY
             tutorialText.style.opacity = '0';
             setTimeout(() => { tutorialText.style.display = 'none'; }, 1000);
             
@@ -254,7 +261,7 @@
                 });
             }
             
-            for(let i=0; i<50; i++) createParticle(width/2, height/2, COLORS.final, 10);
+            spawnParticles(width/2, height/2, COLORS.final, 50);
             spawnTarget();
         }
 
@@ -348,7 +355,11 @@
                     droppedImages.shift();
                 }
 
-                const size = 85 + Math.random() * 35; 
+                // SIZE CALCULATION
+                const isMobile = width < 768;
+                const baseSize = 85 + Math.random() * 35;
+                const size = isMobile ? baseSize * 0.8 : baseSize; // 20% Smaller on mobile
+
                 const spriteData = createCircleImageSprite(imgUrl, size, colorStr);
                 
                 spriteData.img.onload = () => {
@@ -387,6 +398,7 @@
 
             auroraTime += 0.01;
 
+            // Player Physics
             if (joystick.active) {
                 const speed = 5; 
                 player.x += joystick.dx * speed; player.y += joystick.dy * speed;
@@ -399,13 +411,14 @@
             player.trail.push({ x: player.x, y: player.y, life: 1 });
             if(player.trail.length > 20) player.trail.shift();
 
+            // --- INTRO ---
             if (gameState === 'INTRO') {
                 let allCollected = true;
                 introPath.forEach((p, i) => {
                     if (!p.collected) {
                         if (Math.hypot(player.x - p.x, player.y - p.y) < 40) {
                             p.collected = true;
-                            createParticle(p.x, p.y, COLORS.final, 2);
+                            spawnParticles(p.x, p.y, COLORS.final, 2);
                         }
                         allCollected = false;
                     }
@@ -413,6 +426,7 @@
                 if (allCollected && introPath.length > 0) startMatch();
             }
 
+            // --- CONGRATS LOGIC ---
             if (gameState === 'CONGRATS') {
                 typeTick++;
                 if (typeTick % 11 === 0 && typeIndex < congratsString.length) {
@@ -429,13 +443,14 @@
                 }
             }
 
+            // --- GAMEPLAY & PHYSICS ---
             if (gameState === 'PLAYING' || gameState === 'CONGRATS' || gameState === 'DARK_FADE' || gameState === 'FINALE_TEXT') {
                 if (target && gameState === 'PLAYING') {
                     if (Date.now() - target.spawnTime > 5000) {
                         target.x = width/2; target.y = height/2;
                         target.vx = 0; target.vy = 0;
                         target.spawnTime = Date.now();
-                        createParticle(target.x, target.y, '#fff', 5);
+                        spawnParticles(target.x, target.y, '#fff', 5);
                     }
 
                     target.pulse += 0.1;
@@ -473,7 +488,7 @@
                 }
 
                 // Physics
-                const gravity = 0.7; 
+                const gravity = 0.9; // HEAVIER GRAVITY
                 const floorY = height - 10;
                 
                 for (let i = 0; i < droppedImages.length; i++) {
@@ -535,13 +550,14 @@
                     }
                 }
 
+                // Entities
                 for(let i = trailOrbs.length-1; i>=0; i--) {
                     let o = trailOrbs[i]; o.life--;
                     const d = Math.hypot(player.x-o.x, player.y-o.y);
                     if(d < 120) { o.x += (player.x-o.x)*0.12; o.y += (player.y-o.y)*0.12; }
                     if(d < 30) { 
                         if(target) { target.stamina -= 15; if(target.stamina<=0) target.tired=true; }
-                        trailOrbs.splice(i,1); createParticle(o.x, o.y, o.color, 2); continue;
+                        trailOrbs.splice(i,1); spawnParticles(o.x, o.y, o.color, 2); continue;
                     }
                     if(o.life<=0) trailOrbs.splice(i,1);
                 }
@@ -559,7 +575,7 @@
             counterUI.style.transform = "scale(1.3)";
             setTimeout(() => counterUI.style.transform = "scale(1)", 100);
 
-            for(let i=0; i<30; i++) createParticle(target.x, target.y, target.color, 5);
+            spawnParticles(target.x, target.y, target.color, 15);
             
             let dropCount = (collected <= 5) ? 2 : 4;
             spawnImageDrops(dropCount);
@@ -585,11 +601,7 @@
             gameState = 'CONGRATS';
             document.getElementById('ui').style.opacity = 0;
             
-            for(let i=0; i<300; i++) {
-                const colors = [COLORS.phase1, COLORS.phase2, COLORS.phase3, COLORS.final, {r:255,g:255,b:0}, {r:0,g:255,b:255}];
-                const c = colors[Math.floor(Math.random()*colors.length)];
-                createParticle(width/2, height/2, c, 15); 
-            }
+            spawnParticles(width/2, height/2, COLORS.final, 300);
 
             const combined = [...ALL_IMAGES];
             combined.sort(() => Math.random() - 0.5);
@@ -717,13 +729,23 @@
             };
         }
 
-        function createParticle(x, y, color, speedVal) {
+        function spawnParticles(x, y, color, count) {
             let cStr = color;
             if(typeof color === 'object') cStr = `rgb(${color.r},${color.g},${color.b})`;
-            particles.push({
-                x: x, y: y, vx: (Math.random()-0.5)*speedVal*2, vy: (Math.random()-0.5)*speedVal*2,
-                life: 1, color: cStr, size: Math.floor(Math.random()*4+2)
-            });
+            
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: x, y: y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+                    life: 1, color: (count>100 && Math.random()<0.5) ? getRandomColor() : cStr, 
+                    size: Math.floor(Math.random()*4+2)
+                });
+            }
+        }
+
+        function getRandomColor() {
+            const colors = [COLORS.phase1, COLORS.phase2, COLORS.phase3, COLORS.final];
+            const c = colors[Math.floor(Math.random()*colors.length)];
+            return `rgb(${c.r},${c.g},${c.b})`;
         }
 
         function drawPixelRect(x, y, size, color) {
@@ -844,10 +866,11 @@
                     ctx.globalCompositeOperation = 'source-over';
                 });
                 
-                // TYPEWRITER CONGRATS
+                // TYPEWRITER CONGRATS ON CANVAS WITH RAINBOW GLOW
                 if (gameState === 'CONGRATS') {
                     ctx.save();
                     ctx.fillStyle = "#fff";
+                    
                     // Responsive Measurement & Fitting
                     let fontSize = Math.min(width / 15, 30);
                     ctx.font = `${fontSize}px "Press Start 2P"`;
@@ -859,9 +882,12 @@
                     }
                     
                     ctx.textAlign = "center";
-                    const pulse = Math.sin(Date.now() / 200) * 10 + 20; 
-                    ctx.shadowColor = "#00ffff";
-                    ctx.shadowBlur = pulse;
+                    
+                    // RAINBOW GLOW EFFECT
+                    const hue = (Date.now() / 10) % 360;
+                    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                    ctx.shadowBlur = 20;
+                    
                     ctx.fillText(congratsString.substring(0, typeIndex), width/2, height/2);
                     ctx.restore();
                 }
