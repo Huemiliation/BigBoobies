@@ -153,6 +153,7 @@
         const GRAVITY = 0.6;
         const FRICTION = 0.99; 
         const BOUNCE = 0.85; // High bounce
+        const FREEZE_DELAY = 3000; // 3 seconds to freeze
         
         const COLORS = {
             phase1: { r: 56, g: 189, b: 248 }, 
@@ -179,7 +180,6 @@
         let auroraTime = 0;
         let finaleTimer = 0;
         let gameFrozen = false;
-        let finaleStartTime = 0;
         
         // Typewriter Vars
         const congratsString = "CONGRATULATIONS!";
@@ -413,7 +413,7 @@
                 if (b.isStatic) continue;
 
                 // FREEZE TIMER: Force freeze after 3 seconds
-                if (now - b.spawnTime > 3000) {
+                if (now - b.spawnTime > FREEZE_DELAY) {
                     b.isStatic = true;
                     b.vx = 0; b.vy = 0; b.va = 0; // Kill velocity
                     continue;
@@ -526,11 +526,9 @@
                     typeIndex++;
                 }
                 
-                // --- FAST DISAPPEARANCE LOGIC ---
-                // We want all balls gone in 3 seconds.
-                // 3000ms. If we have 15 balls, we remove one every 200ms.
-                // 60fps -> 200ms is approx 12 frames.
-                const removeRate = Math.max(5, Math.floor(180 / (balls.length + 1))); 
+                // --- FAST DISAPPEARANCE LOGIC (2 SECONDS) ---
+                // We want all balls gone in 2 seconds (120 frames).
+                const removeRate = Math.max(5, Math.floor(120 / (balls.length + 1))); 
                 
                 if (typeTick % removeRate === 0 && balls.length > 0) {
                     // Find a non-shrinking ball
@@ -655,7 +653,7 @@
             gameState = 'CONGRATS';
             document.getElementById('ui').style.opacity = 0;
             spawnParticles(width/2, height/2, COLORS.final, 300);
-            finaleStartTime = Date.now();
+            // No drop queue here - balls just vanish now
         }
 
         function startFinalText() {
