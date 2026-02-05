@@ -2,651 +2,912 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Counting Down</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Our Memories</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&amp;family=Montserrat:wght@300;400;600;800&amp;family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        script: ['"Great Vibes"', 'cursive'], 
+                        sans: ['"Montserrat"', 'sans-serif'],
+                        pixel: ['"Press Start 2P"', 'cursive'] 
+                    },
+                    colors: { glass: "rgba(255, 255, 255, 0.05)" },
+                    animation: { 'scroll': 'scroll 60s linear infinite' },
+                    keyframes: { scroll: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-33.33%)' } } }
+                }
+            }
+        }
+    </script>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
-        /* --- CSS Variables --- */
-        :root {
-            /* Hot Magenta */
-            --primary-hot: #ff006e;   
-            
-            --primary-soft: #ff8fab;  
-            --accent-gold: #ffd700;   
-            --bg-deep: #0f0c29;       
-            --bg-rich: #302b63;       
-            --bg-light: #24243e;      
-            
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-shadow: 0 0 15px rgba(255, 0, 110, 0.6);
+        /* GLOBAL RESET */
+        html, body { overscroll-behavior: none; background: #000; height: 100%; margin: 0; padding: 0; }
+        body { overflow-x: hidden; touch-action: pan-y; }
+        
+        /* --- LAYERING SYSTEM --- */
+        /* The colored gradient background layer */
+        #dynamic-bg { position: fixed; inset: 0; z-index: -2; transition: background 2s ease-in-out; background: #000; }
+
+        /* The new canvas starfield layer */
+        #starfield-canvas { position: fixed; inset: 0; pointer-events: none; z-index: -1; mix-blend-mode: screen; }
+
+        /* Particles */
+        #particle-container { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+        .heart-particle { position: absolute; opacity: 0; }
+
+        /* Content */
+        #root { position: relative; z-index: 10; }
+
+        /* --- LOADER --- */
+        #initial-loader {
+            position: fixed; inset: 0; z-index: 9999; background: #000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .loader-wrapper { display: flex; align-items: center; justify-content: center; width: 100px; height: 100px; }
+        .loader-heart {
+            width: 60px; height: 60px; background: #e11d48; position: relative; 
+            box-shadow: 0 0 30px #e11d48;
+            animation: heartBeatMain 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        .loader-heart::before, .loader-heart::after {
+            content: ""; position: absolute; width: 60px; height: 60px; 
+            border-radius: 50%; background: #e11d48; box-shadow: 0 0 30px #e11d48;
+        }
+        .loader-heart::before { left: -30px; } .loader-heart::after { top: -30px; }
+        @keyframes heartBeatMain {
+            0% { transform: rotate(45deg) scale(0.8); }
+            5% { transform: rotate(45deg) scale(0.9); }
+            10% { transform: rotate(45deg) scale(0.8); }
+            15% { transform: rotate(45deg) scale(1.0); }
+            50% { transform: rotate(45deg) scale(0.8); }
+            100% { transform: rotate(45deg) scale(0.8); }
+        }
+        .loading-bar { display: flex; gap: 8px; margin-top: 40px; }
+        .mini-heart { color: #e11d48; font-size: 16px; animation: miniFade 1.5s infinite; opacity: 0.2; }
+        .mini-heart:nth-child(1) { animation-delay: 0.0s; } .mini-heart:nth-child(2) { animation-delay: 0.2s; }
+        .mini-heart:nth-child(3) { animation-delay: 0.4s; } .mini-heart:nth-child(4) { animation-delay: 0.6s; }
+        .mini-heart:nth-child(5) { animation-delay: 0.8s; }
+        @keyframes miniFade { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* --- GALLERY STYLES --- */
+        .liquid-glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); }
+        
+        .note-fade-mask {
+            mask-image: linear-gradient(to right, black 85%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: 'Montserrat', sans-serif;
-            min-height: 100vh;
+        /* Music Title Marquee */
+        .marquee-wrapper {
             overflow: hidden;
-            background: linear-gradient(to bottom, var(--bg-deep), var(--bg-rich), var(--bg-light));
-            color: #fff;
+            white-space: nowrap;
             position: relative;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        .marquee-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 12s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
         }
 
-        /* --- 1. Efficient Starfield Background --- */
-        .stars {
-            width: 1px; height: 1px;
-            background: transparent;
-            box-shadow: 1744px 122px #FFF , 134px 1321px #FFF , 92px 859px #FFF; 
-            animation: animStar 50s linear infinite;
-            position: absolute;
-            z-index: 0;
-            opacity: 0.8;
-        }
-        .stars::after {
-            content: " "; position: absolute; top: 2000px; width: 1px; height: 1px; background: transparent;
-            box-shadow: inherit;
-        }
-        @keyframes animStar { from { transform: translateY(0px); } to { transform: translateY(-2000px); } }
-
-        /* --- 2. Main Layout --- */
-        #content {
-            position: relative; z-index: 10; min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 1s ease; padding: 20px;
-        }
-
-        /* --- 3. Glassmorphism Timer Container --- */
-        .timer-container {
-            width: 100%; max-width: 850px;
-            padding: clamp(30px, 6vw, 60px);
-            background: var(--glass-bg);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 40px;
-            border: 1px solid var(--glass-border);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            position: relative; overflow: hidden;
-        }
-
-        /* Title in Magenta */
+        /* Special Main Title Effect */
         .main-title {
-            font-family: 'Great Vibes', cursive;
-            text-align: center;
-            font-size: clamp(2.5rem, 6vw, 5rem); /* Slightly adjusted for longer text */
-            color: var(--primary-hot); 
-            margin-bottom: 15px;
-            text-shadow: 0 0 25px rgba(255, 0, 110, 0.6);
-            line-height: 1.2;
-            padding-bottom: 10px;
+            background: linear-gradient(to right, #fff, #f472b6, #fbbf24, #fff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shine 5s linear infinite;
+            text-shadow: 0 0 30px rgba(244, 114, 182, 0.3);
         }
 
-        /* Subtext changed to White - Rotating Messages */
-        .target-subtext {
-            text-align: center; margin-bottom: 40px;
-            color: #ffffff;
-            font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-            text-transform: uppercase; letter-spacing: 3px; font-weight: 700;
-            opacity: 0.9;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-            min-height: 1.5em; /* Prevents layout jump */
-        }
+        /* Attention Arrows Animation */
+        @keyframes pointRight { 0%, 100% { transform: translateX(0); opacity: 0.7; } 50% { transform: translateX(10px); opacity: 1; } }
+        @keyframes pointLeft { 0%, 100% { transform: translateX(0); opacity: 0.7; } 50% { transform: translateX(-10px); opacity: 1; } }
+        .arrow-anim-left { animation: pointRight 1.5s ease-in-out infinite; }
+        .arrow-anim-right { animation: pointLeft 1.5s ease-in-out infinite; }
 
-        /* --- 4. The Grid --- */
-        .countdown-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(10px, 3vw, 30px);
-        }
-
-        .time-unit { display: flex; flex-direction: column; align-items: center; }
-
-        .time-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
-            width: 100%; aspect-ratio: 1/1.2;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
-            transition: transform 0.3s ease;
-        }
+        @keyframes gradientBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes shine { to { background-position: 200% center; } }
         
-        .time-card:hover { transform: translateY(-5px); border-color: var(--primary-hot); }
+        .special-border-gold { position: relative; background: rgba(20, 10, 5, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 215, 0, 0.3); }
+        .special-border-gold::before { content: ""; position: absolute; inset: -2px; z-index: -1; background: linear-gradient(45deg, #fbbf24, #d97706, #fbbf24, #78350f); background-size: 400%; border-radius: 1.5rem; animation: gradientBorder 5s ease infinite; mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+        .gold-text { background: linear-gradient(to right, #fcd34d, #f59e0b, #fff, #f59e0b); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
 
-        .time-value {
-            font-size: clamp(2rem, 6vw, 5rem); font-weight: 900; color: #fff;
-            text-shadow: 0 0 20px rgba(255,255,255,0.4);
-            font-variant-numeric: tabular-nums;
-        }
+        .special-border-blue { position: relative; background: rgba(5, 10, 20, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 0 30px rgba(59, 130, 246, 0.2); animation: pulseBlue 3s infinite alternate; }
+        .blue-text { background: linear-gradient(to right, #60a5fa, #93c5fd, #fff, #3b82f6); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
+        @keyframes pulseBlue { from { box-shadow: 0 0 20px rgba(59,130,246,0.3); } to { box-shadow: 0 0 50px rgba(59,130,246,0.6); } }
 
-        .time-label {
-            margin-top: 15px; font-size: clamp(0.7rem, 1.5vw, 0.9rem);
-            color: #e0e0e0; text-transform: uppercase; letter-spacing: 2px;
-        }
+        .special-border-magenta { position: relative; background: rgba(20, 5, 10, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.2); animation: pulseMagenta 3s infinite alternate; }
+        .magenta-text { background: linear-gradient(to right, #f472b6, #fbcfe8, #fff, #db2777); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
+        @keyframes pulseMagenta { from { box-shadow: 0 0 20px rgba(236,72,153,0.3); } to { box-shadow: 0 0 50px rgba(236,72,153,0.6); } }
 
-        /* Heartbeat effect for seconds */
-        .unit-seconds .time-value { color: var(--primary-hot); text-shadow: var(--text-shadow); }
-        .unit-seconds .time-card { animation: heartbeat 1s infinite; border-bottom: 2px solid var(--primary-hot); }
+        .special-border-rainbow { position: relative; background: #151515; border-radius: 1.5rem; box-shadow: 0 0 35px rgba(255, 255, 255, 0.2); border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(#151515, #151515), linear-gradient(45deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7, #ec4899, #ef4444); background-size: 100% 100%, 300% 100%; animation: rainbowMove 4s linear infinite; }
+        .rainbow-text { background: linear-gradient(to right, #ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 3s linear infinite; }
+        @keyframes rainbowMove { 0% { background-position: 0 0, 0 0; } 100% { background-position: 0 0, 100% 0; } }
 
-        @keyframes heartbeat {
-            0% { box-shadow: 0 0 0 0 rgba(255, 0, 110, 0.4); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 0, 110, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 0, 110, 0); }
-        }
+        .special-border-celebration { position: relative; background: rgba(5, 20, 20, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(34, 211, 238, 0.3); }
+        .celebration-text { background: linear-gradient(to right, #22d3ee, #e0f2fe, #fff, #22d3ee); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 4s linear infinite; }
 
-        /* --- 5. Floating Hearts --- */
-        .bubbles-container { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;}
-        .heart {
-            position: absolute; width: var(--size); height: var(--size);
-            background: var(--color); transform: rotate(45deg);
-            opacity: 0; bottom: -50px;
-            will-change: transform, opacity;
-        }
-        .heart::before, .heart::after {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; background: inherit;
-        }
-        .heart::before { left: -50%; } .heart::after { top: -50%; }
+        .special-border-bittersweet { position: relative; background: #0f0f0f; border-radius: 1.5rem; box-shadow: 0 0 30px rgba(220, 38, 38, 0.2); border: 2px solid transparent; background-clip: padding-box, border-box; background-origin: padding-box, border-box; background-image: linear-gradient(#0f0f0f, #0f0f0f), linear-gradient(120deg, #9f1239, #db2777, #4c0519); background-size: 100% 100%, 300% 300%; animation: bittersweetFlow 10s ease infinite alternate; }
+        .bittersweet-text { background: linear-gradient(to right, #f43f5e, #be185d, #881337); background-size: 200% auto; color: transparent; -webkit-background-clip: text; background-clip: text; animation: shine 6s linear infinite; }
+        @keyframes bittersweetFlow { 0% { background-position: 0 0, 0% 50%; } 100% { background-position: 0 0, 100% 50%; } }
 
-        @media (max-width: 600px) {
-            .countdown-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
-            .time-card { aspect-ratio: 2/1; }
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Loading Overlay */
-        #loading {
-            position: fixed; inset: 0; background: var(--bg-deep); z-index: 999;
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease;
-        }
-        .spinner {
-            width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: var(--primary-hot); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .music-slider { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 5px; background: transparent; outline: none; cursor: pointer; }
+        .music-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: #fff; clip-path: path("M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"); margin-top: -9px; transition: transform 0.1s ease; box-shadow: 0 0 10px rgba(255,255,255,0.9); }
+        .music-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* Photo Navigation Knob Slider */
+        .photo-slider { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; background: transparent; outline: none; cursor: pointer; }
+        .photo-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #fff; cursor: grab; transition: transform 0.1s ease; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .photo-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        .photo-slider:active::-webkit-slider-thumb { cursor: grabbing; }
+
+        .cursor-zoom-in { cursor: zoom-in; }
+        .cursor-grab { cursor: grab; }
+        .cursor-grabbing { cursor: grabbing; }
+
+        /* === VOID PORTAL STYLES === */
+        .void-gateway { width: 100%; padding: 100px 20px 60px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 50px; }
+        
+        /* Main Button */
+        .void-trigger { display: inline-block; font-family: 'Press Start 2P', cursive; font-size: clamp(12px, 3vw, 18px); color: #f43f5e; background-color: transparent; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; padding: 20px 40px; border: 3px solid #f43f5e; position: relative; transition: all 0.3s ease; box-shadow: 0 0 15px #f43f5e, inset 0 0 10px rgba(244, 63, 94, 0.2); animation: button-pulse 3s infinite; overflow: hidden; }
+        .void-trigger::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient( transparent 0px, transparent 2px, rgba(244, 63, 94, 0.1) 3px, rgba(244, 63, 94, 0.1) 4px ); pointer-events: none; }
+        .void-trigger:hover { background-color: rgba(244, 63, 94, 0.1); box-shadow: 0 0 30px #f43f5e, inset 0 0 20px #f43f5e; transform: scale(1.05) translateY(-2px); text-shadow: 0 0 8px #fff; cursor: pointer; }
+        
+        /* Secondary Game Button */
+        .game-trigger { display: inline-block; font-family: 'Press Start 2P', cursive; font-size: 10px; color: #a855f7; background-color: transparent; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; padding: 12px 24px; border: 2px solid #a855f7; position: relative; transition: all 0.3s ease; box-shadow: 0 0 10px #a855f7, inset 0 0 5px rgba(168, 85, 247, 0.2); opacity: 0.8; margin-top: 24px; }
+        .game-trigger:hover { background-color: rgba(168, 85, 247, 0.1); box-shadow: 0 0 20px #a855f7, inset 0 0 10px #a855f7; transform: scale(1.05); opacity: 1; text-shadow: 0 0 5px #fff; }
+
+        .blinking-cursor { animation: blink 0.8s step-end infinite; color: inherit; margin-left: 5px; }
+        @keyframes button-pulse { 0% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px rgba(244, 63, 94, 0.1); border-color: #f43f5e; } 50% { box-shadow: 0 0 25px #f43f5e, inset 0 0 15px rgba(244, 63, 94, 0.3); border-color: #ff8fa3; } 100% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px rgba(244, 63, 94, 0.1); border-color: #f43f5e; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        .animate-fade-in-up { animation: fadeInUp 1.2s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
+        .animate-scroll { animation: scroll 80s linear infinite; }
     </style>
 </head>
 <body>
 
-    <div id="loading"><div class="spinner"></div></div>
-    
-    <div id="star-layer" class="stars"></div>
-    <div class="bubbles-container" id="love-bubbles"></div>
-
-    <div id="content">
-        <div class="timer-container">
-            <div class="main-title">Oops, the code was messed up</div>
-            
-            <div class="target-subtext" id="target-display">Loading...</div>
-            
-            <div class="countdown-grid">
-                <div class="time-unit">
-                    <div class="time-card"><span class="time-value" id="days">00</span></div>
-                    <span class="time-label">Days</span>
-                </div>
-                <div class="time-unit">
-                    <div class="time-card"><span class="time-value" id="hours">00</span></div>
-                    <span class="time-label">Hours</span>
-                </div>
-                <div class="time-unit">
-                    <div class="time-card"><span class="time-value" id="minutes">00</span></div>
-                    <span class="time-label">Minutes</span>
-                </div>
-                <div class="time-unit unit-seconds">
-                    <div class="time-card"><span class="time-value" id="seconds">00</span></div>
-                    <span class="time-label">Seconds</span>
-                </div>
-            </div>
-        </div>
+    <div id="initial-loader">
+        <div class="loader-wrapper"><div class="loader-heart"></div></div>
+        <div class="loading-bar"><div class="mini-heart">❤</div><div class="mini-heart">❤</div><div class="mini-heart">❤</div><div class="mini-heart">❤</div><div class="mini-heart">❤</div></div>
     </div>
+
+    <div id="dynamic-bg"></div>
+    <canvas id="starfield-canvas"></canvas>
+    <div id="particle-container"></div>
+    <div id="root"></div>
 
     <script>
         (function() {
-            'use strict';
+            const canvas = document.getElementById('starfield-canvas');
+            const ctx = canvas.getContext('2d', { alpha: true });
+            let width, height;
 
-            // --- Configuration ---
-            // 2026-02-01 at 22:00:00 (10PM)
-            // +01:00 represents the Offset for Netherlands/Venlo in Winter (CET)
-            const TARGET_ISO_STRING = "2026-02-01T22:00:00+01:00";
+            // Helper: Generates a static high-res star layer off-screen
+            const genLayer = (count, baseSize, opacity, focus) => {
+                const c = document.createElement('canvas');
+                // Make offscreen canvas slightly larger for smoother scrolling
+                c.width = width; 
+                c.height = height; 
+                const cx = c.getContext('2d');
+                cx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                cx.shadowColor = 'white';
+                cx.shadowBlur = focus ? 2 : 0;
 
-            // List of rotating messages
-            const DAILY_MESSAGES = [
-                "Just a little bit longer",
-                "It'll be worth the wait",
-                "You're lucky to have me!",
-                "Counting down every second",
-                "Patience is a virtue (I promise)",
-                "Almost there...",
-                "The best things take time",
-                "Preparing something special"
-            ];
-
-            // --- DOM Elements ---
-            const els = {
-                d: document.getElementById('days'),
-                h: document.getElementById('hours'),
-                m: document.getElementById('minutes'),
-                s: document.getElementById('seconds'),
-                targetTxt: document.getElementById('target-display'),
-                mainTitle: document.querySelector('.main-title')
+                for(let i=0; i<count; i++) {
+                    const x = Math.random() * c.width;
+                    const y = Math.random() * c.height;
+                    // Varies size slightly for realism
+                    const s = Math.random() * baseSize * (Math.random() > 0.9 ? 1.5 : 1);
+                    cx.beginPath(); cx.arc(x, y, s, 0, Math.PI*2); cx.fill();
+                }
+                return c; // Returns canvas as image source
             };
 
-            let targetTime = 0;
+            let layers = [];
 
-            // --- 1. Message & Time Logic ---
-            function initLogic() {
-                targetTime = Date.parse(TARGET_ISO_STRING);
-                
-                // Select a message based on the Day of the Year
-                // This ensures the message changes every 24 hours but stays the same during that day
-                const now = new Date();
-                const start = new Date(now.getFullYear(), 0, 0);
-                const diff = (now - start) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
-                const oneDay = 1000 * 60 * 60 * 24;
-                const dayOfYear = Math.floor(diff / oneDay);
-                
-                // Use modulo to cycle through messages safely
-                const msgIndex = dayOfYear % DAILY_MESSAGES.length;
-                els.targetTxt.textContent = DAILY_MESSAGES[msgIndex];
+            const init = () => {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width; canvas.height = height;
+
+                // Calculate star density based on screen area
+                const density = (width * height) / 15000;
+
+                // Create 3 parallax layers with different speeds, sizes, and opacities
+                layers = [
+                    // Distant, slow, small, dim
+                    { img: genLayer(density * 8, 0.6, 0.4, false), speed: 0.05, y: 0 }, 
+                    // Mid-distance, medium speed/size
+                    { img: genLayer(density * 3, 1.2, 0.7, false), speed: 0.15, y: 0 },  
+                    // Near, fast, larger, brighter with slight glow
+                    { img: genLayer(density * 0.8, 2.2, 0.9, true), speed: 0.3, y: 0 } 
+                ];
             }
 
-            // --- 2. Timer Loop ---
-            let prevValues = { d: null, h: null, m: null, s: null };
+            const animate = () => {
+                ctx.clearRect(0, 0, width, height);
 
-            function updateTimer() {
-                const now = Date.now();
-                const diff = targetTime - now;
-
-                if (diff <= 0) {
-                    // STOP STATE
-                    ['d','h','m','s'].forEach(k => els[k].textContent = "00");
+                layers.forEach(layer => {
+                    layer.y -= layer.speed;
+                    // Seamless vertical looping
+                    if (layer.y <= -height) layer.y = 0;
                     
-                    // Final Text Update
-                    els.mainTitle.textContent = "You'll love it, I know";
-                    els.targetTxt.style.display = 'none'; // Hide subtext when done
-                    return;
-                }
+                    // Draw the pre-rendered layer twice to cover the screen during scroll
+                    ctx.drawImage(layer.img, 0, layer.y);
+                    // Only draw the second one if needed to fill the gap
+                    if (layer.y < 0) {
+                        ctx.drawImage(layer.img, 0, layer.y + height);
+                    }
+                });
+                requestAnimationFrame(animate);
+            };
 
-                const totalSeconds = Math.floor(diff / 1000);
-                const d = Math.floor(totalSeconds / 86400);
-                const h = Math.floor((totalSeconds % 86400) / 3600);
-                const m = Math.floor((totalSeconds % 3600) / 60);
-                const s = totalSeconds % 60;
-
-                if (d !== prevValues.d) { els.d.textContent = d < 10 ? '0'+d : d; prevValues.d = d; }
-                if (h !== prevValues.h) { els.h.textContent = h < 10 ? '0'+h : h; prevValues.h = h; }
-                if (m !== prevValues.m) { els.m.textContent = m < 10 ? '0'+m : m; prevValues.m = m; }
-                if (s !== prevValues.s) { els.s.textContent = s < 10 ? '0'+s : s; prevValues.s = s; }
-
-                requestAnimationFrame(updateTimer);
-            }
-
-            // --- 3. Starfield Generator ---
-            function generateStars() {
-                const layer = document.getElementById('star-layer');
-                let boxShadow = '';
-                const starCount = 200;
-                for(let i = 0; i < starCount; i++) {
-                    const x = Math.floor(Math.random() * 2000);
-                    const y = Math.floor(Math.random() * 2000);
-                    boxShadow += `${x}px ${y}px #FFF, `;
-                }
-                layer.style.boxShadow = boxShadow.slice(0, -2);
-            }
-
-            // --- 4. Floating Hearts ---
-            function initLoveBubbles() {
-                const container = document.getElementById('love-bubbles');
-                const fragment = document.createDocumentFragment();
-                const colors = ['#ff006e', '#ff5c8d', '#ffd700', '#ffffff'];
-                const count = window.innerWidth < 600 ? 15 : 30;
-
-                for (let i = 0; i < count; i++) {
-                    const heart = document.createElement('div');
-                    heart.className = 'heart';
-                    const size = Math.random() * 20 + 10 + 'px';
-                    const left = Math.random() * 100 + '%';
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    heart.style.setProperty('--size', size);
-                    heart.style.setProperty('--color', color);
-                    heart.style.left = left;
-                    
-                    heart.animate([
-                        { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
-                        { transform: 'translateY(-20vh) rotate(45deg) scale(1)', opacity: 0.8, offset: 0.2 },
-                        { transform: 'translateY(-100vh) rotate(90deg) scale(0.5)', opacity: 0 }
-                    ], {
-                        duration: 10000 + Math.random() * 10000,
-                        delay: Math.random() * 20000,
-                        iterations: Infinity,
-                        easing: 'linear'
-                    });
-                    fragment.appendChild(heart);
-                }
-                container.appendChild(fragment);
-            }
-
-            // --- Init ---
-            function init() {
-                initLogic();
-                generateStars();
-                initLoveBubbles();
-                updateTimer();
-                
-                const loadScreen = document.getElementById('loading');
-                const content = document.getElementById('content');
-                setTimeout(() => {
-                    loadScreen.style.opacity = '0';
-                    content.style.opacity = '1';
-                    setTimeout(() => loadScreen.remove(), 600);
-                }, 500);
-            }
-
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-            else init();
-
+            window.addEventListener('resize', () => { init(); });
+            init();
+            animate();
         })();
     </script>
-</body>
-</html>
-        }
 
-        /* --- 1. Efficient Starfield Background --- */
-        .stars {
-            width: 1px; height: 1px;
-            background: transparent;
-            box-shadow: 1744px 122px #FFF , 134px 1321px #FFF , 92px 859px #FFF; 
-            animation: animStar 50s linear infinite;
-            position: absolute;
-            z-index: 0;
-            opacity: 0.8;
-        }
-        .stars::after {
-            content: " "; position: absolute; top: 2000px; width: 1px; height: 1px; background: transparent;
-            box-shadow: inherit;
-        }
-        @keyframes animStar { from { transform: translateY(0px); } to { transform: translateY(-2000px); } }
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const { motion, AnimatePresence, useInView } = window.Motion;
 
-        /* --- 2. Main Layout --- */
-        #content {
-            position: relative; z-index: 10; min-height: 100vh;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 1s ease; padding: 20px;
-        }
+        const BASE_URL = "https://huemiliation.github.io/BigBoobies/memories/";
+        const NOTES_URL = "https://huemiliation.github.io/BigBoobies/notes.json";
 
-        /* --- 3. Glassmorphism Timer Container --- */
-        .timer-container {
-            width: 100%; max-width: 850px;
-            padding: clamp(30px, 6vw, 60px);
-            background: var(--glass-bg);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 40px;
-            border: 1px solid var(--glass-border);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            position: relative; overflow: hidden;
-        }
-
-        /* Title in Magenta */
-        .main-title {
-            font-family: 'Great Vibes', cursive;
-            text-align: center;
-            font-size: clamp(3rem, 7vw, 5.5rem);
-            color: var(--primary-hot); 
-            margin-bottom: 10px;
-            text-shadow: 0 0 25px rgba(255, 0, 110, 0.6);
-            line-height: 1.2;
-            padding-bottom: 10px;
-        }
-
-        /* Subtext changed to White */
-        .target-subtext {
-            text-align: center; margin-bottom: 40px;
-            color: #ffffff; /* Changed to White */
-            font-size: clamp(0.8rem, 2vw, 1rem);
-            text-transform: uppercase; letter-spacing: 4px; font-weight: 700;
-            opacity: 0.9;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-
-        /* --- 4. The Grid --- */
-        .countdown-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(10px, 3vw, 30px);
-        }
-
-        .time-unit { display: flex; flex-direction: column; align-items: center; }
-
-        .time-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
-            width: 100%; aspect-ratio: 1/1.2;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
-            transition: transform 0.3s ease;
-        }
-        
-        .time-card:hover { transform: translateY(-5px); border-color: var(--primary-hot); }
-
-        .time-value {
-            font-size: clamp(2rem, 6vw, 5rem); font-weight: 900; color: #fff;
-            text-shadow: 0 0 20px rgba(255,255,255,0.4);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .time-label {
-            margin-top: 15px; font-size: clamp(0.7rem, 1.5vw, 0.9rem);
-            color: #e0e0e0; text-transform: uppercase; letter-spacing: 2px;
-        }
-
-        /* Heartbeat effect for seconds */
-        .unit-seconds .time-value { color: var(--primary-hot); text-shadow: var(--text-shadow); }
-        .unit-seconds .time-card { animation: heartbeat 1s infinite; border-bottom: 2px solid var(--primary-hot); }
-
-        @keyframes heartbeat {
-            0% { box-shadow: 0 0 0 0 rgba(255, 0, 110, 0.4); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 0, 110, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 0, 110, 0); }
-        }
-
-        /* --- 5. Floating Hearts --- */
-        .bubbles-container { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;}
-        .heart {
-            position: absolute; width: var(--size); height: var(--size);
-            background: var(--color); transform: rotate(45deg);
-            opacity: 0; bottom: -50px;
-            will-change: transform, opacity;
-        }
-        .heart::before, .heart::after {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; background: inherit;
-        }
-        .heart::before { left: -50%; } .heart::after { top: -50%; }
-
-        @media (max-width: 600px) {
-            .countdown-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
-            .time-card { aspect-ratio: 2/1; }
-        }
-        
-        /* Loading Overlay */
-        #loading {
-            position: fixed; inset: 0; background: var(--bg-deep); z-index: 999;
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease;
-        }
-        .spinner {
-            width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: var(--primary-hot); border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-</head>
-<body>
-
-    <div id="loading"><div class="spinner"></div></div>
-    
-    <div id="star-layer" class="stars"></div>
-    <div class="bubbles-container" id="love-bubbles"></div>
-
-    <div id="content">
-        <div class="timer-container">
-            <div class="main-title">Until We Meet Again</div>
-            <div class="target-subtext" id="target-display">Loading Date...</div>
+        const getMedia = (path, count, notesMap = {}, videoIndices = [], defaultNote = "", extension = "webp") => {
+            const safePath = path.split('/').map(part => encodeURIComponent(part)).join('/');
             
-            <div class="countdown-grid">
-                <div class="time-unit">
-                    <div class="time-card"><span class="time-value" id="days">00</span></div>
-                    <span class="time-label">Days</span>
-                </div>
-                <div class="time-unit">
-                    <div class="time-card"><span class="time-value" id="hours">00</span></div>
-                    <span class="time-label">Hours</span>
-                </div>
-                <div class="time-unit">
-                    <div class="time-card"><span class="time-value" id="minutes">00</span></div>
-                    <span class="time-label">Minutes</span>
-                </div>
-                <div class="time-unit unit-seconds">
-                    <div class="time-card"><span class="time-value" id="seconds">00</span></div>
-                    <span class="time-label">Seconds</span>
-                </div>
-            </div>
-        </div>
-    </div>
+            let lastNote = defaultNote; 
+            
+            return Array.from({ length: count }, (_, i) => {
+                const num = i + 1;
+                
+                if (notesMap[num]) {
+                    lastNote = notesMap[num];
+                }
+                
+                const isVideo = videoIndices.includes(num);
+                const fileName = `${num}.${isVideo ? 'mp4#t=0.001' : extension}`;
+                
+                return {
+                    id: `${path}-${num}`,
+                    src: `${BASE_URL}${safePath}/${fileName}`,
+                    type: isVideo ? 'video' : 'image',
+                    note: lastNote 
+                };
+            });
+        };
 
-    <script>
-        (function() {
-            'use strict';
+        // --- COMPONENTS ---
+        const ParticleSystem = ({ activeChapter }) => {
+            useEffect(() => {
+                const container = document.getElementById('particle-container');
+                let colors = ['#ffffff']; let spawnRate = 1500; let glow = 'none';
+                if(activeChapter === 0) { colors = ['#ffffff']; spawnRate = 1200; }
+                if(activeChapter === 1) { colors = ['#ffffff', '#f472b6', '#fbbf24']; spawnRate = 600; }
+                if(activeChapter === 2) { colors = ['#e11d48', '#be185d', '#a21caf', '#ffffff']; spawnRate = 300; glow = '0 0 10px currentColor'; }
 
-            // --- Configuration ---
-            // 2026-01-10 at 21:00:00 (9PM)
-            // +01:00 represents the Offset for Netherlands/Venlo in Winter (CET)
-            const TARGET_ISO_STRING = "2026-01-10T21:00:00+01:00";
+                const interval = setInterval(() => {
+                    if (document.hidden) return;
+                    const h = document.createElement('div');
+                    h.innerHTML = '❤'; h.className = 'heart-particle';
+                    h.style.left = Math.random() * 100 + 'vw'; h.style.bottom = '-50px';
+                    h.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                    h.style.color = colors[Math.floor(Math.random() * colors.length)];
+                    h.style.textShadow = glow;
+                    h.animate([
+                        { transform: 'translateY(0) rotate(0deg)', opacity: 0 },
+                        { opacity: 0.8, offset: 0.1 },
+                        { transform: `translateY(-100vh) rotate(${Math.random()*360}deg)`, opacity: 0 }
+                    ], { duration: 5000 + Math.random() * 5000, easing: 'linear' }).onfinish = () => h.remove();
+                    container.appendChild(h);
+                }, spawnRate);
+                return () => clearInterval(interval);
+            }, [activeChapter]);
+            return null;
+        };
 
-            // --- DOM Elements ---
-            const els = {
-                d: document.getElementById('days'),
-                h: document.getElementById('hours'),
-                m: document.getElementById('minutes'),
-                s: document.getElementById('seconds'),
-                targetTxt: document.getElementById('target-display')
+        const MonthTitle = ({ text, accent }) => (
+            <motion.div initial={{ opacity: 0, y: 20, letterSpacing: "0.2em" }} whileInView={{ opacity: 1, y: 0, letterSpacing: "0.4em" }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, ease: "easeOut" }} className="font-sans font-black text-2xl md:text-4xl uppercase opacity-90 px-4 text-center" style={{ color: accent }}>{text}</motion.div>
+        );
+
+        // Standard Typewriter for notes inside lightbox
+        const Typewriter = ({ text, speed = 40 }) => {
+            const [displayText, setDisplayText] = useState("");
+            useEffect(() => {
+                setDisplayText(""); 
+                if (!text) return;
+                let i = 0;
+                const timer = setInterval(() => {
+                    if (i < text.length) { setDisplayText(text.substring(0, i + 1)); i++; } else { clearInterval(timer); }
+                }, speed);
+                return () => clearInterval(timer);
+            }, [text, speed]);
+            return <span>{displayText}</span>;
+        };
+
+        // ScrollTypewriter for Carousel Titles
+        const ScrollTypewriter = ({ text, className }) => {
+            const [display, setDisplay] = useState("");
+            const ref = useRef(null);
+            const isInView = useInView(ref, { once: true, margin: "0px 0px -50px 0px" });
+
+            useEffect(() => {
+                if (isInView && text) {
+                    let i = 0;
+                    const t = setInterval(() => {
+                        setDisplay(text.substring(0, i + 1));
+                        i++;
+                        if (i === text.length) clearInterval(t);
+                    }, 50);
+                    return () => clearInterval(t);
+                }
+            }, [isInView, text]);
+
+            return <h4 ref={ref} className={className} style={{ minHeight: '1.5em' }}>{display}</h4>;
+        };
+
+        const MusicController = ({ song, accent, activeSong, onToggle, audioRef }) => {
+            const isActive = activeSong === song.url;
+            const [currentTime, setCurrentTime] = useState(0);
+            const [duration, setDuration] = useState(0);
+            useEffect(() => {
+                if (isActive && audioRef.current) {
+                    const aud = audioRef.current;
+                    const update = () => { setCurrentTime(aud.currentTime); setDuration(aud.duration || 0); };
+                    aud.addEventListener('timeupdate', update);
+                    return () => aud.removeEventListener('timeupdate', update);
+                }
+            }, [isActive, audioRef]);
+            const handleSeek = (e) => { if(audioRef.current) { const val = Number(e.target.value); audioRef.current.currentTime = val; setCurrentTime(val); } };
+            const fmt = (t) => { if(!t) return "0:00"; const m = Math.floor(t / 60); const s = Math.floor(t % 60); return `${m}:${s<10?'0':''}${s}`; };
+            const progressPercent = duration ? (currentTime / duration) * 100 : 0;
+            return (
+                <div className="flex justify-center my-6 h-14 z-30 relative items-center gap-4">
+                    {/* Attention Arrow Left */}
+                    <div className="text-3xl text-white/80 arrow-anim-left" style={{ textShadow: `0 0 10px ${accent}` }}>→</div>
+
+                    <motion.div layout initial={false} transition={{ type: "spring", stiffness: 400, damping: 30 }} className={`relative rounded-full flex items-center overflow-hidden backdrop-blur-md`} style={{ backgroundColor: isActive ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.05)', borderColor: accent, borderWidth: isActive ? '1px' : '2px' }} animate={!isActive ? { boxShadow: `0 0 15px ${accent}`, scale: [1, 1.05, 1], cursor: 'pointer' } : { boxShadow: 'none', scale: 1, cursor: 'default' }} onClick={() => !isActive && onToggle(song.url)}>
+                        <AnimatePresence mode="wait">
+                            {!isActive ? (
+                                <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center px-8 py-2 gap-3 min-w-[180px]">
+                                    <span className="text-xl text-white drop-shadow-md">▶</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest text-white whitespace-nowrap drop-shadow-md">{song.title}</span>
+                                </motion.div>
+                            ) : (
+                                <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-5 py-2 flex items-center gap-3 min-w-[300px]">
+                                    <button onClick={(e) => { e.stopPropagation(); onToggle(song.url); }} className="hover:scale-110 active:scale-95 transition-transform"><span className="text-lg" style={{color: accent}}>⏸</span></button>
+                                    <div className="flex-1 flex flex-col gap-1 w-full">
+                                        <div className="flex justify-between items-end text-[9px] font-mono text-gray-400 w-full">
+                                            <span>{fmt(currentTime)}</span>
+                                            {/* SCROLLING MARQUEE FOR LONG TITLES */}
+                                            <div className="flex-1 mx-2 overflow-hidden relative h-4 w-32 marquee-wrapper">
+                                                <div className="marquee-text font-bold uppercase tracking-wider text-white">
+                                                    {song.title} &nbsp;&nbsp;&nbsp; {song.title} &nbsp;&nbsp;&nbsp;
+                                                </div>
+                                            </div>
+                                            <span>{fmt(duration)}</span>
+                                        </div>
+                                        <input type="range" min="0" max={duration || 100} value={currentTime} onChange={handleSeek} onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} className="music-slider" style={{ background: `linear-gradient(to right, ${accent} 0%, ${accent} ${progressPercent}%, rgba(255,255,255,0.1) ${progressPercent}%, rgba(255,255,255,0.1) 100%)` }} />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+
+                    {/* Attention Arrow Right */}
+                    <div className="text-3xl text-white/80 arrow-anim-right" style={{ textShadow: `0 0 10px ${accent}` }}>←</div>
+                </div>
+            );
+        };
+
+        const Carousel = ({ photos, onOpen, isSpecial, onLoad }) => {
+            const speed = Math.max(40, photos.length * 3) + 's';
+            const displayPhotos = useMemo(() => [...photos, ...photos, ...photos], [photos]);
+            const hasBeenClickedRef = useRef(false);
+
+            const handleItemClick = (index) => {
+                if (!hasBeenClickedRef.current) {
+                    onOpen(0); 
+                    hasBeenClickedRef.current = true;
+                } else {
+                    const originalIndex = index % photos.length;
+                    onOpen(originalIndex); 
+                }
             };
 
-            let targetTime = 0;
+            let borderColor = 'border-white/10';
+            if (isSpecial === 'gold') borderColor = 'border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)]';
+            if (isSpecial === 'bday_him') borderColor = 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]';
+            if (isSpecial === 'bday_her') borderColor = 'border-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.5)]';
+            if (isSpecial === 'anniversary') borderColor = 'border-transparent';
+            if (isSpecial === 'celebration') borderColor = 'special-border-celebration';
+            if (isSpecial === 'bittersweet') borderColor = 'special-border-bittersweet';
 
-            // --- 1. Precise Time Logic ---
-            function initTargetDate() {
-                targetTime = Date.parse(TARGET_ISO_STRING);
-                const dateObj = new Date(targetTime);
-                const options = { weekday: 'long', month: 'long', day: 'numeric' };
-                const datePart = dateObj.toLocaleDateString('en-GB', options);
+            return (
+                <div className="w-full overflow-hidden relative py-6 group">
+                    <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-black/50 to-transparent pointer-events-none"></div>
+                    <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-black/50 to-transparent pointer-events-none"></div>
+                    <div className="flex w-max gap-4 md:gap-6 animate-scroll hover:[animation-play-state:paused]" style={{ animationDuration: speed }}>
+                        {displayPhotos.map((photo, idx) => (
+                            <div key={`${photo.id}-${idx}`} className={`relative flex-shrink-0 rounded-xl overflow-hidden cursor-pointer border transition-transform duration-300 hover:scale-105 ${isSpecial ? 'w-[180px] h-[260px]' : 'w-[140px] h-[200px]'} ${borderColor}`} onClick={() => handleItemClick(idx)}>
+                                {photo.type === 'video' ? (
+                                    <div className="w-full h-full relative">
+                                        <video src={photo.src} className="w-full h-full object-cover pointer-events-none" muted preload="metadata" onLoadedData={onLoad} />
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40"><div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/50"><span className="ml-1 text-white">▶</span></div></div>
+                                    </div>
+                                ) : (
+                                    <img src={photo.src} alt="memory" loading="lazy" className="w-full h-full object-cover" onError={(e) => e.target.src = 'https://picsum.photos/200/300'} onLoad={onLoad} />
+                                )}
+                                <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const HeartIcon = ({ rotate, color }) => (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style={{ transform: `rotate(${rotate}deg)`, color: color }}>
+                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        );
+
+        const HeartSlider = ({ value, max, onChange, accent }) => {
+            const percentage = max > 0 ? (value / max) * 100 : 0;
+            return (
+                <div className="relative h-8 w-full flex items-center cursor-pointer select-none touch-none">
+                    <div className="absolute top-1/2 -translate-y-1/2 left-0 w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                        <motion.div className="h-full" style={{ backgroundColor: accent }} initial={false} animate={{ width: `${percentage}%` }} transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                    </div>
+                    <motion.div className="absolute top-1/2 -translate-y-1/2" initial={false} animate={{ left: `${percentage}%` }} transition={{ type: "spring", stiffness: 300, damping: 30 }} style={{ marginLeft: '-12px' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill={accent} className="drop-shadow-lg filter drop-shadow-[0_0_5px_rgba(0,0,0,0.5)]">
+                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </motion.div>
+                    <input type="range" min="0" max={max} value={value} onChange={onChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                </div>
+            );
+        };
+
+        const ZoomableMedia = ({ media, accent, onVideoPlay, onVideoEnd }) => {
+            const [transform, setTransform] = useState({ scale: 1, x: 0, y: 0 });
+            const containerRef = useRef(null); const isDragging = useRef(false); const startCoords = useRef({ x: 0, y: 0 }); const startTransform = useRef({ x: 0, y: 0 });
+            useEffect(() => { setTransform({ scale: 1, x: 0, y: 0 }); }, [media.src]);
+            const handlePointerDown = (e) => { if (transform.scale > 1) { isDragging.current = true; startCoords.current = { x: e.clientX, y: e.clientY }; startTransform.current = { x: transform.x, y: transform.y }; e.currentTarget.setPointerCapture(e.pointerId); } };
+            const handlePointerMove = (e) => { if (isDragging.current && transform.scale > 1) { const dx = e.clientX - startCoords.current.x; const dy = e.clientY - startCoords.current.y; setTransform(prev => ({ ...prev, x: startTransform.current.x + dx, y: startTransform.current.y + dy })); } };
+            const handlePointerUp = (e) => { isDragging.current = false; e.currentTarget.releasePointerCapture(e.pointerId); };
+            const handleWheel = (e) => { e.preventDefault(); e.stopPropagation(); let newScale = transform.scale - (e.deltaY * 0.003); newScale = Math.min(Math.max(1, newScale), 5); setTransform({ scale: newScale, x: newScale === 1 ? 0 : transform.x, y: newScale === 1 ? 0 : transform.y }); };
+            const handleToggleZoom = () => { if (transform.scale > 1) { setTransform({ scale: 1, x: 0, y: 0 }); } else { setTransform({ scale: 2.5, x: 0, y: 0 }); } };
+            return (
+                <div className="relative w-full h-full flex items-center justify-center overflow-hidden" ref={containerRef} onWheel={handleWheel} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onDoubleClick={handleToggleZoom}>
+                    <div style={{ transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transition: isDragging.current ? 'none' : 'transform 0.2s ease-out', cursor: transform.scale > 1 ? 'grab' : 'zoom-in', touchAction: 'none' }} className="relative flex items-center justify-center max-w-full max-h-full">
+                        {media.type === 'video' ? ( <video src={media.src} draggable={false} controls playsInline className="max-w-full max-h-[65vh] rounded-lg shadow-2xl" style={{ boxShadow: `0 0 40px ${accent}20` }} onPlay={onVideoPlay} onEnded={onVideoEnd} /> ) : ( <img src={media.src} alt="Memory" draggable={false} className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl select-none" style={{ boxShadow: `0 0 40px ${accent}20` }} /> )}
+                    </div>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-lg z-50" onClick={e => e.stopPropagation()}>
+                         <button onClick={() => setTransform(p => ({ ...p, scale: Math.max(1, p.scale - 0.5), x: p.scale<=1.5?0:p.x, y: p.scale<=1.5?0:p.y }))} className="text-white hover:text-amber-400 font-bold text-xl px-2 active:scale-90 transition">-</button>
+                         <button onClick={() => setTransform({scale:1, x:0, y:0})} className="text-xs uppercase tracking-widest text-white/70 hover:text-white pt-1">Reset</button>
+                         <button onClick={() => setTransform(p => ({ ...p, scale: Math.min(5, p.scale + 0.5) }))} className="text-white hover:text-amber-400 font-bold text-xl px-2 active:scale-90 transition">+</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Lightbox = ({ isOpen, albumPhotos, startIndex, onClose, accent, onVideoPlay, onVideoEnd }) => {
+            if (!isOpen || !albumPhotos) return null;
+            const [idx, setIdx] = useState(startIndex);
+            const [isExpanded, setIsExpanded] = useState(false);
+            const photo = albumPhotos[idx];
+            const navigate = (dir) => setIdx((prev) => (prev + dir + albumPhotos.length) % albumPhotos.length);
+            useEffect(() => { document.body.style.overflow = 'hidden'; return () => document.body.style.overflow = ''; }, []);
+            
+            return (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4" onClick={onClose}>
+                    <button onClick={onClose} className="absolute top-4 right-4 p-3 bg-white/10 rounded-full hover:bg-white/20 z-[110]"><svg width="24" height="24" viewBox="0 0 24 24" stroke="white" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                    <button onClick={(e) => { e.stopPropagation(); navigate(-1); }} className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] p-2 transition-transform active:scale-75 hover:scale-110 cursor-pointer"><HeartIcon rotate={-90} color={accent} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); navigate(1); }} className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] p-2 transition-transform active:scale-75 hover:scale-110 cursor-pointer"><HeartIcon rotate={90} color={accent} /></button>
+                    
+                    <div className="flex flex-col items-center gap-4 w-full max-w-4xl h-full justify-center" onClick={e => e.stopPropagation()}>
+                        <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden"><AnimatePresence mode="wait"><ZoomableMedia key={photo.src} media={photo} accent={accent} onVideoPlay={onVideoPlay} onVideoEnd={onVideoEnd} /></AnimatePresence></div>
+                        <div className="w-full max-w-lg flex-shrink-0 relative z-[60]">
+                            
+                            <div className="relative group">
+                                <div className="liquid-glass rounded-xl p-4 w-full overflow-x-auto hide-scrollbar border-l-4 mb-2 min-h-[80px] flex items-center note-fade-mask" style={{ borderColor: accent }}>
+                                    <p className="text-gray-200 font-sans text-sm md:text-base font-light tracking-wide whitespace-nowrap pr-8"><Typewriter text={photo.note} speed={40} /></p>
+                                </div>
+                                <button onClick={() => setIsExpanded(true)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-white/50 hover:text-white transition-colors bg-black/20 rounded-full backdrop-blur-sm z-20" title="Read full note">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-3 w-full mt-2">
+                                <span className="text-[10px] font-mono text-gray-400 min-w-[20px] text-right">{idx + 1}</span>
+                                <div className="flex-1">
+                                    <HeartSlider value={idx} max={albumPhotos.length - 1} onChange={(e) => setIdx(Number(e.target.value))} accent={accent} />
+                                </div>
+                                <span className="text-[10px] font-mono text-gray-400 min-w-[20px]">{albumPhotos.length}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <AnimatePresence>
+                        {isExpanded && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }} 
+                                animate={{ opacity: 1, y: 0 }} 
+                                exit={{ opacity: 0, y: 20 }}
+                                className="absolute inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+                                onClick={() => setIsExpanded(false)}
+                            >
+                                <div className="max-w-2xl w-full max-h-[80vh] overflow-y-auto bg-[#1a1a1a] rounded-2xl border border-white/10 p-8 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                                    <button onClick={() => setIsExpanded(false)} className="absolute top-4 right-4 p-2 text-white/50 hover:text-white"><svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                                    <div className="w-12 h-1 mb-6 rounded-full" style={{ backgroundColor: accent }}></div>
+                                    <h3 className="text-white font-sans font-bold text-xl mb-6 opacity-90">Memory Note</h3>
+                                    <p className="text-gray-200 font-sans text-lg leading-relaxed whitespace-pre-wrap">{photo.note}</p>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+            );
+        };
+
+        // --- GAME LAUNCHER ---
+        const VoidPortal = () => (
+            <div className="void-gateway">
+                <div className="glitch-wrapper">
+                    <a href="https://huemiliation.github.io/BigBoobies/for_us.html" className="void-trigger" target="_blank" rel="noopener noreferrer">
+                        ONE LAST THING<span className="blinking-cursor">_</span>
+                    </a>
+                </div>
                 
-                // Set text (CSS handles color)
-                els.targetTxt.innerHTML = `${datePart} &bull; 21:00 (Venlo Time)`;
-            }
+                <a href="https://huemiliation.github.io/BigBoobies/themainpage.html" className="game-trigger" target="_blank" rel="noopener noreferrer">
+                    play the game again
+                </a>
+            </div>
+        );
 
-            // --- 2. Timer Loop ---
-            let prevValues = { d: null, h: null, m: null, s: null };
+        const App = () => {
+            const [activeChapter, setActiveChapter] = useState(0);
+            const [lightbox, setLightbox] = useState({ open: false, photos: [], index: 0 });
+            const [activeSong, setActiveSong] = useState(null);
+            const [notesData, setNotesData] = useState(null); 
+            const audioRef = useRef(null);
+            const wasPlayingRef = useRef(false);
+            const [loadedImages, setLoadedImages] = useState(0);
 
-            function updateTimer() {
-                const now = Date.now();
-                const diff = targetTime - now;
-
-                if (diff <= 0) {
-                    ['d','h','m','s'].forEach(k => els[k].textContent = "00");
-                    document.querySelector('.main-title').textContent = "I'm here!";
-                    els.targetTxt.style.display = 'none';
-                    return;
-                }
-
-                const totalSeconds = Math.floor(diff / 1000);
-                const d = Math.floor(totalSeconds / 86400);
-                const h = Math.floor((totalSeconds % 86400) / 3600);
-                const m = Math.floor((totalSeconds % 3600) / 60);
-                const s = totalSeconds % 60;
-
-                if (d !== prevValues.d) { els.d.textContent = d < 10 ? '0'+d : d; prevValues.d = d; }
-                if (h !== prevValues.h) { els.h.textContent = h < 10 ? '0'+h : h; prevValues.h = h; }
-                if (m !== prevValues.m) { els.m.textContent = m < 10 ? '0'+m : m; prevValues.m = m; }
-                if (s !== prevValues.s) { els.s.textContent = s < 10 ? '0'+s : s; prevValues.s = s; }
-
-                requestAnimationFrame(updateTimer);
-            }
-
-            // --- 3. Starfield Generator ---
-            function generateStars() {
-                const layer = document.getElementById('star-layer');
-                let boxShadow = '';
-                const starCount = 200;
-                for(let i = 0; i < starCount; i++) {
-                    const x = Math.floor(Math.random() * 2000);
-                    const y = Math.floor(Math.random() * 2000);
-                    boxShadow += `${x}px ${y}px #FFF, `;
-                }
-                layer.style.boxShadow = boxShadow.slice(0, -2);
-            }
-
-            // --- 4. Floating Hearts ---
-            function initLoveBubbles() {
-                const container = document.getElementById('love-bubbles');
-                const fragment = document.createDocumentFragment();
-                const colors = ['#ff006e', '#ff5c8d', '#ffd700', '#ffffff'];
-                const count = window.innerWidth < 600 ? 15 : 30;
-
-                for (let i = 0; i < count; i++) {
-                    const heart = document.createElement('div');
-                    heart.className = 'heart';
-                    const size = Math.random() * 20 + 10 + 'px';
-                    const left = Math.random() * 100 + '%';
-                    const color = colors[Math.floor(Math.random() * colors.length)];
-                    
-                    heart.style.setProperty('--size', size);
-                    heart.style.setProperty('--color', color);
-                    heart.style.left = left;
-                    
-                    heart.animate([
-                        { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
-                        { transform: 'translateY(-20vh) rotate(45deg) scale(1)', opacity: 0.8, offset: 0.2 },
-                        { transform: 'translateY(-100vh) rotate(90deg) scale(0.5)', opacity: 0 }
-                    ], {
-                        duration: 10000 + Math.random() * 10000,
-                        delay: Math.random() * 20000,
-                        iterations: Infinity,
-                        easing: 'linear'
+            // Fetch Notes on Mount
+            useEffect(() => {
+                fetch(NOTES_URL)
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log("Notes loaded:", data);
+                        setNotesData(data);
+                    })
+                    .catch(err => {
+                        console.error("Failed to load notes:", err);
+                        setNotesData({}); 
                     });
-                    fragment.appendChild(heart);
+            }, []);
+
+            // Loader
+            useEffect(() => {
+                const loader = document.getElementById('initial-loader');
+                if (!loader) return;
+                if (notesData && loadedImages > 3) {
+                    const removeLoader = () => { loader.style.opacity = '0'; loader.style.visibility = 'hidden'; setTimeout(() => loader.remove(), 800); };
+                    removeLoader();
                 }
-                container.appendChild(fragment);
-            }
+                const timeout = setTimeout(() => {
+                    if (notesData) { loader.style.opacity = '0'; loader.style.visibility = 'hidden'; setTimeout(() => loader.remove(), 800); }
+                }, 8000); 
+                return () => clearTimeout(timeout);
+            }, [loadedImages, notesData]);
 
-            // --- Init ---
-            function init() {
-                initTargetDate();
-                generateStars();
-                initLoveBubbles();
-                updateTimer();
-                
-                const loadScreen = document.getElementById('loading');
-                const content = document.getElementById('content');
-                setTimeout(() => {
-                    loadScreen.style.opacity = '0';
-                    content.style.opacity = '1';
-                    setTimeout(() => loadScreen.remove(), 600);
-                }, 500);
-            }
+            // Scroll Spy
+            useEffect(() => {
+                const onScroll = () => {
+                    const sections = document.querySelectorAll('.chapter-section');
+                    let current = 0;
+                    sections.forEach((sec, i) => {
+                        const rect = sec.getBoundingClientRect();
+                        if (rect.top <= window.innerHeight / 2) current = i;
+                    });
+                    setActiveChapter(current);
+                };
+                window.addEventListener('scroll', onScroll); return () => window.removeEventListener('scroll', onScroll);
+            }, []);
 
-            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-            else init();
+            // Audio Player Logic
+            useEffect(() => {
+                const aud = audioRef.current;
+                if(!aud) return;
+                const onEnd = () => setActiveSong(null);
+                aud.addEventListener('ended', onEnd);
+                aud.preload = "auto"; 
+                if(activeSong) { 
+                    aud.src = activeSong; 
+                    const playPromise = aud.play();
+                    if (playPromise !== undefined) playPromise.catch(error => console.log("Autoplay prevented:", error));
+                } else { aud.pause(); }
+                return () => { aud.pause(); aud.removeEventListener('ended', onEnd); }
+            }, [activeSong]);
 
-        })();
+            // Background Changer
+            useEffect(() => {
+                const bg = document.getElementById('dynamic-bg');
+                if (bg && notesData) {
+                     const themes = [
+                        { from: "#0b2047", to: "#1c1006", accent: "#38bdf8" },
+                        { from: "#1c1006", to: "#1a0202", accent: "#fbbf24" },
+                        { from: "#1a0202", to: "#000000", accent: "#f43f5e" }
+                     ];
+                     const currentTheme = themes[activeChapter] || themes[0];
+                     bg.style.background = `linear-gradient(to bottom, ${currentTheme.from}, ${currentTheme.to})`;
+                }
+            }, [activeChapter, notesData]);
+
+            // VIDEO & MUSIC HANDLERS
+            const handleVideoPlay = () => {
+                if (audioRef.current && !audioRef.current.paused) {
+                    audioRef.current.pause();
+                    wasPlayingRef.current = true; // Remember we were playing
+                }
+            };
+
+            const handleVideoEnd = () => {
+                if (wasPlayingRef.current && audioRef.current) {
+                    audioRef.current.play();
+                    wasPlayingRef.current = false; // Reset
+                }
+            };
+
+            const closeLightbox = () => {
+                setLightbox({ ...lightbox, open: false });
+                // If music was paused for a video, resume it when closing lightbox too
+                if (wasPlayingRef.current && audioRef.current) {
+                    audioRef.current.play();
+                    wasPlayingRef.current = false;
+                }
+            };
+
+            // GENERATE CHAPTERS
+            const chapters = useMemo(() => {
+                if (!notesData) return [];
+
+                const n23 = notesData["2023"] || {};
+                const n24 = notesData["2024"] || {};
+                const n25 = notesData["2025"] || {};
+
+                return [
+                    {
+                        id: 1, title: "Chapter One", subtitle: "Us", theme: { from: "#0b2047", to: "#1c1006", accent: "#38bdf8" }, 
+                        song: { title: "I'd be crazy not to follow", url: "https://huemiliation.github.io/BigBoobies/04%20Radiohead%20-%20Weird%20Fishes_%20Arpeggi.mp3" },
+                        albums: [
+                            { title: "in the beninging", month: "FEB - JUNE 2023", photos: getMedia("2023/february - june/in the beninging", 11, n23.beninging, [2,3,4,7,8,9,10]) },
+                            { title: "where it all started", month: "OCTOBER 2023", photos: getMedia("2023/october/where it all started", 11, n23.whereItAllStarted, [1,3]) },
+                            { title: "in the park", month: "NOVEMBER 2023", photos: getMedia("2023/november/in the park", 9, n23.inThePark, []) },
+                            { title: "on the bridge", month: "NOVEMBER 2023", photos: getMedia("2023/november/on the bridge", 17, n23.onTheBridge, []) },
+                            { title: "tasty foooooood", month: "NOVEMBER 2023", photos: getMedia("2023/november/tasty foooooood", 7, n23.tastyFood, []) },
+                            { title: "wattesigma", month: "NOVEMBER 2023", photos: getMedia("2023/november/wattesigma", 4, n23.wattesigma, []) },
+                            { title: "baklava cookie", month: "DECEMBER 2023", photos: getMedia("2023/december/baklava cookie", 10, n23.baklava, []) },
+                            { title: "cafe ketab", month: "DECEMBER 2023", photos: getMedia("2023/december/cafe ketab", 8, n23.cafeKetab, []) },
+                            { title: "doret begardam", month: "DECEMBER 2023", photos: getMedia("2023/december/doret begardam", 6, n23.doretBegardam, [5,6]) },
+                            { title: "fun with rambod", month: "DECEMBER 2023", photos: getMedia("2023/december/fun with rambod", 5, n23.rambod, []) },
+                            { title: "jer khordim", month: "DECEMBER 2023", photos: getMedia("2023/december/jer khordim", 4, n23.jerKhordim, []) },
+                            { title: "nose", month: "DECEMBER 2023", photos: getMedia("2023/december/nose", 28, n23.nose, []) },
+                            { title: "vijio cawl", month: "DECEMBER 2023", photos: getMedia("2023/december/vijio cawl", 4, n23.vijioCawl, []) },
+                            { title: "damdaran", month: "JANUARY 2024", photos: getMedia("2024/january/damdaran", 11, n24.january?.damdaran, [8, 9]) },
+                            { title: "delishoos", month: "FEBRUARY 2024", photos: getMedia("2024/february/delishoos", 15, n24.february?.delishoos, []) },
+                            { title: "harry pottler", month: "FEBRUARY 2024", photos: getMedia("2024/february/harry_pottler", 16, n24.february?.harry_pottler, []) },
+                            { title: "hulu lost", month: "FEBRUARY 2024", photos: getMedia("2024/february/hulu_lost", 6, n24.february?.hulu_lost, []) },
+                            { title: "humbududududum", month: "FEBRUARY 2024", photos: getMedia("2024/february/humbududududum", 24, n24.february?.humbududududum, [1, 7, 14, 23]) },
+                            { title: "my birthday", month: "MARCH 2024", isSpecial: "bday_him", photos: getMedia("2024/march/my_birthday", 13, n24.march?.my_birthday, [9, 10, 11]) },
+                            { title: "hulu perperi", month: "APRIL 2024", photos: getMedia("2024/april/hulu_perperi", 15, n24.april?.hulu_perperi, []) },
+                            { title: "khojel", month: "APRIL 2024", photos: getMedia("2024/april/khojel", 17, n24.april?.khojel, [1, 2]) },
+                            { title: "ching chang chung", month: "MAY 2024", photos: getMedia("2024/may/chingchangchung", 38, n24.may?.chingchangchung, []) },
+                            { title: "joogool", month: "MAY 2024", photos: getMedia("2024/may/joogool", 6, n24.may?.joogool, [2, 3]) },
+                            { title: "makeup", month: "MAY 2024", photos: getMedia("2024/may/makeup", 7, n24.may?.makeup, [1, 2]) },
+                            { title: "june vibes", month: "JUNE 2024", photos: getMedia("2024/june", 6, n24.june?.june_vids, [1, 2, 3, 4, 5, 6]) },
+                            { title: "bootiful", month: "JULY 2024", photos: getMedia("2024/july/bootiful", 8, n24.july?.bootiful, []) },
+                            { title: "gootbye partaaaayyyy", month: "JULY 2024", photos: getMedia("2024/july/gootbyepartaaaayyyy", 8, n24.july?.gootbyepartaaaayyyy, []) },
+                            { title: "skery", month: "JULY 2024", photos: getMedia("2024/july/skery", 2, n24.july?.skery, [2]) },
+                            { title: "bij boobie", month: "AUGUST 2024", photos: getMedia("2024/august/bij_boobie", 19, n24.august?.bij_boobie, []) },
+                            { title: "your 19th birthday", month: "AUGUST 2024", isSpecial: "bday_her", photos: getMedia("2024/august/your_19th_birthday", 21, n24.august?.your_19th_birthday, []) },
+                            { title: "booooooooooj", month: "SEPTEMBER 2024", photos: getMedia("2024/september/booooooooooj", 19, n24.september?.booooooooooj, []) },
+                            { title: "ezteik friday", month: "OCTOBER 2024", photos: getMedia("2024/october/ezteik_friday", 15, n24.october?.ezteik_friday, []) },
+                            { title: "our anniversary", month: "OCTOBER 2024", isSpecial: "anniversary", photos: getMedia("2024/october/our_anniversary", 8, n24.october?.our_anniversary, []) },
+                            { title: "boojoo", month: "NOVEMBER 2024", photos: getMedia("2024/november/boojoo", 16, n24.november?.boojoo, []) },
+                            { title: "youre a wizard", month: "NOVEMBER 2024", photos: getMedia("2024/november/youre_a_wizard", 30, n24.november?.youre_a_wizard, []) },
+                            { title: "december moments", month: "DECEMBER 2024", photos: getMedia("2024/december", 5, n24.december?.dec_vids, [1]) }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        title: "Chapter Two",
+                        subtitle: "Love",
+                        theme: { from: "#1c1006", to: "#1a0202", accent: "#fbbf24" }, 
+                        song: { title: "a universe so blue, it never ends", url: "https://huemiliation.github.io/BigBoobies/Low%20Roar%20-%20Bye%20Byee.mp3" },
+                        albums: [
+                            { title: "boobje shirazzzz the best trip of my life", month: "JANUARY 2025", isSpecial: "gold", photos: getMedia("2025/january/boobje_shirazzzz_the_best_trip_of_my_life", 36, n25.january?.shiraz, [], "A beautiful moment from Shiraz.") },
+                            { title: "boobje milad", month: "JANUARY 2025", photos: getMedia("2025/january/boobje_milad", 12, n25.january?.milad, []) },
+                            { title: "boobje hulu", month: "JANUARY 2025", photos: getMedia("2025/january/boobje_hulu", 2, n25.january?.hulu, []) }, 
+                            { title: "bubje baafbazzziiiii", month: "JANUARY 2025", photos: getMedia("2025/january/bubje_baafbazzziiiii", 9, n25.january?.baaf, []) },
+                            { title: "it tasted great with you", month: "FEBRUARY 2025", photos: getMedia("2025/february/it_tasted_great_with_you", 6, n25.february?.tasted, []) },
+                            { title: "my 22nd birthday", month: "MARCH 2025", isSpecial: "bday_him", photos: getMedia("2025/march/my_22nd_birthday", 8, n25.march?.birthday, []) },
+                            { title: "your new phone", month: "MARCH 2025", isSpecial: "celebration", photos: getMedia("2025/march/your_new_phone", 20, n25.march?.phone, []) },
+                            { title: "dochalkhe", month: "APRIL 2025", photos: getMedia("2025/april/dochalkhe", 12, n25.april?.dochalkhe, [1]) },
+                            { title: "seshuareeeee", month: "APRIL 2025", photos: getMedia("2025/april/seshuareeeee", 10, n25.april?.seshuare, []) },
+                            { title: "moms borthday", month: "MAY 2025", photos: getMedia("2025/may/moms_borthday", 6, n25.may?.mom, []) },
+                            { title: "motorboobieeeeeeee", month: "MAY 2025", photos: getMedia("2025/may/motorboobieeeeeeee", 12, n25.may?.motor, [1, 5, 6]) },
+                            { title: "pizzapizzapizza", month: "MAY 2025", photos: getMedia("2025/may/pizzapizzapizza", 6, n25.may?.pizza, [6]) },
+                        ]
+                    },
+                    {
+                        id: 3,
+                        title: "Chapter Three",
+                        subtitle: "End of Beginning",
+                        theme: { from: "#1a0202", to: "#000000", accent: "#f43f5e" }, 
+                        song: { title: "Little white lies", url: "https://raw.githubusercontent.com/Huemiliation/BigBoobies/main/10%20Radiohead%20-%20Motion%20Picture%20Soundtrack.mp3" },
+                        albums: [
+                            { title: "hulu jujulu", month: "JULY 2025", photos: getMedia("2025/july/hulu_jujulu", 15, n25.july?.hulu, [], "", "jpg") },
+                            { 
+                                title: "I'll see you in the next life", 
+                                month: "AUGUST 2025", 
+                                isSpecial: "bittersweet", 
+                                photos: getMedia("2025/august/I'll_see_you_in_the_next_life", 36, n25.august?.next_life, [35]) 
+                            }
+                        ]
+                    }
+                ];
+            }, [notesData]);
+
+            if (!notesData) return null;
+
+            const currentTheme = chapters[activeChapter]?.theme || { accent: '#38bdf8' };
+
+            return (
+                <div id="gallery-container" className="min-h-screen">
+                    <ParticleSystem activeChapter={activeChapter} />
+                    <audio ref={audioRef} preload="auto" />
+
+                    <div className="relative z-10 max-w-6xl mx-auto px-4 pb-32">
+                        {/* HEADER - Vertically centered viewport */}
+                        <header className="min-h-screen flex flex-col justify-center items-center text-center animate-fade-in-up">
+                            <h1 className="font-script text-7xl md:text-9xl mb-4 drop-shadow-2xl main-title pb-2">Our Memories</h1>
+                            <p className="font-sans text-sm md:text-base text-white/70 tracking-[0.3em] uppercase">our very own digital love album</p>
+                        </header>
+
+                        {chapters.map((chapter) => (
+                            <section key={chapter.id} className="chapter-section py-24 min-h-[85vh]">
+                                <div className="text-center mb-16">
+                                    <h2 className="font-script text-6xl text-white/90 mb-2">{chapter.title}</h2>
+                                    <h3 className="font-sans text-sm tracking-[0.4em] uppercase opacity-70" style={{ color: chapter.theme.accent }}>{chapter.subtitle}</h3>
+                                    <MusicController song={chapter.song} accent={chapter.theme.accent} activeSong={activeSong} audioRef={audioRef} onToggle={(url) => setActiveSong(activeSong === url ? null : url)} />
+                                </div>
+                                <div className="space-y-16">
+                                    {chapter.albums.map((album, idx) => {
+                                        const showMonth = idx === 0 || album.month !== (idx > 0 ? chapter.albums[idx-1].month : '');
+                                        let titleClass = 'text-white';
+                                        if (album.isSpecial === 'gold') titleClass = 'gold-text text-xl';
+                                        if (album.isSpecial === 'bday_him') titleClass = 'blue-text text-xl';
+                                        if (album.isSpecial === 'bday_her') titleClass = 'magenta-text text-xl';
+                                        if (album.isSpecial === 'anniversary') titleClass = 'rainbow-text text-xl';
+                                        if (album.isSpecial === 'celebration') titleClass = 'celebration-text text-xl';
+                                        if (album.isSpecial === 'bittersweet') titleClass = 'bittersweet-text text-xl';
+
+                                        let badge = null;
+                                        if (album.isSpecial) {
+                                            let badgeClass = 'bg-amber-500/20 border-amber-400/50 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]';
+                                            let badgeText = 'SPECIAL';
+                                            if (album.isSpecial === 'bday_him') { badgeClass = 'bg-blue-500/20 border-blue-400/50 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]'; badgeText = 'BIRTHDAY BOY'; }
+                                            if (album.isSpecial === 'bday_her') { badgeClass = 'bg-pink-500/20 border-pink-400/50 text-pink-300 shadow-[0_0_10px_rgba(236,72,153,0.5)]'; badgeText = 'BIRTHDAY GIRL'; }
+                                            if (album.isSpecial === 'anniversary') { badgeClass = 'bg-purple-500/20 border-purple-400/50 text-purple-300 shadow-[0_0_10px_rgba(168,85,247,0.5)]'; badgeText = 'ANNIVERSARY'; }
+                                            if (album.isSpecial === 'celebration') { badgeClass = 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)]'; badgeText = 'NEW BEGINNING'; }
+                                            if (album.isSpecial === 'bittersweet') { badgeClass = 'bg-rose-900/40 border-rose-700/50 text-rose-400 shadow-[0_0_10px_rgba(225,29,72,0.5)]'; badgeText = 'THE END'; }
+                                            badge = <div className={`border text-[10px] font-bold px-2 py-0.5 rounded animate-pulse ${badgeClass}`}>{badgeText}</div>;
+                                        }
+
+                                        let containerClass = 'liquid-glass hover:bg-white/5';
+                                        if (album.isSpecial === 'gold') containerClass = 'special-border-gold';
+                                        if (album.isSpecial === 'bday_him') containerClass = 'special-border-blue';
+                                        if (album.isSpecial === 'bday_her') containerClass = 'special-border-magenta';
+                                        if (album.isSpecial === 'anniversary') containerClass = 'special-border-rainbow';
+                                        if (album.isSpecial === 'celebration') containerClass = 'special-border-celebration';
+                                        if (album.isSpecial === 'bittersweet') containerClass = 'special-border-bittersweet';
+
+                                        return (
+                                            <div key={idx}>
+                                                {showMonth && (
+                                                    <div className="mb-8 mt-12 flex items-center gap-4">
+                                                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/20"></div>
+                                                        <MonthTitle text={album.month} accent={chapter.theme.accent} />
+                                                        <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/20"></div>
+                                                    </div>
+                                                )}
+                                                
+                                                {/* RE-DESIGNED TITLE HEADER */}
+                                                <div className="mb-3 pl-2 flex items-center">
+                                                    <div 
+                                                        className="w-1 self-stretch bg-current mr-3 rounded-full shadow-[0_0_10px_currentColor]" 
+                                                        style={{ color: chapter.theme.accent, minHeight: '24px' }}
+                                                    ></div>
+                                                    
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center gap-3">
+                                                            <ScrollTypewriter 
+                                                                text={album.title} 
+                                                                className={`font-sans font-bold text-lg ${titleClass}`} 
+                                                            />
+                                                            {badge}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className={`rounded-3xl p-6 transition-all duration-500 ${containerClass}`}>
+                                                    <Carousel photos={album.photos} isSpecial={album.isSpecial} onOpen={(i) => setLightbox({ open: true, photos: album.photos, index: i })} onLoad={() => idx === 0 && setLoadedImages(p => p + 1)} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        ))}
+                        
+                        <VoidPortal />
+                        
+                        <footer className="pb-8 text-center opacity-40 font-mono text-[10px] text-white">
+                            made by your lover for life
+                        </footer>
+                    </div>
+
+                    <AnimatePresence>
+                        {lightbox.open && ( <Lightbox isOpen={lightbox.open} albumPhotos={lightbox.photos} startIndex={lightbox.index} onClose={closeLightbox} accent={currentTheme.accent} onVideoPlay={handleVideoPlay} onVideoEnd={handleVideoEnd} /> )}
+                    </AnimatePresence>
+                </div>
+            );
+        };
+
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-33.33%); } }
+            .animate-scroll { animation: scroll 80s linear infinite; }
+            .animate-fade-in-up { animation: fadeInUp 1.2s ease-out forwards; }
+            @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        `;
+        document.head.appendChild(styleSheet);
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
