@@ -28,6 +28,24 @@
             box-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
 
+        /* --- START SCREEN --- */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #020204; z-index: 50; transition: opacity 1s ease;
+        }
+        #start-btn {
+            background: transparent; border: 4px solid #38bdf8; color: #38bdf8;
+            padding: 20px 30px; font-family: 'Press Start 2P', cursive; font-size: 14px;
+            cursor: pointer; transition: all 0.3s; text-transform: uppercase;
+            box-shadow: 0 0 15px #38bdf8; pointer-events: auto;
+            opacity: 1; margin: 0; /* Reset margin from generic button style */
+            animation: pulseBtn 2s infinite;
+        }
+        #start-btn:hover { background: #38bdf8; color: #000; box-shadow: 0 0 40px #38bdf8; }
+        @keyframes pulseBtn { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+
         /* Final Message Container */
         #final-message {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -97,26 +115,30 @@
         }
         @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px rgba(232, 121, 249, 1); } }
 
-        button {
+        button.replay-btn {
             background: transparent; border: 4px solid #f43f5e; color: #f43f5e;
             padding: 15px 20px; font-family: 'Press Start 2P', cursive; font-size: 10px;
             cursor: pointer; transition: all 0.3s; text-transform: uppercase;
             box-shadow: 0 0 10px #f43f5e; pointer-events: auto; margin-top: 40px;
             opacity: 0; transition: opacity 1s;
         }
-        button.visible { opacity: 1; }
-        button:hover { background: #f43f5e; color: #000; box-shadow: 0 0 30px #f43f5e; }
+        button.replay-btn.visible { opacity: 1; }
+        button.replay-btn:hover { background: #f43f5e; color: #000; box-shadow: 0 0 30px #f43f5e; }
 
         #tutorial {
             position: absolute; bottom: 50px; width: 100%; text-align: center;
             color: rgba(255,255,255,0.8); font-size: 10px;
             animation: pulse 2s infinite; pointer-events: none; z-index: 15;
-            transition: opacity 1s ease-out;
+            transition: opacity 1s ease-out; opacity: 0; display: none;
         }
         @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
 </head>
 <body>
+
+    <div id="start-screen">
+        <button id="start-btn">START MEMORY</button>
+    </div>
 
     <div id="ui">
         <div id="counter">HEARTS: 0 / 15</div>
@@ -124,7 +146,7 @@
 
     <div id="final-message">
         <h1 id="typewriter-target"></h1>
-        <button id="replay-btn" onclick="location.reload()">Replay Memory</button>
+        <button id="replay-btn" class="replay-btn" onclick="location.reload()">Replay Memory</button>
     </div>
 
     <div id="tutorial">TOUCH THE SCREEN AND MOVE YOUR HEART</div>
@@ -140,10 +162,17 @@
         const finalMsgDiv = document.getElementById('final-message');
         const typeTarget = document.getElementById('typewriter-target');
         const replayBtn = document.getElementById('replay-btn');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
         
         let width, height;
         const PIXEL_SCALE = 4;
         const BASE_URL = "https://huemiliation.github.io/BigBoobies/memories/";
+
+        // --- AUDIO ---
+        const bgMusic = new Audio("https://huemiliation.github.io/BigBoobies/Joji%20-%20Last%20of%20a%20Dying%20Breed.mp3");
+        bgMusic.loop = false;
+        bgMusic.volume = 0.5;
         
         // --- CONFIG ---
         const TOTAL_MONTHS = 15;
@@ -933,14 +962,28 @@
             requestAnimationFrame(draw);
         }
 
-        // PRELOAD ASSETS IMMEDIATELY
+        // --- BUTTON EVENT LISTENER ---
+        startBtn.addEventListener('click', () => {
+            // Hide the start screen
+            startScreen.style.opacity = '0';
+            setTimeout(() => { startScreen.style.display = 'none'; }, 1000);
+            
+            // Play Audio
+            bgMusic.play().catch(e => console.log("Audio play failed:", e));
+
+            // Start the original logic (previously called immediately)
+            tutorialText.style.display = 'block';
+            setTimeout(() => { tutorialText.style.opacity = 1; }, 100);
+            
+            resize();
+            generateIntroPath(); 
+            requestAnimationFrame(update);
+            requestAnimationFrame(draw);
+        });
+
+        // PRELOAD ASSETS IMMEDIATELY (But don't start loop)
         preloadImages();
         
-        resize();
-        generateIntroPath(); 
-        requestAnimationFrame(update);
-        requestAnimationFrame(draw);
-
     </script>
 </body>
 </html>
