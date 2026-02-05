@@ -99,6 +99,24 @@
             -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
         }
 
+        /* Music Title Marquee */
+        .marquee-wrapper {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        .marquee-text {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 12s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
         /* Special Main Title Effect */
         .main-title {
             background: linear-gradient(to right, #fff, #f472b6, #fbbf24, #fff);
@@ -160,10 +178,17 @@
         .cursor-grabbing { cursor: grabbing; }
 
         /* === VOID PORTAL STYLES === */
-        .void-gateway { width: 100%; padding: 180px 20px 100px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 50px; }
+        .void-gateway { width: 100%; padding: 100px 20px 60px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 50px; }
+        
+        /* Main Button */
         .void-trigger { display: inline-block; font-family: 'Press Start 2P', cursive; font-size: clamp(12px, 3vw, 18px); color: #f43f5e; background-color: transparent; text-decoration: none; text-transform: uppercase; letter-spacing: 2px; padding: 20px 40px; border: 3px solid #f43f5e; position: relative; transition: all 0.3s ease; box-shadow: 0 0 15px #f43f5e, inset 0 0 10px rgba(244, 63, 94, 0.2); animation: button-pulse 3s infinite; overflow: hidden; }
         .void-trigger::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient( transparent 0px, transparent 2px, rgba(244, 63, 94, 0.1) 3px, rgba(244, 63, 94, 0.1) 4px ); pointer-events: none; }
         .void-trigger:hover { background-color: rgba(244, 63, 94, 0.1); box-shadow: 0 0 30px #f43f5e, inset 0 0 20px #f43f5e; transform: scale(1.05) translateY(-2px); text-shadow: 0 0 8px #fff; cursor: pointer; }
+        
+        /* Secondary Game Button */
+        .game-trigger { display: inline-block; font-family: 'Press Start 2P', cursive; font-size: 10px; color: #a855f7; background-color: transparent; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; padding: 12px 24px; border: 2px solid #a855f7; position: relative; transition: all 0.3s ease; box-shadow: 0 0 10px #a855f7, inset 0 0 5px rgba(168, 85, 247, 0.2); opacity: 0.8; margin-top: 24px; }
+        .game-trigger:hover { background-color: rgba(168, 85, 247, 0.1); box-shadow: 0 0 20px #a855f7, inset 0 0 10px #a855f7; transform: scale(1.05); opacity: 1; text-shadow: 0 0 5px #fff; }
+
         .blinking-cursor { animation: blink 0.8s step-end infinite; color: inherit; margin-left: 5px; }
         @keyframes button-pulse { 0% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px rgba(244, 63, 94, 0.1); border-color: #f43f5e; } 50% { box-shadow: 0 0 25px #f43f5e, inset 0 0 15px rgba(244, 63, 94, 0.3); border-color: #ff8fa3; } 100% { box-shadow: 0 0 10px #f43f5e, inset 0 0 5px rgba(244, 63, 94, 0.1); border-color: #f43f5e; } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -318,7 +343,16 @@
                                 <motion.div key="controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-5 py-2 flex items-center gap-3 min-w-[300px]">
                                     <button onClick={(e) => { e.stopPropagation(); onToggle(song.url); }} className="hover:scale-110 active:scale-95 transition-transform"><span className="text-lg" style={{color: accent}}>⏸</span></button>
                                     <div className="flex-1 flex flex-col gap-1 w-full">
-                                        <div className="flex justify-between items-end text-[9px] font-mono text-gray-400 w-full"><span>{fmt(currentTime)}</span><span className="font-bold uppercase tracking-wider text-white mx-2 truncate">{song.title}</span><span>{fmt(duration)}</span></div>
+                                        <div className="flex justify-between items-end text-[9px] font-mono text-gray-400 w-full">
+                                            <span>{fmt(currentTime)}</span>
+                                            {/* SCROLLING MARQUEE FOR LONG TITLES */}
+                                            <div className="flex-1 mx-2 overflow-hidden relative h-4 w-32 marquee-wrapper">
+                                                <div className="marquee-text font-bold uppercase tracking-wider text-white">
+                                                    {song.title} &nbsp;&nbsp;&nbsp; {song.title} &nbsp;&nbsp;&nbsp;
+                                                </div>
+                                            </div>
+                                            <span>{fmt(duration)}</span>
+                                        </div>
                                         <input type="range" min="0" max={duration || 100} value={currentTime} onChange={handleSeek} onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()} className="music-slider" style={{ background: `linear-gradient(to right, ${accent} 0%, ${accent} ${progressPercent}%, rgba(255,255,255,0.1) ${progressPercent}%, rgba(255,255,255,0.1) 100%)` }} />
                                     </div>
                                 </motion.div>
@@ -487,10 +521,14 @@
         const VoidPortal = () => (
             <div className="void-gateway">
                 <div className="glitch-wrapper">
-                    <a href="https://huemiliation.github.io/BigBoobies/game.html" className="void-trigger" target="_blank" rel="noopener noreferrer">
+                    <a href="https://huemiliation.github.io/BigBoobies/foryou.html" className="void-trigger" target="_blank" rel="noopener noreferrer">
                         ONE LAST THING<span className="blinking-cursor">_</span>
                     </a>
                 </div>
+                
+                <a href="https://huemiliation.github.io/BigBoobies/themainpage.html" className="game-trigger" target="_blank" rel="noopener noreferrer">
+                    play the game again
+                </a>
             </div>
         );
 
@@ -753,6 +791,7 @@
                                                     </div>
                                                 )}
                                                 
+                                                {/* RE-DESIGNED TITLE HEADER */}
                                                 <div className="mb-3 pl-2 flex items-center">
                                                     <div 
                                                         className="w-1 self-stretch bg-current mr-3 rounded-full shadow-[0_0_10px_currentColor]" 
