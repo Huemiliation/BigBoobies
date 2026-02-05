@@ -2,374 +2,988 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Counting Up</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;600;900&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Memory Void</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        /* --- CSS Variables for Glow & Theme --- */
-        :root {
-            --primary-hot: #ff007f;    /* Neon Pink */
-            --primary-glow: #ff007f;   
-            --text-glow: 0 0 10px rgba(255, 0, 127, 0.8), 0 0 20px rgba(255, 0, 127, 0.4);
-            --box-glow: 0 0 25px rgba(255, 0, 127, 0.2);
-            
-            --bg-dark: #050510;
-            --bg-light: #1a0b2e;
-            
-            --glass-bg: rgba(20, 10, 40, 0.6);
-            --glass-border: rgba(255, 0, 127, 0.3);
+        body { 
+            margin: 0; overflow: hidden; background-color: #020204; 
+            touch-action: none; font-family: 'Press Start 2P', cursive;
+            cursor: none; user-select: none; -webkit-user-select: none;
+        }
+        canvas { display: block; image-rendering: pixelated; width: 100%; height: 100%; }
+
+        /* UI Layer */
+        #ui {
+            position: absolute; top: 20px; width: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            align-items: center; z-index: 20; transition: opacity 1s; opacity: 0;
         }
 
-        /* --- Reset & Core Layout --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        #counter {
+            color: #fff; font-size: 12px; margin-bottom: 10px;
+            text-shadow: 2px 2px 0px #000;
+            background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        }
+
+        /* --- START SCREEN --- */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #020204; z-index: 50; transition: opacity 1s ease;
+        }
+        #start-btn {
+            background: transparent; border: 4px solid #38bdf8; color: #38bdf8;
+            padding: 20px 30px; font-family: 'Press Start 2P', cursive; font-size: 14px;
+            cursor: pointer; transition: all 0.3s; text-transform: uppercase;
+            box-shadow: 0 0 15px #38bdf8; pointer-events: auto;
+            opacity: 1; margin: 0; /* Reset margin from generic button style */
+            animation: pulseBtn 2s infinite;
+        }
+        #start-btn:hover { background: #38bdf8; color: #000; box-shadow: 0 0 40px #38bdf8; }
+        @keyframes pulseBtn { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+
+        /* Final Message Container */
+        #final-message {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; 
+            flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 2s ease;
+            background: rgba(0,0,0,0.95); z-index: 100; backdrop-filter: blur(5px);
+            padding: 20px; box-sizing: border-box;
+        }
+        #final-message.visible { display: flex; opacity: 1; pointer-events: auto; }
         
-        html, body {
-            height: 100%; /* CRITICAL for centering */
-            width: 100%;
-            overflow: hidden; /* Prevents scrollbars from animations */
+        h1 { 
+            color: #fff; 
+            font-size: clamp(10px, 3.5vw, 16px);
+            margin: 0 10px; text-align: center;
+            line-height: 2.5; min-height: 100px;
+            word-spacing: 5px;
         }
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center; /* Perfect Center */
-            position: relative;
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: scale(0.9); } 
+            to { opacity: 1; transform: scale(1); } 
         }
 
-        /* --- Background Effects (Z-Index 0) --- */
-        .background-layer {
-            position: absolute; inset: 0; pointer-events: none; z-index: 0;
-        }
-
-        /* Starfield */
-        #stars {
-            width: 2px; height: 2px;
-            background: transparent;
-            box-shadow: 100px 100px #fff; /* JS will overwrite */
-            animation: animStar 100s linear infinite;
-        }
-        @keyframes animStar { 
-            from { transform: translateY(0); } 
-            to { transform: translateY(-2000px); } 
-        }
-
-        /* --- Main Content (Z-Index 10) --- */
-        #content {
-            position: relative; z-index: 10;
-            width: 100%; max-width: 900px;
-            padding: 20px;
-            opacity: 0; /* Hidden initially for fade-in */
-            transition: opacity 1.5s ease;
-            transform: scale(0.95);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-
-        #content.visible {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        /* Glass Container with Neon Border */
-        .timer-wrapper {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 30px;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--box-glow), inset 0 0 20px rgba(255,0,127,0.1);
-            padding: clamp(30px, 5vw, 60px);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Neon Glow Line at top */
-        .timer-wrapper::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, var(--primary-hot), transparent);
-            box-shadow: 0 0 15px var(--primary-hot);
-        }
-
-        /* Typography */
-        .main-title {
-            font-family: 'Great Vibes', cursive;
-            font-size: clamp(3rem, 8vw, 6rem);
-            color: #fff;
-            text-shadow: var(--text-glow);
-            margin-bottom: 10px;
-            line-height: 1.1;
-        }
-
-        .sub-text {
-            color: #e0e0e0;
-            font-size: clamp(0.9rem, 2.5vw, 1.3rem);
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 50px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-            min-height: 1.5em; /* Prevents jumping */
-        }
-
-        /* Grid Layout */
-        .countdown-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .time-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px 10px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .time-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border-color: var(--primary-hot);
-        }
-
-        .number {
-            font-size: clamp(2rem, 5vw, 4.5rem);
-            font-weight: 900;
-            color: #fff;
-            font-variant-numeric: tabular-nums;
-            text-shadow: 0 0 15px rgba(255,255,255,0.3);
-            line-height: 1;
-        }
-
-        .label {
-            margin-top: 15px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #aaa;
-        }
-
-        /* Special Seconds Styling */
-        .box-seconds {
-            border-color: rgba(255, 0, 127, 0.4);
-        }
-        .box-seconds .number {
-            color: var(--primary-hot);
-            text-shadow: var(--text-glow);
-        }
-
-        /* Hearts */
-        .heart {
-            position: fixed; /* Fixed prevents layout shift */
-            pointer-events: none;
-            z-index: 5;
+        .boobie-wrapper {
+            display: inline-block;
             opacity: 0;
-            will-change: transform, opacity;
+            animation: fadeIn 1s forwards;
         }
-        .heart::before, .heart::after {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            background: inherit; border-radius: 50%;
-        }
-        .heart::before { left: -50%; }
-        .heart::after { top: -50%; }
 
-        /* Loader */
-        #loader {
-            position: fixed; inset: 0; z-index: 9999;
-            background: var(--bg-dark);
-            display: flex; justify-content: center; align-items: center;
-            transition: opacity 0.5s ease;
+        /* INDIVIDUAL LETTERS: RAINBOW ANIMATION */
+        .boobie-letter {
+            display: inline-block;
+            color: #ff0000; 
+            text-shadow: 0 0 5px currentColor;
+            /* Rainbow Cycle + Float */
+            animation: floaty 1.5s ease-in-out infinite, rainbowCycle 4s linear infinite;
+            font-size: 1.5em; 
         }
-        .spinner {
-            width: 60px; height: 60px;
-            border: 4px solid rgba(255, 0, 127, 0.2);
-            border-top-color: var(--primary-hot);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            box-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Mobile Adjustments */
-        @media (max-width: 600px) {
-            .countdown-grid { grid-template-columns: 1fr 1fr; gap: 15px; }
-            .time-box { padding: 15px 5px; }
-            .timer-wrapper { padding: 30px 20px; }
+        .boobie-letter:nth-child(1) { animation-delay: 0.0s, -0.0s; }
+        .boobie-letter:nth-child(2) { animation-delay: 0.1s, -0.5s; }
+        .boobie-letter:nth-child(3) { animation-delay: 0.2s, -1.0s; }
+        .boobie-letter:nth-child(4) { animation-delay: 0.3s, -1.5s; }
+        .boobie-letter:nth-child(5) { animation-delay: 0.4s, -2.0s; }
+        .boobie-letter:nth-child(6) { animation-delay: 0.5s, -2.5s; }
+
+        .flower {
+            display: inline-block;
+            color: #e879f9; 
+            text-shadow: 0 0 10px rgba(232, 121, 249, 0.8);
+            animation: breathe 1.5s ease-in-out infinite; 
         }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        
+        @keyframes rainbowCycle {
+            0% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+            16% { color: #ffff00; text-shadow: 0 0 10px #ffff00; }
+            33% { color: #00ff00; text-shadow: 0 0 10px #00ff00; }
+            50% { color: #00ffff; text-shadow: 0 0 10px #00ffff; }
+            66% { color: #0000ff; text-shadow: 0 0 10px #0000ff; }
+            83% { color: #ff00ff; text-shadow: 0 0 10px #ff00ff; }
+            100% { color: #ff0000; text-shadow: 0 0 10px #ff0000; }
+        }
+        @keyframes breathe { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; text-shadow: 0 0 15px rgba(232, 121, 249, 1); } }
+
+        button.replay-btn {
+            background: transparent; border: 4px solid #f43f5e; color: #f43f5e;
+            padding: 15px 20px; font-family: 'Press Start 2P', cursive; font-size: 10px;
+            cursor: pointer; transition: all 0.3s; text-transform: uppercase;
+            box-shadow: 0 0 10px #f43f5e; pointer-events: auto; margin-top: 40px;
+            opacity: 0; transition: opacity 1s;
+        }
+        button.replay-btn.visible { opacity: 1; }
+        button.replay-btn:hover { background: #f43f5e; color: #000; box-shadow: 0 0 30px #f43f5e; }
+
+        #tutorial {
+            position: absolute; bottom: 50px; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.8); font-size: 10px;
+            animation: pulse 2s infinite; pointer-events: none; z-index: 15;
+            transition: opacity 1s ease-out; opacity: 0; display: none;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="loader"><div class="spinner"></div></div>
-
-    <div id="stars" class="background-layer"></div>
-    <div id="hearts-container"></div>
-
-    <div id="content">
-        <div class="timer-wrapper">
-            <h1 class="main-title" id="title-text">Thanks a lot for remembering</h1>
-            <div class="sub-text" id="rotating-msg">Loading...</div>
-
-            <div class="countdown-grid">
-                <div class="time-box">
-                    <span class="number" id="d">00</span>
-                    <span class="label">Days</span>
-                </div>
-                <div class="time-box">
-                    <span class="number" id="h">00</span>
-                    <span class="label">Hours</span>
-                </div>
-                <div class="time-box">
-                    <span class="number" id="m">00</span>
-                    <span class="label">Minutes</span>
-                </div>
-                <div class="time-box box-seconds">
-                    <span class="number" id="s">00</span>
-                    <span class="label">Seconds</span>
-                </div>
-            </div>
-        </div>
+    <div id="start-screen">
+        <button id="start-btn">START MEMORY</button>
     </div>
 
+    <div id="ui">
+        <div id="counter">HEARTS: 0 / 15</div>
+    </div>
+
+    <div id="final-message">
+        <h1 id="typewriter-target"></h1>
+        <button id="replay-btn" class="replay-btn" onclick="location.reload()">Replay Memory</button>
+    </div>
+
+    <div id="tutorial">TOUCH THE SCREEN AND MOVE YOUR HEART</div>
+
+    <canvas id="game"></canvas>
+
     <script>
-        (function() {
-            'use strict';
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const counterUI = document.getElementById('counter');
+        const tutorialText = document.getElementById('tutorial');
+        const uiContainer = document.getElementById('ui');
+        const finalMsgDiv = document.getElementById('final-message');
+        const typeTarget = document.getElementById('typewriter-target');
+        const replayBtn = document.getElementById('replay-btn');
+        const startScreen = document.getElementById('start-screen');
+        const startBtn = document.getElementById('start-btn');
+        
+        let width, height;
+        const PIXEL_SCALE = 4;
+        const BASE_URL = "https://huemiliation.github.io/BigBoobies/memories/";
 
-            // --- Config ---
-            // Start Date: Feb 1st, 2026, 10:30 PM Venlo Time
-            // This is the point in time the stopwatch counts UP from.
-            const START_DATE = new Date("2026-02-01T22:30:00+01:00").getTime();
+        // --- AUDIO ---
+        const bgMusic = new Audio("https://huemiliation.github.io/BigBoobies/Joji%20-%20Last%20of%20a%20Dying%20Breed.mp3");
+        bgMusic.loop = false;
+        bgMusic.volume = 0.5;
+        
+        // --- CONFIG ---
+        const TOTAL_MONTHS = 15;
+        const TRICKY_CHANCE = 0.7;
+        
+        // PHYSICS CONFIG
+        const GRAVITY = 0.6;
+        const FRICTION = 0.99; 
+        const BOUNCE = 0.85; // High bounce
+        const FREEZE_DELAY = 3000; // 3 seconds to freeze
+        
+        const COLORS = {
+            phase1: { r: 56, g: 189, b: 248 }, 
+            phase2: { r: 251, g: 191, b: 36 }, 
+            phase3: { r: 244, g: 63, b: 94 },  
+            final: '#9f1239',
+            white: 'rgba(255, 255, 255, 0.8)'
+        };
+
+        const genPath = (folder, count) => Array.from({length: count}, (_, i) => `${BASE_URL}${folder}/${i+1}.webp`);
+        const IMG_POOLS = {
+            phase1: [...genPath("2023/october/where it all started", 5), ...genPath("2024/march/my_birthday", 5)],
+            phase2: [...genPath("2025/january/boobje_shirazzzz_the_best_trip_of_my_life", 10), ...genPath("2025/march/your_new_phone", 5)],
+            phase3: [...genPath("2025/august/I'll_see_you_in_the_next_life", 10)]
+        };
+        const ALL_IMAGES = [...IMG_POOLS.phase1, ...IMG_POOLS.phase2, ...IMG_POOLS.phase3];
+        
+        // --- ASSET CACHE ---
+        const assetCache = {};
+
+        // --- STATE ---
+        let gameState = 'INTRO';
+        let collected = 0;
+        let auroraTime = 0;
+        let finaleTimer = 0;
+        let gameFrozen = false;
+        
+        // Typewriter Vars
+        const congratsString = "CONGRATULATIONS!";
+        let typeIndex = 0;
+        let typeTick = 0;
+        
+        let player = { x: 0, y: 0, trail: [] };
+        let mouse = { x: 0, y: 0, active: false }; 
+        let joystick = { active: false, originX: 0, originY: 0, currentX: 0, currentY: 0, dx: 0, dy: 0 };
+
+        let introPath = [];
+        let target = null;
+        let particles = [];
+        let trailOrbs = []; 
+        let bgHearts = [];
+        let nebulas = [];
+        
+        // PHYSICS OBJECTS
+        let balls = [];
+
+        // 8x8 Heart Mask
+        const HEART_MASK = [
+            [0,1,1,0,0,1,1,0],
+            [1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1],
+            [0,1,1,1,1,1,0,0],
+            [0,0,1,1,1,1,0,0],
+            [0,0,0,1,1,0,0,0],
+            [0,0,0,0,0,0,0,0]
+        ];
+
+        // --- PRELOADING SYSTEM ---
+        function preloadImages() {
+            ALL_IMAGES.forEach(url => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.src = url;
+                assetCache[url] = img; 
+            });
+        }
+
+        // --- SETUP ---
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
             
-            const MESSAGES = [
-                "It's been amazing", 
-                "You're lucky to have me!", 
-                "Counting every second with you",
-                "Time flies when you're having fun",
-                "The best things take time", 
-                "Creating memories"
-            ];
+            if(player.x === 0 || player.x > width) {
+                player.x = width / 2;
+                player.y = height - 150;
+                mouse.x = width / 2;
+                mouse.y = height - 150;
+            }
+            if(gameState === 'INTRO' && introPath.length === 0) generateIntroPath();
+        }
 
-            // --- Elements ---
-            const els = {
-                d: document.getElementById('d'),
-                h: document.getElementById('h'),
-                m: document.getElementById('m'),
-                s: document.getElementById('s'),
-                title: document.getElementById('title-text'),
-                msg: document.getElementById('rotating-msg'),
-                loader: document.getElementById('loader'),
-                content: document.getElementById('content'),
-                stars: document.getElementById('stars'),
-                hearts: document.getElementById('hearts-container')
+        function generateIntroPath() {
+            introPath = [];
+            const centerX = width / 2;
+            const centerY = height / 2 - 50;
+            const scale = Math.min(width, height) / 35;
+            for(let t = Math.PI; t < Math.PI * 3; t += 0.08) {
+                let rad = t; 
+                let x = 16 * Math.pow(Math.sin(rad), 3);
+                let y = -(13 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad));
+                introPath.push({ 
+                    x: centerX + x * scale, 
+                    y: centerY + y * scale, 
+                    collected: false 
+                });
+            }
+        }
+
+        function startMatch() {
+            gameState = 'PLAYING';
+            uiContainer.style.opacity = 1;
+            
+            tutorialText.style.opacity = '0';
+            setTimeout(() => { tutorialText.style.display = 'none'; }, 1000);
+            
+            bgHearts = [];
+            for(let i=0; i<60; i++) {
+                bgHearts.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    size: Math.floor(Math.random() * 2 + 1), color: '#222', speedY: (Math.random() - 0.5) * 0.2,
+                    angle: Math.random() * Math.PI
+                });
+            }
+            nebulas = [];
+            for(let i=0; i<5; i++) {
+                nebulas.push({
+                    x: Math.random() * width, y: Math.random() * height,
+                    radius: 200 + Math.random() * 300,
+                    vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2,
+                    color: i % 2 === 0 ? 'rgba(10, 20, 40, 0.4)' : 'rgba(30, 10, 20, 0.4)'
+                });
+            }
+            
+            spawnParticles(width/2, height/2, COLORS.final, 50);
+            spawnTarget();
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+        window.addEventListener('touchstart', e => {
+            if(e.target.tagName === 'BUTTON') return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            joystick.active = true;
+            joystick.originX = touch.clientX; joystick.originY = touch.clientY;
+            joystick.currentX = touch.clientX; joystick.currentY = touch.clientY;
+            mouse.active = false;
+        }, { passive: false });
+        window.addEventListener('touchmove', e => {
+            if(e.target.tagName === 'BUTTON') return;
+            e.preventDefault();
+            if(joystick.active) {
+                const touch = e.touches[0];
+                joystick.currentX = touch.clientX; joystick.currentY = touch.clientY;
+                let diffX = joystick.currentX - joystick.originX;
+                let diffY = joystick.currentY - joystick.originY;
+                const maxRange = 60;
+                const dist = Math.hypot(diffX, diffY);
+                if (dist > maxRange) {
+                    const ratio = maxRange / dist;
+                    diffX *= ratio; diffY *= ratio;
+                    joystick.currentX = joystick.originX + diffX;
+                    joystick.currentY = joystick.originY + diffY;
+                }
+                joystick.dx = diffX / maxRange; joystick.dy = diffY / maxRange;
+            }
+        }, { passive: false });
+        window.addEventListener('touchend', e => {
+            if(e.target.tagName === 'BUTTON') return;
+            e.preventDefault();
+            joystick.active = false; joystick.dx = 0; joystick.dy = 0;
+        });
+
+        // --- SPRITE GENERATOR (Uses Cache) ---
+        function createCircleImageSprite(url, size, color) {
+            const cacheSize = Math.min(128, size * 2); 
+            const c = document.createElement('canvas');
+            c.width = cacheSize; c.height = cacheSize;
+            const cx = c.getContext('2d');
+            
+            const cachedImg = assetCache[url];
+            const img = cachedImg || new Image();
+            if (!cachedImg) { img.crossOrigin = "Anonymous"; img.src = url; }
+
+            const spriteObj = { canvas: c, ctx: cx, img: img, ready: false, cacheSize: cacheSize, borderColor: color };
+
+            const drawToCanvas = () => {
+                cx.beginPath();
+                cx.arc(cacheSize/2, cacheSize/2, cacheSize/2 - 2, 0, Math.PI * 2);
+                cx.closePath();
+                cx.save();
+                cx.clip();
+                cx.drawImage(img, 0, 0, cacheSize, cacheSize);
+                cx.restore();
+                cx.globalCompositeOperation = 'source-over';
+                cx.beginPath();
+                cx.arc(cacheSize/2, cacheSize/2, cacheSize/2 - 4, 0, Math.PI * 2);
+                cx.lineWidth = 8;
+                cx.strokeStyle = color;
+                cx.stroke();
+                spriteObj.ready = true;
             };
 
-            // --- 1. Stopwatch Logic (Count Up) ---
-            function updateTimer() {
-                const now = Date.now();
-                
-                // Stopwatch: Now minus Start Date
-                let diff = now - START_DATE;
-                
-                // If the start time hasn't happened yet (unlikely based on request), show 0
-                if (diff < 0) diff = 0;
+            if (img.complete) drawToCanvas();
+            else img.onload = drawToCanvas;
+            
+            return spriteObj;
+        }
 
-                const sTotal = Math.floor(diff / 1000);
-                els.d.textContent = String(Math.floor(sTotal / 86400)).padStart(2, '0');
-                els.h.textContent = String(Math.floor((sTotal % 86400) / 3600)).padStart(2, '0');
-                els.m.textContent = String(Math.floor((sTotal % 3600) / 60)).padStart(2, '0');
-                els.s.textContent = String(sTotal % 60).padStart(2, '0');
+        // --- DECK SYSTEM ---
+        let currentImagePool = []; 
 
-                requestAnimationFrame(updateTimer);
-            }
+        function spawnImageDrops(amount = null, customPool = null) {
+            let sourcePool = IMG_POOLS.phase1;
+            let phaseColor = COLORS.phase1;
 
-            // --- 2. Message Logic ---
-            function setDailyMessage() {
-                const start = new Date(new Date().getFullYear(), 0, 0);
-                const diff = (new Date() - start) + ((start.getTimezoneOffset() - new Date().getTimezoneOffset()) * 60 * 1000);
-                const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-                els.msg.textContent = MESSAGES[dayOfYear % MESSAGES.length];
-            }
-
-            // --- 3. Visuals (Stars & Hearts) ---
-            function initVisuals() {
-                let shadow = '';
-                for(let i=0; i<150; i++) {
-                    shadow += `${Math.random()*100}vw ${Math.random()*2000}px #fff, `;
-                }
-                els.stars.style.boxShadow = shadow.slice(0, -2);
-
-                setInterval(spawnHeart, 800);
-            }
-
-            function spawnHeart() {
-                if(document.hidden) return;
-
-                const heart = document.createElement('div');
-                heart.className = 'heart';
-                
-                const size = Math.random() * 20 + 10;
-                const colors = ['#ff007f', '#ff5c8d', '#ffffff', '#ffd700'];
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                
-                heart.style.width = `${size}px`;
-                heart.style.height = `${size}px`;
-                heart.style.background = color;
-                heart.style.left = Math.random() * 100 + 'vw';
-                heart.style.bottom = '-50px';
-                heart.style.transform = 'rotate(45deg)';
-
-                els.hearts.appendChild(heart);
-
-                const animation = heart.animate([
-                    { transform: 'translateY(0) rotate(45deg) scale(0)', opacity: 0 },
-                    { opacity: 0.6, offset: 0.2 },
-                    { transform: `translateY(-${80 + Math.random()*20}vh) rotate(90deg) scale(1)`, opacity: 0 }
-                ], {
-                    duration: 6000 + Math.random() * 4000,
-                    easing: 'linear'
-                });
-
-                animation.onfinish = () => heart.remove();
-            }
-
-            // --- 4. Initialization ---
-            function start() {
-                try {
-                    setDailyMessage();
-                    initVisuals();
-                    updateTimer();
-                } catch(e) {
-                    console.error("Script error:", e);
-                } finally {
-                    setTimeout(() => {
-                        els.loader.style.opacity = '0';
-                        setTimeout(() => els.loader.remove(), 500);
-                        els.content.classList.add('visible');
-                    }, 800);
-                }
-            }
-
-            const failsafe = setTimeout(start, 2000);
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    clearTimeout(failsafe);
-                    start();
-                });
+            if (!customPool) {
+                if (collected >= 6) { sourcePool = IMG_POOLS.phase2; phaseColor = COLORS.phase2; }
+                if (collected >= 11) { sourcePool = IMG_POOLS.phase3; phaseColor = COLORS.phase3; }
             } else {
-                clearTimeout(failsafe);
-                start();
+                sourcePool = customPool;
             }
 
-        })();
+            const colorStr = `rgb(${phaseColor.r},${phaseColor.g},${phaseColor.b})`;
+            let count = amount || 3; 
+            
+            for(let i=0; i<count; i++) {
+                if (currentImagePool.length === 0) {
+                    currentImagePool = [...sourcePool];
+                    currentImagePool.sort(() => Math.random() - 0.5);
+                }
+                
+                let imgUrl = currentImagePool.pop(); 
+                if(!imgUrl) imgUrl = sourcePool[0]; 
+
+                const isMobile = width < 768;
+                const baseSize = 85 + Math.random() * 35;
+                const size = isMobile ? baseSize * 0.7 : baseSize; 
+
+                const spriteData = createCircleImageSprite(imgUrl, size, colorStr);
+                
+                balls.push({
+                    sprite: spriteData,
+                    x: Math.random() * (width - 100) + 50,
+                    y: -150 - (Math.random() * 200),
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 5 + 2, 
+                    radius: size/2,
+                    angle: Math.random() * Math.PI,
+                    va: (Math.random() - 0.5) * 0.1,
+                    isStatic: false,
+                    spawnTime: Date.now(), // For freeze timer
+                    shrinking: false
+                });
+            }
+        }
+
+        // --- PHYSICS ENGINE (Impulse) ---
+        function updatePhysics() {
+            const now = Date.now();
+
+            for (let i = 0; i < balls.length; i++) {
+                let b = balls[i];
+                if (b.isStatic) continue;
+
+                // FREEZE TIMER: Force freeze after 3 seconds
+                if (now - b.spawnTime > FREEZE_DELAY) {
+                    b.isStatic = true;
+                    b.vx = 0; b.vy = 0; b.va = 0; // Kill velocity
+                    continue;
+                }
+
+                // Gravity
+                b.vy += GRAVITY;
+                
+                // Air Resistance
+                b.vx *= FRICTION;
+                b.vy *= FRICTION;
+
+                // Move
+                b.x += b.vx;
+                b.y += b.vy;
+                b.angle += b.va;
+                b.va *= 0.99; 
+
+                // Floor Collision
+                if (b.y + b.radius > height) {
+                    b.y = height - b.radius;
+                    b.vy *= -BOUNCE;
+                    if(Math.abs(b.vy) < 1) b.vy = 0; 
+                    b.vx *= 0.8; 
+                }
+                if (b.x - b.radius < 0) { b.x = b.radius; b.vx *= -BOUNCE; }
+                if (b.x + b.radius > width) { b.x = width - b.radius; b.vx *= -BOUNCE; }
+            }
+
+            // Collisions
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    const b1 = balls[i];
+                    const b2 = balls[j];
+                    const dx = b2.x - b1.x;
+                    const dy = b2.y - b1.y;
+                    const dist = Math.hypot(dx, dy);
+                    const minDist = b1.radius + b2.radius;
+
+                    if (dist < minDist) {
+                        const angle = Math.atan2(dy, dx);
+                        const overlap = minDist - dist;
+                        
+                        const moveX = Math.cos(angle) * overlap * 0.5;
+                        const moveY = Math.sin(angle) * overlap * 0.5;
+                        
+                        if (b1.isStatic && !b2.isStatic) {
+                            b2.x += moveX * 2; b2.y += moveY * 2;
+                        } else if (!b1.isStatic && b2.isStatic) {
+                            b1.x -= moveX * 2; b1.y -= moveY * 2;
+                        } else if (!b1.isStatic && !b2.isStatic) {
+                            b1.x -= moveX; b1.y -= moveY;
+                            b2.x += moveX; b2.y += moveY;
+                        }
+
+                        const nx = dx / dist; const ny = dy / dist;
+                        const rvx = b2.vx - b1.vx; const rvy = b2.vy - b1.vy;
+                        const velAlongNormal = rvx * nx + rvy * ny;
+
+                        if (velAlongNormal > 0) continue;
+
+                        const e = 0.5; 
+                        let jVal = -(1 + e) * velAlongNormal;
+                        jVal /= ( (b1.isStatic ? 0 : 1) + (b2.isStatic ? 0 : 1) ); 
+
+                        const impulseX = jVal * nx; const impulseY = jVal * ny;
+                        
+                        if(!b1.isStatic) { b1.vx -= impulseX; b1.vy -= impulseY; }
+                        if(!b2.isStatic) { b2.vx += impulseX; b2.vy += impulseY; }
+                    }
+                }
+            }
+        }
+
+        // --- UPDATE LOOP ---
+        function update() {
+            if (gameFrozen) return;
+
+            auroraTime += 0.01;
+
+            if (joystick.active) {
+                const speed = 5; 
+                player.x += joystick.dx * speed; player.y += joystick.dy * speed;
+            } else if (mouse.active) {
+                player.x += (mouse.x - player.x) * 0.05; player.y += (mouse.y - player.y) * 0.05;
+            }
+            player.x = Math.max(20, Math.min(width-20, player.x));
+            player.y = Math.max(20, Math.min(height-20, player.y));
+
+            player.trail.push({ x: player.x, y: player.y, life: 1 });
+            if(player.trail.length > 20) player.trail.shift();
+
+            if (gameState === 'INTRO') {
+                let allCollected = true;
+                introPath.forEach((p, i) => {
+                    if (!p.collected) {
+                        if (Math.hypot(player.x - p.x, player.y - p.y) < 40) {
+                            p.collected = true;
+                            spawnParticles(p.x, p.y, COLORS.final, 2);
+                        }
+                        allCollected = false;
+                    }
+                });
+                if (allCollected && introPath.length > 0) startMatch();
+            }
+
+            if (gameState === 'CONGRATS') {
+                typeTick++;
+                if (typeTick % 11 === 0 && typeIndex < congratsString.length) {
+                    typeIndex++;
+                }
+                
+                // --- FAST DISAPPEARANCE LOGIC (2 SECONDS) ---
+                // We want all balls gone in 2 seconds (120 frames).
+                const removeRate = Math.max(5, Math.floor(120 / (balls.length + 1))); 
+                
+                if (typeTick % removeRate === 0 && balls.length > 0) {
+                    // Find a non-shrinking ball
+                    const active = balls.filter(b => !b.shrinking);
+                    if (active.length > 0) {
+                        const randomBall = active[Math.floor(Math.random() * active.length)];
+                        randomBall.shrinking = true;
+                    }
+                }
+                
+                // Process shrinking
+                for (let i = balls.length - 1; i >= 0; i--) {
+                    let b = balls[i];
+                    if (b.shrinking) {
+                        b.radius *= 0.85; // Fast shrink
+                        if (b.radius < 2) balls.splice(i, 1);
+                    }
+                }
+
+                if (typeIndex >= congratsString.length) {
+                    finaleTimer++; 
+                    if (finaleTimer > 420) { 
+                        gameState = 'DARK_FADE';
+                        finalMsgDiv.classList.add('visible'); 
+                        setTimeout(startFinalText, 2000); 
+                    }
+                }
+            }
+
+            if (gameState === 'PLAYING' || gameState === 'CONGRATS' || gameState === 'DARK_FADE' || gameState === 'FINALE_TEXT') {
+                if (target && gameState === 'PLAYING') {
+                    if (Date.now() - target.spawnTime > 5000) {
+                        target.x = width/2; target.y = height/2;
+                        target.vx = 0; target.vy = 0;
+                        target.spawnTime = Date.now();
+                        spawnParticles(target.x, target.y, '#fff', 5);
+                    }
+
+                    target.pulse += 0.1;
+                    target.trail.push({ x: target.x, y: target.y, life: 1 });
+                    if(target.trail.length > 50) target.trail.shift();
+
+                    const dist = Math.hypot(player.x - target.x, player.y - target.y);
+                    
+                    if (dist < 350 && !target.tired) {
+                        let angle = Math.atan2(target.y - player.y, target.x - player.x);
+                        if (target.x < 150) angle += 0.8; if (target.x > width - 150) angle -= 0.8;
+                        if (target.y < 150) angle += 0.8; if (target.y > height - 150) angle -= 0.8;
+
+                        target.vx += Math.cos(angle) * 0.8; target.vy += Math.sin(angle) * 0.8;
+
+                        if (target.isTricky && Math.random() < 0.2) {
+                            trailOrbs.push({ x: target.x, y: target.y, life: 80, color: target.color });
+                        }
+                        target.stamina -= 0.5; 
+                        if (target.stamina <= 0) target.tired = true;
+                    } else {
+                        target.vx += (Math.random() - 0.5) * 0.2; target.vy += (Math.random() - 0.5) * 0.2;
+                    }
+
+                    target.vx *= 0.95; target.vy *= 0.95;
+                    let maxSpd = target.isTricky && !target.tired ? 7 : (target.tired ? 1.5 : 2);
+                    const spd = Math.hypot(target.vx, target.vy);
+                    if (spd > maxSpd) { target.vx = (target.vx/spd)*maxSpd; target.vy = (target.vy/spd)*maxSpd; }
+
+                    target.x += target.vx; target.y += target.vy;
+                    if(target.x < 30 || target.x > width-30) target.vx *= -1;
+                    if(target.y < 30 || target.y > height-30) target.vy *= -1;
+
+                    if (dist < 60 && (!target.isTricky || target.tired)) collectTarget();
+                }
+
+                updatePhysics();
+
+                for(let i = trailOrbs.length-1; i>=0; i--) {
+                    let o = trailOrbs[i]; o.life--;
+                    const d = Math.hypot(player.x-o.x, player.y-o.y);
+                    if(d < 120) { o.x += (player.x-o.x)*0.12; o.y += (player.y-o.y)*0.12; }
+                    if(d < 30) { 
+                        if(target) { target.stamina -= 15; if(target.stamina<=0) target.tired=true; }
+                        trailOrbs.splice(i,1); spawnParticles(o.x, o.y, o.color, 2); continue;
+                    }
+                    if(o.life<=0) trailOrbs.splice(i,1);
+                }
+                for(let i=particles.length-1; i>=0; i--) {
+                    let p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=0.02; if(p.life<=0) particles.splice(i,1);
+                }
+                nebulas.forEach(n => { n.x+=n.vx; n.y+=n.vy; if(n.x<-200)n.x=width+200; if(n.x>width+200)n.x=-200; });
+                bgHearts.forEach(h => { h.y+=h.speedY; if(h.y<-50)h.y=height+50; if(h.y>height+50)h.y=-50; });
+            }
+        }
+
+        function collectTarget() {
+            collected++;
+            counterUI.innerText = `HEARTS: ${collected} / ${TOTAL_MONTHS}`;
+            counterUI.style.transform = "scale(1.3)";
+            setTimeout(() => counterUI.style.transform = "scale(1)", 100);
+
+            spawnParticles(target.x, target.y, target.color, 15);
+            
+            let dropCount = (collected <= 5) ? 2 : 4;
+            spawnImageDrops(dropCount);
+
+            let c = COLORS.phase1;
+            if (collected >= 5) c = COLORS.phase2;
+            if (collected >= 10) c = COLORS.phase3;
+            const newColor = `rgba(${c.r},${c.g},${c.b}, 0.6)`;
+            bgHearts.forEach(h => h.color = newColor);
+
+            trailOrbs = []; 
+
+            if (collected >= TOTAL_MONTHS) {
+                target = null;
+                startCongrats();
+            } else {
+                target = null;
+                setTimeout(spawnTarget, 200);
+            }
+        }
+
+        function startCongrats() {
+            gameState = 'CONGRATS';
+            document.getElementById('ui').style.opacity = 0;
+            spawnParticles(width/2, height/2, COLORS.final, 300);
+            // No drop queue here - balls just vanish now
+        }
+
+        function startFinalText() {
+            gameState = 'FINALE_TEXT';
+            const h1 = document.getElementById('typewriter-target');
+            const content = [
+                { type: 'text', val: "now put your phones camera on the" },
+                { type: 'br' },
+                { type: 'html', val: '<div class="boobie-wrapper"><span class="boobie-letter">b</span><span class="boobie-letter">o</span><span class="boobie-letter">o</span><span class="boobie-letter">b</span><span class="boobie-letter">i</span><span class="boobie-letter">e</span></div>' },
+                { type: 'br' },
+                { type: 'text', val: "under your " },
+                { type: 'styled-text', val: 'flower', className: 'flower' }
+            ];
+
+            let step = 0;
+            let charIndex = 0;
+            let activeSpan = null; 
+
+            function typeLoop() {
+                if (step >= content.length) {
+                    replayBtn.classList.add('visible');
+                    setTimeout(() => gameFrozen = true, 1000); 
+                    return;
+                }
+
+                const item = content[step];
+
+                if (item.type === 'br') {
+                    h1.appendChild(document.createElement('br'));
+                    step++;
+                    setTimeout(typeLoop, 50); 
+                } 
+                else if (item.type === 'html') {
+                    if (!activeSpan) { 
+                        const wrapper = document.createElement('span');
+                        wrapper.innerHTML = " " + item.val + " ";
+                        h1.appendChild(wrapper);
+                        activeSpan = wrapper; 
+                    }
+                    step++;
+                    activeSpan = null;
+                    setTimeout(typeLoop, 600); 
+                } 
+                else if (item.type === 'text') {
+                    if (!activeSpan) {
+                        activeSpan = document.createElement('span');
+                        h1.appendChild(activeSpan);
+                    }
+                    activeSpan.textContent += item.val[charIndex];
+                    charIndex++;
+                    if (charIndex < item.val.length) {
+                        setTimeout(typeLoop, 50); 
+                    } else {
+                        charIndex = 0;
+                        step++;
+                        activeSpan = null;
+                        setTimeout(typeLoop, 50);
+                    }
+                }
+                else if (item.type === 'styled-text') {
+                    if (!activeSpan) {
+                        activeSpan = document.createElement('span');
+                        activeSpan.className = item.className;
+                        h1.appendChild(activeSpan);
+                    }
+                    activeSpan.textContent += item.val[charIndex];
+                    charIndex++;
+                    if (charIndex < item.val.length) {
+                        setTimeout(typeLoop, 100); 
+                    } else {
+                        charIndex = 0;
+                        step++;
+                        activeSpan = null;
+                        setTimeout(typeLoop, 100);
+                    }
+                }
+            }
+            typeLoop();
+        }
+
+        function spawnTarget() {
+            let c = COLORS.phase1;
+            if (collected >= 5) c = COLORS.phase2;
+            if (collected >= 10) c = COLORS.phase3;
+            const colorStr = `rgb(${c.r},${c.g},${c.b})`;
+            const isTricky = (collected > 0 && Math.random() < TRICKY_CHANCE);
+
+            let tx, ty;
+            let safety = 0;
+            do {
+                tx = Math.random() * (width - 200) + 100;
+                ty = Math.random() * (height - 200) + 100;
+                safety++;
+            } while(Math.hypot(tx - player.x, ty - player.y) < 250 && safety < 50);
+
+            target = {
+                x: tx, y: ty, vx: 0, vy: 0, color: colorStr,
+                isTricky: isTricky, stamina: 600, tired: false, pulse: 0, 
+                trail: [], spawnTime: Date.now()
+            };
+        }
+
+        function spawnParticles(x, y, color, count) {
+            let cStr = color;
+            if(typeof color === 'object') cStr = `rgb(${color.r},${color.g},${color.b})`;
+            
+            for(let i=0; i<count; i++) {
+                particles.push({
+                    x: x, y: y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
+                    life: 1, color: (count>100 && Math.random()<0.5) ? getRandomColor() : cStr, 
+                    size: Math.floor(Math.random()*4+2)
+                });
+            }
+        }
+
+        function getRandomColor() {
+            const colors = [COLORS.phase1, COLORS.phase2, COLORS.phase3, COLORS.final];
+            const c = colors[Math.floor(Math.random()*colors.length)];
+            return `rgb(${c.r},${c.g},${c.b})`;
+        }
+
+        function drawPixelRect(x, y, size, color) {
+            ctx.fillStyle = color;
+            const px = Math.floor(x / PIXEL_SCALE) * PIXEL_SCALE;
+            const py = Math.floor(y / PIXEL_SCALE) * PIXEL_SCALE;
+            ctx.fillRect(px, py, size * PIXEL_SCALE, size * PIXEL_SCALE);
+        }
+
+        function drawPixelHeart(x, y, color, scale = 1) {
+            ctx.fillStyle = color;
+            const s = PIXEL_SCALE * scale;
+            for(let r=0; r<HEART_MASK.length; r++) {
+                for(let c=0; c<HEART_MASK[r].length; c++) {
+                    if(HEART_MASK[r][c]===1) ctx.fillRect(x + (c-3.5)*s, y + (r-3)*s, s, s);
+                }
+            }
+        }
+
+        function drawAurora() {
+            const blockSize = PIXEL_SCALE * 16; 
+            const cols = Math.ceil(width / blockSize);
+            const rows = Math.ceil(height / blockSize);
+            for(let y = 0; y < rows; y++) {
+                for(let x = 0; x < cols; x++) {
+                    const v = Math.sin(x * 0.05 + auroraTime) * Math.cos(y * 0.05 + auroraTime * 0.5);
+                    if (v > 0.6) {
+                        let c = COLORS.phase1;
+                        if (collected >= 5) c = COLORS.phase2;
+                        if (collected >= 10) c = COLORS.phase3;
+                        const alpha = (v - 0.6) * 0.2; 
+                        ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${alpha})`;
+                        ctx.fillRect(x*blockSize, y*blockSize, blockSize, blockSize);
+                    }
+                }
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#020204'; ctx.fillRect(0, 0, width, height);
+
+            if (gameState === 'INTRO') {
+                drawAurora();
+                introPath.forEach(p => {
+                    if (p.collected) {
+                        ctx.fillStyle = COLORS.final; ctx.shadowColor = COLORS.final; ctx.shadowBlur = 15;
+                    } else {
+                        ctx.fillStyle = COLORS.white; ctx.shadowBlur = 0;
+                    }
+                    ctx.fillRect(p.x, p.y, PIXEL_SCALE*2, PIXEL_SCALE*2);
+                });
+                ctx.shadowBlur = 0;
+            }
+
+            if (gameState === 'PLAYING' || gameState === 'CONGRATS' || gameState === 'DARK_FADE' || gameState === 'FINALE_TEXT') {
+                drawAurora();
+                ctx.globalCompositeOperation = 'lighter';
+                nebulas.forEach(n => {
+                    const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.radius);
+                    g.addColorStop(0, n.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(n.x, n.y, n.radius, 0, Math.PI*2); ctx.fill();
+                });
+                ctx.globalCompositeOperation = 'source-over';
+
+                bgHearts.forEach(h => {
+                    ctx.save();
+                    ctx.translate(h.x, h.y);
+                    ctx.rotate(Math.sin(auroraTime + h.x) * 0.2); 
+                    drawPixelHeart(0, 0, h.color, h.size * 0.5);
+                    ctx.restore();
+                });
+
+                balls.forEach(ball => {
+                    if(ball.sprite.ready) {
+                        ctx.save();
+                        ctx.translate(ball.x, ball.y);
+                        ctx.rotate(ball.angle);
+                        const drawSize = ball.radius * 2;
+                        ctx.drawImage(ball.sprite.canvas, -drawSize/2, -drawSize/2, drawSize, drawSize);
+                        ctx.restore();
+                    }
+                });
+
+                trailOrbs.forEach(o => {
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.shadowColor = o.color; ctx.shadowBlur = 10;
+                    drawPixelRect(o.x, o.y, 2, o.color);
+                    ctx.shadowBlur = 0;
+                    ctx.globalCompositeOperation = 'source-over';
+                });
+
+                if (target && gameState === 'PLAYING') {
+                    ctx.globalCompositeOperation = 'lighter';
+                    target.trail.forEach((t, i) => {
+                        const fade = i / target.trail.length;
+                        ctx.globalAlpha = fade * 0.6; ctx.shadowBlur = 15 * fade; ctx.shadowColor = target.color;
+                        drawPixelRect(t.x, t.y, 2 + fade*2, target.color);
+                    });
+                    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+
+                    const p = Math.sin(target.pulse) * 0.2 + 1;
+                    let drawColor = target.color; if (target.tired) drawColor = '#555';
+                    ctx.shadowColor = drawColor; ctx.shadowBlur = 25;
+                    
+                    ctx.save();
+                    ctx.translate(target.x, target.y);
+                    ctx.rotate(auroraTime * 2);
+                    drawPixelHeart(0, 0, drawColor, 1.2 * p);
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
+                }
+
+                particles.forEach(p => {
+                    ctx.globalCompositeOperation = 'lighter'; 
+                    ctx.globalAlpha = p.life; 
+                    drawPixelRect(p.x, p.y, p.size, p.color); 
+                    ctx.globalAlpha = 1;
+                    ctx.globalCompositeOperation = 'source-over';
+                });
+                
+                if (gameState === 'CONGRATS') {
+                    ctx.save();
+                    ctx.fillStyle = "#fff";
+                    let fontSize = Math.min(width / 15, 30);
+                    ctx.font = `${fontSize}px "Press Start 2P"`;
+                    let textWidth = ctx.measureText(congratsString).width;
+                    while (textWidth > width * 0.8) {
+                        fontSize -= 2;
+                        ctx.font = `${fontSize}px "Press Start 2P"`;
+                        textWidth = ctx.measureText(congratsString).width;
+                    }
+                    ctx.textAlign = "center";
+                    const hue = (Date.now() / 10) % 360;
+                    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                    ctx.shadowBlur = 20;
+                    ctx.fillText(congratsString.substring(0, typeIndex), width/2, height/2);
+                    ctx.restore();
+                }
+            }
+
+            player.trail.forEach((t, i) => {
+                ctx.globalAlpha = (i / player.trail.length) * 0.4;
+                drawPixelHeart(t.x, t.y, '#fff', 0.8);
+            });
+            ctx.globalAlpha = 1;
+            ctx.shadowColor = COLORS.final; ctx.shadowBlur = 20;
+            drawPixelHeart(player.x, player.y, COLORS.final, 1.5);
+            ctx.shadowBlur = 0;
+
+            if (joystick.active) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(joystick.originX, joystick.originY, 40, 0, Math.PI*2); ctx.stroke();
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.beginPath(); ctx.arc(joystick.currentX, joystick.currentY, 20, 0, Math.PI*2); ctx.fill();
+            }
+
+            requestAnimationFrame(update);
+            requestAnimationFrame(draw);
+        }
+
+        // --- BUTTON EVENT LISTENER ---
+        startBtn.addEventListener('click', () => {
+            // Hide the start screen
+            startScreen.style.opacity = '0';
+            setTimeout(() => { startScreen.style.display = 'none'; }, 1000);
+            
+            // Play Audio
+            bgMusic.play().catch(e => console.log("Audio play failed:", e));
+
+            // Start the original logic (previously called immediately)
+            tutorialText.style.display = 'block';
+            setTimeout(() => { tutorialText.style.opacity = 1; }, 100);
+            
+            resize();
+            generateIntroPath(); 
+            requestAnimationFrame(update);
+            requestAnimationFrame(draw);
+        });
+
+        // PRELOAD ASSETS IMMEDIATELY (But don't start loop)
+        preloadImages();
+        
     </script>
 </body>
 </html>
