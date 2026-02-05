@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Please Wait...</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* GLOBAL RESET */
+        html, body { 
+            background: #000; height: 100%; margin: 0; padding: 0; 
+            overflow: hidden; 
+            font-family: 'Press Start 2P', cursive;
+            user-select: none;
+        }
+
+        /* --- BACKGROUND LAYERS --- */
+        #starfield-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+        /* CRT SCANLINE EFFECT */
+        .scanlines {
+            position: fixed; inset: 0; pointer-events: none; z-index: 50;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            opacity: 0.15;
+        }
+
+        /* --- CONTENT --- */
+        .container {
+            position: relative; z-index: 10;
+            height: 100vh; width: 100vw;
+            display: flex; justify-content: center; align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .retro-text {
+            color: transparent;
+            /* Shimmering Gradient (Pink/Gold/White) to pop against dark red background */
+            background: linear-gradient(to right, #f472b6, #fbbf24, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            background-size: 200% auto;
+            animation: shine 5s linear infinite;
+            
+            font-size: clamp(12px, 3vw, 24px);
+            line-height: 2;
+            text-shadow: 0 0 20px rgba(244, 114, 182, 0.4);
+        }
+
+        @keyframes shine { to { background-position: 200% center; } }
+
+        /* BLINKING CURSOR */
+        .cursor {
+            display: inline-block;
+            width: 12px; height: 24px;
+            background-color: #f43f5e; /* Chapter 3 Accent Color */
+            margin-left: 8px;
+            animation: blink 1s step-end infinite;
+            vertical-align: sub;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <canvas id="starfield-canvas"></canvas>
+    
+    <div class="scanlines"></div>
+
+    <div class="container">
+        <div>
+            <span id="text-target" class="retro-text"></span><span class="cursor"></span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('starfield-canvas');
+            const ctx = canvas.getContext('2d', { alpha: true });
+            let width, height;
+
+            const genLayer = (count, baseSize, opacity, focus) => {
+                const c = document.createElement('canvas');
+                c.width = width; c.height = height; 
+                const cx = c.getContext('2d');
+                cx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                cx.shadowColor = 'white'; cx.shadowBlur = focus ? 2 : 0;
+                for(let i=0; i<count; i++) {
+                    const x = Math.random() * c.width; const y = Math.random() * c.height;
+                    const s = Math.random() * baseSize * (Math.random() > 0.9 ? 1.5 : 1);
+                    cx.beginPath(); cx.arc(x, y, s, 0, Math.PI*2); cx.fill();
+                }
+                return c;
+            };
+
+            let layers = [];
+            const init = () => {
+                width = window.innerWidth; height = window.innerHeight;
+                canvas.width = width; canvas.height = height;
+                const density = (width * height) / 15000;
+                layers = [
+                    { img: genLayer(density * 8, 0.6, 0.4, false), speed: 0.05, y: 0 }, 
+                    { img: genLayer(density * 3, 1.2, 0.7, false), speed: 0.15, y: 0 },  
+                    { img: genLayer(density * 0.8, 2.2, 0.9, true), speed: 0.3, y: 0 } 
+                ];
+            }
+
+            const animate = () => {
+                ctx.clearRect(0, 0, width, height);
+                
+                // --- UPDATED BACKGROUND GRADIENT (Chapter 3 Theme) ---
+                const grad = ctx.createLinearGradient(0, 0, 0, height);
+                grad.addColorStop(0, '#1a0202'); // Deep Dark Red (Chapter 3 Top)
+                grad.addColorStop(1, '#000000'); // Pure Black (Chapter 3 Bottom)
+                
+                ctx.fillStyle = grad; 
+                ctx.fillRect(0,0,width,height);
+
+                layers.forEach(layer => {
+                    layer.y -= layer.speed;
+                    if (layer.y <= -height) layer.y = 0;
+                    ctx.drawImage(layer.img, 0, layer.y);
+                    if (layer.y < 0) ctx.drawImage(layer.img, 0, layer.y + height);
+                });
+                requestAnimationFrame(animate);
+            };
+            window.addEventListener('resize', init); init(); animate();
+        })();
+    </script>
+
+    <script>
+        const textTarget = document.getElementById('text-target');
+        const message = "just need a little bit more time...";
+        let index = 0;
+
+        function typeWriter() {
+            if (index < message.length) {
+                textTarget.innerHTML += message.charAt(index);
+                index++;
+                // Random typing speed for human feel
+                const randomSpeed = Math.random() * (150 - 50) + 50;
+                setTimeout(typeWriter, randomSpeed);
+            }
+        }
+
+        // Start typing after 1 second
+        setTimeout(typeWriter, 1000);
+    </script>
+</body>
+</html>
