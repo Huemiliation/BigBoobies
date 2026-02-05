@@ -38,19 +38,11 @@
         body { overflow-x: hidden; touch-action: pan-y; }
         
         /* --- LAYERING SYSTEM --- */
-        #dynamic-bg { position: fixed; inset: 0; z-index: -1; transition: background 2s ease-in-out; }
+        /* The colored gradient background layer */
+        #dynamic-bg { position: fixed; inset: 0; z-index: -2; transition: background 2s ease-in-out; background: #000; }
 
-        /* Stars */
-        #stars { 
-            position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.6; 
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)), 
-                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), 
-                radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)); 
-            background-size: 200px 200px; 
-            animation: zoom 100s infinite; 
-        }
-        @keyframes zoom { 0% { transform: scale(1); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
+        /* The new canvas starfield layer */
+        #starfield-canvas { position: fixed; inset: 0; pointer-events: none; z-index: -1; mix-blend-mode: screen; }
 
         /* Particles */
         #particle-container { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
@@ -208,9 +200,81 @@
     </div>
 
     <div id="dynamic-bg"></div>
-    <div id="stars"></div>
+    <canvas id="starfield-canvas"></canvas>
     <div id="particle-container"></div>
     <div id="root"></div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('starfield-canvas');
+            const ctx = canvas.getContext('2d', { alpha: true });
+            let width, height;
+
+            // Helper: Generates a static high-res star layer off-screen
+            const genLayer = (count, baseSize, opacity, focus) => {
+                const c = document.createElement('canvas');
+                // Make offscreen canvas slightly larger for smoother scrolling
+                c.width = width; 
+                c.height = height; 
+                const cx = c.getContext('2d');
+                cx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                cx.shadowColor = 'white';
+                cx.shadowBlur = focus ? 2 : 0;
+
+                for(let i=0; i<count; i++) {
+                    const x = Math.random() * c.width;
+                    const y = Math.random() * c.height;
+                    // Varies size slightly for realism
+                    const s = Math.random() * baseSize * (Math.random() > 0.9 ? 1.5 : 1);
+                    cx.beginPath(); cx.arc(x, y, s, 0, Math.PI*2); cx.fill();
+                }
+                return c; // Returns canvas as image source
+            };
+
+            let layers = [];
+
+            const init = () => {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width; canvas.height = height;
+
+                // Calculate star density based on screen area
+                const density = (width * height) / 15000;
+
+                // Create 3 parallax layers with different speeds, sizes, and opacities
+                layers = [
+                    // Distant, slow, small, dim
+                    { img: genLayer(density * 8, 0.6, 0.4, false), speed: 0.05, y: 0 }, 
+                    // Mid-distance, medium speed/size
+                    { img: genLayer(density * 3, 1.2, 0.7, false), speed: 0.15, y: 0 },  
+                    // Near, fast, larger, brighter with slight glow
+                    { img: genLayer(density * 0.8, 2.2, 0.9, true), speed: 0.3, y: 0 } 
+                ];
+            }
+
+            const animate = () => {
+                ctx.clearRect(0, 0, width, height);
+
+                layers.forEach(layer => {
+                    layer.y -= layer.speed;
+                    // Seamless vertical looping
+                    if (layer.y <= -height) layer.y = 0;
+                    
+                    // Draw the pre-rendered layer twice to cover the screen during scroll
+                    ctx.drawImage(layer.img, 0, layer.y);
+                    // Only draw the second one if needed to fill the gap
+                    if (layer.y < 0) {
+                        ctx.drawImage(layer.img, 0, layer.y + height);
+                    }
+                });
+                requestAnimationFrame(animate);
+            };
+
+            window.addEventListener('resize', () => { init(); });
+            init();
+            animate();
+        })();
+    </script>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
@@ -839,8 +903,6 @@
             .animate-scroll { animation: scroll 80s linear infinite; }
             .animate-fade-in-up { animation: fadeInUp 1.2s ease-out forwards; }
             @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-            #stars { background-image: radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)), radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)); background-size: 200px 200px; animation: zoom 100s infinite; }
-            @keyframes zoom { 0% { transform: scale(1); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
         `;
         document.head.appendChild(styleSheet);
 
