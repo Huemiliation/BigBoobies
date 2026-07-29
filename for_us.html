@@ -40,7 +40,7 @@
 
         html, body {
             height: 100%; width: 100%;
-            overflow-x: hidden; overflow-y: auto;
+            overflow: hidden; /* no scrolling — everything stays fixed and centered */
             font-family: 'Quicksand', sans-serif;
             color: #4a1942;
             user-select: none;
@@ -60,20 +60,21 @@
             transition: background 1.5s ease;
         }
 
-        /* Heart & party-hat grid pattern — subtle, low-opacity, infinitely drifting */
+        /* Heart & party-hat grid pattern — subtle, low-opacity, drifting + slowly rotating.
+           Party hats are drawn larger so they balance visually with the hearts. */
         body::before {
             content: '';
-            position: fixed; inset: 0;
+            position: fixed; inset: -25%; /* extra area so rotation never reveals edges */
             z-index: 0; pointer-events: none;
-            opacity: 0.055;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%23d6336c'%3E%3Cpath d='M40 44 C40 36 47 31 53 31 C57 31 60 33 63 36 C66 33 69 31 73 31 C79 31 86 36 86 44 C86 55 63 69 63 69 C63 69 40 55 40 44 Z'/%3E%3C/g%3E%3Cg fill='%23ff6b9d'%3E%3Cpath d='M118 118 L134 118 L126 88 Z'/%3E%3C/g%3E%3Ccircle cx='126' cy='84' r='4' fill='%23ffd54f'/%3E%3C/svg%3E");
-            background-size: 160px 160px;
+            opacity: 0.06;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='%23d6336c'%3E%3Cpath d='M44 50 C44 40 52 34 59 34 C63 34 66 36 69 39 C72 36 75 34 79 34 C86 34 94 40 94 50 C94 62 69 78 69 78 C69 78 44 62 44 50 Z'/%3E%3C/g%3E%3Cg fill='%23ff6b9d'%3E%3Cpath d='M120 60 L156 60 L138 12 Z'/%3E%3C/g%3E%3Ccircle cx='138' cy='8' r='6' fill='%23ffd54f'/%3E%3Cg fill='%23ffd54f' opacity='0.55'%3E%3Ccircle cx='126' cy='52' r='2.5'/%3E%3Ccircle cx='138' cy='48' r='2.5'/%3E%3Ccircle cx='150' cy='52' r='2.5'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 180px 180px;
             background-repeat: repeat;
-            animation: gridDrift 40s linear infinite;
+            animation: gridDrift 18s linear infinite;
         }
         @keyframes gridDrift {
-            from { background-position: 0 0; }
-            to { background-position: 160px 160px; }
+            from { transform: rotate(0deg) translate(0, 0); }
+            to   { transform: rotate(360deg) translate(180px, 180px); }
         }
 
         /* Vignette that appears at 75%+ progress for dramatic buildup */
@@ -138,12 +139,15 @@
 
         /* --- MAIN CONTENT --- */
         .content {
-            position: relative; z-index: 10;
-            min-height: 100vh;
+            position: fixed; /* fixed so layout never breaks on scroll/resize */
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 10;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             padding: 24px 16px;
             gap: 18px;
+            overflow: hidden;
         }
         /* When the message appears, these "prelude" elements fade out */
         .name, .subtitle, .countdown, .birthday-banner {
@@ -164,27 +168,43 @@
             position: relative;
             width: 100%;
             display: flex; flex-direction: column;
-            align-items: center;
-            min-height: 500px;
+            align-items: center; justify-content: center;
+            flex: 1 1 auto;
+            min-height: 0;
         }
 
-        /* --- NAME (animated gradient text) --- */
+        /* --- NAME (Helia) — the hero element, layered for maximum beauty --- */
         .name {
             font-family: 'Great Vibes', cursive;
-            font-size: clamp(40px, 10vw, 68px);
-            line-height: 1.2;
-            background: linear-gradient(90deg, #d6336c 0%, #ff6b9d 25%, #ec407a 50%, #ff6b9d 75%, #d6336c 100%);
-            background-size: 200% auto;
+            font-size: clamp(46px, 12vw, 80px);
+            line-height: 1.15;
+            font-weight: 400;
+            /* Rich multi-stop gradient: deep rose → hot pink → gold accent → rose */
+            background: linear-gradient(110deg,
+                #c2185b 0%, #e91e63 18%, #ff6b9d 38%,
+                #ffd54f 50%, #ff6b9d 62%, #e91e63 82%, #c2185b 100%);
+            background-size: 250% auto;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            filter: drop-shadow(0 2px 14px rgba(214, 51, 108, 0.35));
-            animation: gradientShift 6s linear infinite;
+            /* Layered glow: soft pink halo + golden shimmer */
+            filter:
+                drop-shadow(0 0 18px rgba(255, 107, 157, 0.55))
+                drop-shadow(0 0 36px rgba(255, 213, 79, 0.3))
+                drop-shadow(0 3px 8px rgba(214, 51, 108, 0.4));
+            animation: gradientShift 5s linear infinite, nameBreathe 3.5s ease-in-out infinite;
+            position: relative;
+            letter-spacing: 1px;
+        }
+        /* Subtle breathing scale so the name feels alive */
+        @keyframes nameBreathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.025); }
         }
         @keyframes gradientShift {
             0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
+            100% { background-position: 250% center; }
         }
 
         .subtitle {
@@ -214,7 +234,10 @@
             box-shadow:
                 0 8px 24px rgba(214, 51, 108, 0.12),
                 inset 0 1px 1px rgba(255, 255, 255, 0.9),
-                inset 0 -1px 2px rgba(255, 183, 197, 0.2);
+                inset 0 -1px 2px rgba(255, 183, 197, 0.2),
+                /* chromatic aberration edges */
+                inset 1px 0 0 rgba(255, 0, 80, 0.1),
+                inset -1px 0 0 rgba(0, 140, 255, 0.1);
             transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s ease;
             position: relative;
             overflow: hidden;
@@ -261,8 +284,8 @@
             display: flex; flex-direction: column;
             align-items: center; gap: 14px;
             position: absolute;
-            top: 0; left: 50%;
-            transform: translateX(-50%);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
             width: 100%;
             opacity: 0;
             transition: opacity 0.9s var(--ease-smooth),
@@ -271,15 +294,15 @@
         }
         .cake-section.entered {
             opacity: 1;
-            transform: translateX(-50%) translateY(0);
+            transform: translate(-50%, -50%) translateY(0);
         }
         /* Pre-entrance state (set inline via JS to avoid flash) */
         .cake-section:not(.entered):not(.leaving) {
-            transform: translateX(-50%) translateY(20px);
+            transform: translate(-50%, -50%) translateY(20px);
         }
         .cake-section.leaving {
             opacity: 0;
-            transform: translateX(-50%) scale(0.9) translateY(30px);
+            transform: translate(-50%, -50%) scale(0.9) translateY(30px);
             filter: blur(10px);
             pointer-events: none;
         }
@@ -313,19 +336,19 @@
         .tier-candles-top .candle-body { width: 6px; height: 22px; }
         .tier-candles-top .candles-row { gap: 10px; }
 
-        .tier-candles-mid .candle { width: 12px; }
-        .tier-candles-mid .candle-body { width: 6px; height: 3px; }
-        .tier-candles-mid .flame-container { height: 7px; margin-bottom: -1px; }
-        .tier-candles-mid .flame { width: 5px; height: 6px; }
-        .tier-candles-mid .wick { height: 2px; margin-bottom: 0; }
-        .tier-candles-mid .candles-row { gap: 6px; }
+        .tier-candles-mid .candle { width: 14px; }
+        .tier-candles-mid .candle-body { width: 7px; height: 14px; }
+        .tier-candles-mid .flame-container { height: 14px; margin-bottom: -2px; }
+        .tier-candles-mid .flame { width: 6px; height: 11px; }
+        .tier-candles-mid .wick { height: 3px; margin-bottom: -1px; }
+        .tier-candles-mid .candles-row { gap: 7px; }
 
-        .tier-candles-bot .candle { width: 12px; }
-        .tier-candles-bot .candle-body { width: 5px; height: 3px; }
-        .tier-candles-bot .flame-container { height: 7px; margin-bottom: -1px; }
-        .tier-candles-bot .flame { width: 4px; height: 6px; }
-        .tier-candles-bot .wick { height: 2px; margin-bottom: 0; }
-        .tier-candles-bot .candles-row { gap: 4px; }
+        .tier-candles-bot .candle { width: 15px; }
+        .tier-candles-bot .candle-body { width: 8px; height: 18px; }
+        .tier-candles-bot .flame-container { height: 16px; margin-bottom: -2px; }
+        .tier-candles-bot .flame { width: 7px; height: 13px; }
+        .tier-candles-bot .wick { height: 3px; margin-bottom: -1px; }
+        .tier-candles-bot .candles-row { gap: 6px; }
 
         .candle:nth-child(6n+1) .candle-body { background: linear-gradient(180deg, #ffb7c5 0%, #ffa3b5 100%); }
         .candle:nth-child(6n+2) .candle-body { background: linear-gradient(180deg, #ffd1dc 0%, #ffbdcf 100%); }
@@ -365,23 +388,31 @@
             100% { transform: translateX(-50%) scale(1.05, 0.95) rotate(3deg); }
         }
         .flame.out {
-            animation: blowOut 0.4s ease-out forwards !important;
+            animation: blowOut 0.5s ease-out forwards !important;
         }
         @keyframes blowOut {
-            0% { transform: translateX(-50%) scale(1); opacity: 1; }
-            30% { transform: translateX(-50%) scale(1.8, 0.3) translateX(4px); opacity: 0.7; }
-            100% { transform: translateX(-50%) scale(0) translateY(-5px); opacity: 0; }
+            0%   { transform: translateX(-50%) scale(1) rotate(0deg); opacity: 1; }
+            25%  { transform: translateX(-50%) scale(1.4, 0.5) translateX(6px) rotate(15deg); opacity: 0.85; }
+            55%  { transform: translateX(-50%) scale(0.6, 1.3) translateX(-4px) rotate(-10deg); opacity: 0.5; }
+            100% { transform: translateX(-50%) scale(0.2) translateY(-12px) rotate(5deg); opacity: 0; }
         }
 
+        /* Cute fading smoke — multiple wisps that rise, expand and fade */
         .smoke-puff {
-            position: absolute; width: 6px; height: 6px;
-            background: rgba(180, 180, 190, 0.5); border-radius: 50%;
-            left: 50%; top: -2px; transform: translateX(-50%);
-            animation: smokeRise 0.8s ease-out forwards; pointer-events: none;
+            position: absolute; width: 5px; height: 5px;
+            background: radial-gradient(circle, rgba(200, 200, 210, 0.7) 0%, rgba(180, 180, 195, 0.3) 60%, transparent 100%);
+            border-radius: 50%;
+            left: 50%; top: -4px; transform: translateX(-50%);
+            pointer-events: none;
+            animation: smokeRise 1.4s ease-out forwards;
         }
+        .smoke-puff:nth-child(2) { animation-delay: 0.12s; animation-duration: 1.6s; }
+        .smoke-puff:nth-child(3) { animation-delay: 0.24s; animation-duration: 1.5s; }
         @keyframes smokeRise {
-            0% { transform: translateX(-50%) translateY(0) scale(1); opacity: 0.5; }
-            100% { transform: translateX(-50%) translateY(-18px) scale(2.5); opacity: 0; }
+            0%   { transform: translateX(-50%) translateY(0) scale(0.6); opacity: 0; }
+            15%  { opacity: 0.6; }
+            50%  { transform: translateX(calc(-50% + 6px)) translateY(-22px) scale(2.2); opacity: 0.4; }
+            100% { transform: translateX(calc(-50% - 4px)) translateY(-42px) scale(3.6); opacity: 0; }
         }
 
         /* --- CAKE TIERS --- */
@@ -480,48 +511,63 @@
             align-items: center; gap: 10px;
         }
         .wish-btn {
-            font-family: 'Great Vibes', cursive;
-            font-size: clamp(20px, 5vw, 26px);
-            color: #fff; letter-spacing: 0.5px;
-            background: linear-gradient(-45deg, #f06292, #ec407a, #ff80ab, #e91e63, #f48fb1, #ff6b9d);
-            background-size: 300% 300%;
-            animation: btnGradient 4s ease infinite, btnFloat 3s ease-in-out infinite;
-            border: 2px solid rgba(255, 255, 255, 0.5);
+            font-family: 'Quicksand', sans-serif;
+            font-size: clamp(16px, 4.5vw, 22px);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            /* Liquid-glass: translucent so the background is visible through it,
+               with a heavy backdrop blur that magnifies/refracts what's behind. */
+            background: rgba(214, 51, 108, 0.28);
+            backdrop-filter: blur(16px) saturate(220%) brightness(1.05);
+            -webkit-backdrop-filter: blur(16px) saturate(220%) brightness(1.05);
+            border: 1.5px solid rgba(255, 255, 255, 0.55);
             border-radius: 60px;
-            padding: 16px 40px;
+            padding: 18px 44px;
             cursor: pointer;
             box-shadow:
-                0 0 24px rgba(236, 64, 122, 0.4),
-                0 0 60px rgba(236, 64, 122, 0.15),
-                0 10px 30px rgba(0, 0, 0, 0.12),
-                inset 0 1px 1px rgba(255, 255, 255, 0.5);
-            position: relative; overflow: hidden;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                0 8px 32px rgba(214, 51, 108, 0.35),
+                0 0 60px rgba(236, 64, 122, 0.18),
+                inset 0 1px 1px rgba(255, 255, 255, 0.85),
+                inset 0 -2px 4px rgba(214, 51, 108, 0.2),
+                /* chromatic aberration edges */
+                inset 1.5px 0 0 rgba(255, 0, 80, 0.15),
+                inset -1.5px 0 0 rgba(0, 140, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 3px rgba(120, 20, 60, 0.55), 0 0 1px rgba(255,255,255,0.3);
             z-index: 5;
             -webkit-tap-highlight-color: transparent;
-            transition: transform 0.2s var(--ease-smooth);
+            transition: transform 0.2s var(--ease-smooth), box-shadow 0.3s ease;
+            animation: btnFloat 3s ease-in-out infinite;
         }
+        /* Subtle, slow glass sheen — much gentler than the old shimmer, no white flash */
         .wish-btn::before {
             content: ''; position: absolute;
-            top: 0; left: -100%; width: 60%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 3s ease-in-out infinite 1s;
+            top: 0; left: -120%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+            animation: shimmer 6s ease-in-out infinite 1.5s;
+            pointer-events: none;
         }
-        @keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
+        /* Liquid-glass top highlight (specular reflection) */
+        .wish-btn::after {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 100%);
+            border-radius: 60px 60px 0 0;
+            pointer-events: none;
+        }
+        @keyframes shimmer { 0% { left: -120%; } 60%, 100% { left: 220%; } }
         .wish-btn .sparkle-left, .wish-btn .sparkle-right {
             position: absolute; top: 50%; font-size: 14px;
-            color: var(--gold); pointer-events: none;
+            color: var(--gold); pointer-events: none; z-index: 2;
+            text-shadow: 0 0 6px rgba(255, 213, 79, 0.8);
         }
-        .wish-btn .sparkle-left { left: 12px; transform: translateY(-50%); animation: sparklePop 2.5s ease-in-out infinite; }
-        .wish-btn .sparkle-right { right: 12px; transform: translateY(-50%); animation: sparklePop 2.5s ease-in-out infinite 1.2s; }
+        .wish-btn .sparkle-left { left: 14px; transform: translateY(-50%); animation: sparklePop 2.5s ease-in-out infinite; }
+        .wish-btn .sparkle-right { right: 14px; transform: translateY(-50%); animation: sparklePop 2.5s ease-in-out infinite 1.2s; }
         @keyframes sparklePop {
             0%, 100% { opacity: 0.3; transform: translateY(-50%) scale(0.7); }
             50% { opacity: 1; transform: translateY(-50%) scale(1.3); }
-        }
-        @keyframes btnGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
         }
         @keyframes btnFloat {
             0%, 100% { transform: translateY(0); }
@@ -529,17 +575,17 @@
         }
         .wish-btn:active { transform: translateY(0) scale(0.97); }
         .wish-btn.listening {
-            animation: btnGradient 4s ease infinite, btnListening 1.5s ease-in-out infinite;
-            background-size: 300% 300%;
-            border-color: rgba(255, 255, 255, 0.6);
+            animation: btnFloat 3s ease-in-out infinite, btnListening 1.5s ease-in-out infinite;
+            border-color: rgba(255, 255, 255, 0.7);
+            background: rgba(214, 51, 108, 0.35);
         }
         @keyframes btnListening {
-            0%, 100% { box-shadow: 0 0 24px rgba(236, 64, 122, 0.5), 0 0 60px rgba(236, 64, 122, 0.2), 0 0 0 0 rgba(236, 64, 122, 0.4); }
-            50% { box-shadow: 0 0 30px rgba(236, 64, 122, 0.65), 0 0 70px rgba(236, 64, 122, 0.3), 0 0 0 12px rgba(236, 64, 122, 0); }
+            0%, 100% { box-shadow: 0 8px 32px rgba(214, 51, 108, 0.4), 0 0 60px rgba(236, 64, 122, 0.2), 0 0 0 0 rgba(236, 64, 122, 0.4), inset 0 1px 1px rgba(255,255,255,0.85); }
+            50% { box-shadow: 0 8px 32px rgba(214, 51, 108, 0.5), 0 0 70px rgba(236, 64, 122, 0.3), 0 0 0 12px rgba(236, 64, 122, 0), inset 0 1px 1px rgba(255,255,255,0.85); }
         }
         .wish-btn:disabled {
-            opacity: 0.5; cursor: default; transform: none !important;
-            animation: btnGradient 4s ease infinite !important;
+            opacity: 0.55; cursor: default; transform: none !important;
+            animation: btnFloat 3s ease-in-out infinite !important;
         }
 
         /* Blow meter — real-time mic level feedback */
@@ -614,8 +660,8 @@
             max-width: 460px; text-align: center;
             width: 100%;
             position: absolute;
-            top: 0; left: 50%;
-            transform: translateX(-50%) translateY(30px) scale(0.95);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) translateY(30px) scale(0.95);
             opacity: 0;
             filter: blur(8px);
             transition: opacity 0.9s var(--ease-smooth),
@@ -625,7 +671,7 @@
         }
         .message-section.show {
             opacity: 1;
-            transform: translateX(-50%) translateY(0) scale(1);
+            transform: translate(-50%, -50%) translateY(0) scale(1);
             filter: blur(0);
             pointer-events: auto;
         }
@@ -643,6 +689,16 @@
                 inset 0 -2px 4px rgba(255, 183, 197, 0.25);
             position: relative;
             overflow: hidden;
+        }
+        /* Subtle chromatic-aberration edge — offset RGB channel rings for a modern glass look */
+        .message-card {
+            box-shadow:
+                0 20px 60px rgba(214, 51, 108, 0.22),
+                0 4px 12px rgba(214, 51, 108, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.95),
+                inset 0 -2px 4px rgba(255, 183, 197, 0.25),
+                inset 1.5px 0 0 rgba(255, 0, 80, 0.12),
+                inset -1.5px 0 0 rgba(0, 140, 255, 0.12);
         }
         /* Liquid-glass top sheen */
         .message-card .glass-sheen {
@@ -670,17 +726,40 @@
         }
         .message-title {
             font-family: 'Great Vibes', cursive;
-            font-size: clamp(26px, 7vw, 42px);
-            background: linear-gradient(90deg, #d6336c 0%, #ff6b9d 50%, #d6336c 100%);
+            font-size: clamp(28px, 7.5vw, 46px);
+            line-height: 1.2;
+            /* Same rich gradient as the hero name, with gold accent */
+            background: linear-gradient(110deg,
+                #c2185b 0%, #e91e63 18%, #ff6b9d 38%,
+                #ffd54f 50%, #ff6b9d 62%, #e91e63 82%, #c2185b 100%);
+            background-size: 250% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            filter:
+                drop-shadow(0 0 14px rgba(255, 107, 157, 0.5))
+                drop-shadow(0 0 28px rgba(255, 213, 79, 0.25))
+                drop-shadow(0 2px 6px rgba(214, 51, 108, 0.35));
+            animation: gradientShift 5s linear infinite;
+            margin-bottom: 16px;
+        }
+        /* The name "Helia" inside the typed message gets its own special highlight */
+        .message-text .name-highlight {
+            font-family: 'Great Vibes', cursive;
+            font-size: 1.4em;
+            font-weight: 600;
+            background: linear-gradient(110deg, #e91e63, #ff6b9d, #ffd54f, #ff6b9d, #e91e63);
             background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            filter: drop-shadow(0 2px 10px rgba(214, 51, 108, 0.3));
-            animation: gradientShift 6s linear infinite;
-            margin-bottom: 16px;
-            line-height: 1.2;
+            filter: drop-shadow(0 0 8px rgba(255, 107, 157, 0.6));
+            animation: gradientShift 4s linear infinite;
+            display: inline-block;
+            padding: 0 2px;
+            vertical-align: baseline;
         }
         .message-text {
             font-size: clamp(13px, 3.5vw, 16px);
@@ -919,7 +998,7 @@
                 flex-direction: column;
                 align-items: center;
                 justify-content: space-between;
-                padding: 6vh 0 5vh;
+                padding: 4vh 0 4vh;
             }
             .dance-stage.active .dancer { position: relative !important; }
             .dancer-waffle {
@@ -931,17 +1010,11 @@
                 order: 1;
             }
             .party-bubble { display: none; }
-            /* Shift content up so message sits between the two dancers */
-            .content.faded {
-                justify-content: flex-start;
-                padding-top: 16vh;
-            }
+            /* Content stays centered; dancers float above/below via the dance-stage column */
+            .content.faded { justify-content: center; }
         }
         @media (max-width: 380px) {
-            .tier-candles-bot .candles-row { gap: 3px; }
-            .tier-candles-bot .candle-body { width: 4px; height: 14px; }
-            .tier-candles-bot .flame { width: 5px; height: 9px; }
-            .tier-candles-mid .candles-row { gap: 5px; }
+            .tier-candles-bot .candles-row { gap: 4px; }
             .countdown-box { min-width: 56px; padding: 8px 8px; }
             .wish-btn { padding: 14px 30px; }
         }
@@ -952,6 +1025,7 @@
         @media (prefers-reduced-motion: reduce) {
             .dancer { animation: none !important; filter: drop-shadow(0 0 10px rgba(255, 200, 100, 0.6)) !important; }
             .party-trail { display: none; }
+            .name { animation: gradientShift 8s linear infinite !important; }
         }
     </style>
 </head>
@@ -1078,7 +1152,7 @@
             <div class="message-section" id="message-section">
                 <div class="message-card">
                     <div class="glass-sheen"></div>
-                    <h2 class="message-title">Happy 21st Birthday, Helia! 🌸</h2>
+                    <h2 class="message-title">Happy 21st Birthday, <span class="name-highlight" style="font-size:1.1em;">Helia</span>! 🌸</h2>
                     <p class="message-text" id="message-text"></p>
                 </div>
                 <button class="replay-btn" id="replay-btn">↻ Replay the magic</button>
@@ -1099,7 +1173,7 @@
         const TIER_CANDLES = [4, 7, 10]; // top, middle, bottom
 
         const BIRTHDAY_MESSAGE =
-            'Happy 21st Birthday, ' + BIRTHDAY_NAME + '! \ud83c\udf38 ' +
+            'Happy 21st Birthday, <span class="name-highlight">' + BIRTHDAY_NAME + '</span>! \ud83c\udf38 ' +
             'Wishing you a day filled with love, laughter, and all the things that make you smile. ' +
             'Here\'s to 21 years of being absolutely amazing, and to many, many more beautiful years ahead. ' +
             'You deserve the world and more. Love you! \ud83d\udc95';
@@ -1225,11 +1299,14 @@
 
             flame.classList.add('out');
 
+            // Spawn three cute smoke wisps that rise and fade
             var container = flame.parentElement;
-            var smoke = document.createElement('div');
-            smoke.className = 'smoke-puff';
-            container.appendChild(smoke);
-            setTimeout(function() { smoke.remove(); }, 800);
+            for (var s = 0; s < 3; s++) {
+                var smoke = document.createElement('div');
+                smoke.className = 'smoke-puff';
+                container.appendChild(smoke);
+                (function(el) { setTimeout(function() { el.remove(); }, 1900); })(smoke);
+            }
 
             // Haptic feedback — a short, crisp pulse for each candle blown out
             if (navigator.vibrate) navigator.vibrate(45);
@@ -1296,7 +1373,16 @@
                 spawnAmbientSparkle();
             }
 
-            // (Petals are NOT spawned here — they only appear after ALL candles are blown)
+            // 6. Petals — start spawning after the FIRST candle is blown,
+            //    and restart the spawner whenever the target count grows so
+            //    more petals gradually appear as more candles go out.
+            //    Each petal fades in smoothly from the top (never pops in).
+            if (candlesOut > 0 && typeof getTargetPetalCount === 'function') {
+                var petalTarget = getTargetPetalCount();
+                if (petals.length < petalTarget && !petalSpawnTimer) {
+                    startPetalSpawn();
+                }
+            }
         }
 
         function resetProgressEffects() {
@@ -1676,9 +1762,9 @@
         // =============================================
         function playHappyBirthdayHaptics() {
             if (!navigator.vibrate) return;
-            // Rhythm units (ms)
-            var eighth = 170, quarter = 340, half = 680, whole = 1050;
-            var gap = 60, phraseGap = 260;
+            // Rhythm units (ms) — slowed down ~35% for a gentler tempo
+            var eighth = 230, quarter = 460, half = 920, whole = 1420;
+            var gap = 80, phraseGap = 350;
 
             // "Happy birthday to you"  (6 notes: eighth-eighth-quarter-quarter-quarter-half)
             var phrase = [eighth, gap, eighth, gap, quarter, gap, quarter, gap, quarter, gap, half, phraseGap];
@@ -1709,9 +1795,6 @@
 
             // Play the Happy Birthday song via haptic vibrations
             playHappyBirthdayHaptics();
-
-            // Start spawning petals (they fade in smoothly from here)
-            startPetalSpawn();
 
             // Burst of confetti at cake position
             var cakeRect = cakeSection.getBoundingClientRect();
@@ -1753,16 +1836,43 @@
 
         // =============================================
         //  TYPEWRITER MESSAGE
+        //  Handles HTML tags safely (so <span class="name-highlight"> isn't split mid-tag).
         // =============================================
         function typeMessage(text, onDone) {
             var el = document.getElementById('message-text');
-            var i = 0;
             var cursor = '<span class="typed-cursor"></span>';
+            // Tokenise: tags are emitted whole, plain chars one-by-one
+            var tokens = [];
+            var tagBuffer = '';
+            var inTag = false;
+            for (var k = 0; k < text.length; k++) {
+                var ch = text[k];
+                if (ch === '<') { inTag = true; tagBuffer = ch; }
+                else if (ch === '>') { tagBuffer += ch; tokens.push({tag: true, text: tagBuffer}); inTag = false; tagBuffer = ''; }
+                else if (inTag) { tagBuffer += ch; }
+                else { tokens.push({tag: false, text: ch}); }
+            }
+            var i = 0;
+            function visibleLength() {
+                var n = 0;
+                for (var j = 0; j < i; j++) if (!tokens[j].tag) n++;
+                return n;
+            }
+            function buildHtml() {
+                var s = '';
+                for (var j = 0; j < i; j++) s += tokens[j].text;
+                return s;
+            }
             function type() {
-                if (i < text.length) {
-                    el.innerHTML = text.substring(0, i + 1) + cursor;
+                if (i < tokens.length) {
+                    el.innerHTML = buildHtml() + cursor;
                     i++;
-                    setTimeout(type, Math.random() * 40 + 30);
+                    // Skip ahead instantly through tags so there's no pause on them
+                    if (i < tokens.length && tokens[i - 1].tag) {
+                        type();
+                    } else {
+                        setTimeout(type, Math.random() * 40 + 30);
+                    }
                 } else {
                     setTimeout(function() {
                         el.innerHTML = text;
@@ -1859,9 +1969,12 @@
             return PETAL_COLORS_TIER0;
         }
 
+        // Petal count scales smoothly from 0 (no candles out) up to MAX_PETALS_CAP (all out).
+        // Before any candle is blown, target is 0 — petals only begin after the first blow.
         function getTargetPetalCount() {
             var progress = candlesOut / totalCandles;
-            return Math.round(BASE_PETALS + (MAX_PETALS_CAP - BASE_PETALS) * progress);
+            if (progress <= 0) return 0;
+            return Math.round(MAX_PETALS_CAP * progress);
         }
 
         function resizeSakura() {
@@ -1928,18 +2041,19 @@
 
         resizeSakura();
         // Petals do NOT spawn on load — they only appear (with a smooth fade-in)
-        // after ALL candles are blown out, via startPetalSpawn().
+        // after the FIRST candle is blown out, then gradually increase in count
+        // as more candles are blown.
 
         var petalSpawnTimer = null;
         var sakuraRunning = false;
         var sakuraTime = 0;
 
-        // Begin gradually spawning petals (called from onAllCandlesOut).
-        // Each new petal starts at opacity 0 and fades in smoothly.
+        // Gradually spawn petals toward the current target count (driven by progress).
+        // Each new petal starts at opacity 0 and fades in smoothly while falling from the top.
         function startPetalSpawn() {
-            var target = getTargetPetalCount();
             if (petalSpawnTimer) clearInterval(petalSpawnTimer);
             petalSpawnTimer = setInterval(function() {
+                var target = getTargetPetalCount();
                 if (petals.length < target) {
                     petals.push(new Petal(false)); // spawn at top, fall down + fade in
                     if (!sakuraRunning) {
@@ -1947,10 +2061,12 @@
                         requestAnimationFrame(animateSakura);
                     }
                 } else {
+                    // Reached the current target — stop the timer, but it will be
+                    // restarted by updateProgressEffects() if the target grows.
                     clearInterval(petalSpawnTimer);
                     petalSpawnTimer = null;
                 }
-            }, 140); // one new petal every 140ms — gradual, never pops in
+            }, 160); // one new petal every 160ms — gradual, never pops in
         }
 
         function clearAllPetals() {
