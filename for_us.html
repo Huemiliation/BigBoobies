@@ -60,22 +60,8 @@
             transition: background 1.5s ease;
         }
 
-        /* Heart & party-hat grid pattern — subtle, low-opacity, drifting + slowly rotating.
-           Party hats are drawn larger so they balance visually with the hearts. */
-        body::before {
-            content: '';
-            position: fixed; inset: -25%; /* extra area so rotation never reveals edges */
-            z-index: 0; pointer-events: none;
-            opacity: 0.06;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='%23d6336c'%3E%3Cpath d='M44 50 C44 40 52 34 59 34 C63 34 66 36 69 39 C72 36 75 34 79 34 C86 34 94 40 94 50 C94 62 69 78 69 78 C69 78 44 62 44 50 Z'/%3E%3C/g%3E%3Cg fill='%23ff6b9d'%3E%3Cpath d='M120 60 L156 60 L138 12 Z'/%3E%3C/g%3E%3Ccircle cx='138' cy='8' r='6' fill='%23ffd54f'/%3E%3Cg fill='%23ffd54f' opacity='0.55'%3E%3Ccircle cx='126' cy='52' r='2.5'/%3E%3Ccircle cx='138' cy='48' r='2.5'/%3E%3Ccircle cx='150' cy='52' r='2.5'/%3E%3C/g%3E%3C/svg%3E");
-            background-size: 180px 180px;
-            background-repeat: repeat;
-            animation: gridDrift 18s linear infinite;
-        }
-        @keyframes gridDrift {
-            from { transform: rotate(0deg) translate(0, 0); }
-            to   { transform: rotate(360deg) translate(180px, 180px); }
-        }
+        /* Heart-stars background canvas — floating + shooting heart-shaped stars */
+        #bg-stars-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 
         /* Vignette that appears at 75%+ progress for dramatic buildup */
         body::after {
@@ -92,7 +78,8 @@
         body[data-progress="4"]::after { opacity: 1; }
 
         /* --- CANVAS LAYERS --- */
-        #sakura-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        #bg-stars-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        #sakura-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
         #effects-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
 
         /* --- EDGE GLOW (progress ring) --- */
@@ -205,6 +192,11 @@
         @keyframes gradientShift {
             0% { background-position: 0% center; }
             100% { background-position: 250% center; }
+        }
+        /* Right-to-left gradient drift (for signature + other accents) */
+        @keyframes waveGradient {
+            0%   { background-position: 200% center; }
+            100% { background-position: 0% center; }
         }
 
         .subtitle {
@@ -774,6 +766,115 @@
         }
         @keyframes cursorBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+        /* --- "Hulu Kuchulu" wave text — floaty + rainbow cycle like the boobie reference --- */
+        /* Each letter bobs up/down in sequence (left→right) and cycles through the
+           pink→magenta→wine palette with a glowing text-shadow. Normal font weight. */
+        .message-text .wave-text {
+            display: inline-block;
+            font-weight: 700;
+            font-size: 1.15em;
+            vertical-align: baseline;
+            line-height: 1.4;
+        }
+        .wave-letter {
+            display: inline-block;
+            color: #ff6b9d;
+            text-shadow: 0 0 8px currentColor;
+            animation: floaty 1.6s ease-in-out infinite, rainbowWave 3.5s linear infinite;
+        }
+        @keyframes floaty {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-0.3em); }
+        }
+        /* Pink → magenta → wine-red cycle (right-to-left feel via reverse keyframe order) */
+        @keyframes rainbowWave {
+            0%   { color: #ff6b9d; text-shadow: 0 0 8px #ff6b9d; }
+            25%  { color: #ff4081; text-shadow: 0 0 10px #ff4081; }
+            50%  { color: #e91e63; text-shadow: 0 0 12px #e91e63; }
+            75%  { color: #ad1457; text-shadow: 0 0 10px #ad1457; }
+            100% { color: #ff6b9d; text-shadow: 0 0 8px #ff6b9d; }
+        }
+
+        /* --- "kiss" word — wine-red glow + pulsing scale. Kiss emoji BEHIND the word --- */
+        .message-text .kiss-word {
+            display: inline-block;
+            font-weight: 700;
+            color: #880e4f;
+            position: relative;
+            z-index: 2;
+            text-shadow:
+                0 0 6px rgba(173, 20, 87, 0.8),
+                0 0 14px rgba(136, 14, 79, 0.5);
+            animation: kissPulse 2.2s ease-in-out infinite;
+        }
+        /* Kiss emoji sits behind the word (lower z-index, absolutely positioned) */
+        .message-text .kiss-word::before {
+            content: '💋';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.6);
+            z-index: 1;
+            opacity: 0.5;
+            font-size: 1.6em;
+            pointer-events: none;
+            animation: kissEmojiPop 2.2s ease-in-out infinite;
+        }
+        @keyframes kissPulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 6px rgba(173,20,87,0.8), 0 0 14px rgba(136,14,79,0.5); }
+            50%      { transform: scale(1.12); text-shadow: 0 0 10px rgba(173,20,87,1), 0 0 24px rgba(136,14,79,0.7); }
+        }
+        @keyframes kissEmojiPop {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.4; }
+            50%      { transform: translate(-50%, -50%) scale(1.3); opacity: 0.85; }
+        }
+
+        /* --- "hug" word — squeezing hug animation, text only (no emojis) --- */
+        .message-text .hug-word {
+            display: inline-block;
+            font-weight: 700;
+            color: #d6336c;
+            position: relative;
+            animation: hugSqueeze 2.4s ease-in-out infinite;
+        }
+        @keyframes hugSqueeze {
+            0%, 100% {
+                transform: scale(1, 1);
+                text-shadow: 0 0 6px rgba(255, 107, 157, 0.6), 0 0 14px rgba(255, 64, 129, 0.35);
+                letter-spacing: 0px;
+            }
+            40% {
+                transform: scale(0.82, 1.12);
+                text-shadow: 0 0 10px rgba(255, 107, 157, 0.9), 0 0 22px rgba(255, 64, 129, 0.6);
+                letter-spacing: -1px;
+            }
+            60% {
+                transform: scale(0.82, 1.12);
+                text-shadow: 0 0 10px rgba(255, 107, 157, 0.9), 0 0 22px rgba(255, 64, 129, 0.6);
+                letter-spacing: -1px;
+            }
+        }
+
+        /* --- Signature line — more readable (Quicksand, not Great Vibes) --- */
+        .message-signature {
+            margin-top: 18px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: clamp(16px, 4.5vw, 22px);
+            font-weight: 700;
+            text-align: right;
+            background: linear-gradient(110deg, #d6336c, #ff6b9d, #ffd54f, #ff6b9d, #d6336c);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            filter: drop-shadow(0 0 6px rgba(255, 107, 157, 0.45));
+            animation: waveGradient 5s linear infinite;
+            opacity: 0;
+            min-height: 1.2em;
+            letter-spacing: 0.5px;
+        }
+
         .replay-btn {
             margin-top: 6px;
             font-family: 'Quicksand', sans-serif;
@@ -991,27 +1092,31 @@
         @keyframes hintFade { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
 
         /* --- RESPONSIVE --- */
-        /* Mobile / tablet: stack dancers vertically (peach above, waffle below message) */
+        /* Mobile / tablet: waffle + peach side-by-side ABOVE the text box */
         @media (max-width: 768px) {
             .dance-stage {
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;       /* side by side */
                 align-items: center;
-                justify-content: space-between;
-                padding: 4vh 0 4vh;
+                justify-content: center;
+                gap: 36px;
+                top: 0;
+                bottom: auto;
+                height: auto;
+                padding: 5vh 16px 0;
             }
             .dance-stage.active .dancer { position: relative !important; }
-            .dancer-waffle {
-                left: auto !important; right: auto !important; top: auto !important;
-                order: 3;
-            }
+            .dancer-waffle,
             .dancer-peach {
                 left: auto !important; right: auto !important; top: auto !important;
-                order: 1;
+                order: 0;
+                font-size: clamp(48px, 12vw, 64px);
             }
             .party-bubble { display: none; }
-            /* Content stays centered; dancers float above/below via the dance-stage column */
+            /* Content stays centered */
             .content.faded { justify-content: center; }
+            /* Give the message a little top breathing room so it doesn't collide with dancers */
+            .message-section { padding-top: 8vh; }
         }
         @media (max-width: 380px) {
             .tier-candles-bot .candles-row { gap: 4px; }
@@ -1036,6 +1141,9 @@
     <div class="glow-blob"></div>
     <div class="glow-blob"></div>
     <div class="glow-blob"></div>
+
+    <!-- Background heart-stars canvas -->
+    <canvas id="bg-stars-canvas"></canvas>
 
     <!-- Sakura petal canvas -->
     <canvas id="sakura-canvas"></canvas>
@@ -1154,6 +1262,7 @@
                     <div class="glass-sheen"></div>
                     <h2 class="message-title">Happy 21st Birthday, <span class="name-highlight" style="font-size:1.1em;">Helia</span>! 🌸</h2>
                     <p class="message-text" id="message-text"></p>
+                    <p class="message-signature" id="message-signature"></p>
                 </div>
                 <button class="replay-btn" id="replay-btn">↻ Replay the magic</button>
             </div>
@@ -1173,10 +1282,11 @@
         const TIER_CANDLES = [4, 7, 10]; // top, middle, bottom
 
         const BIRTHDAY_MESSAGE =
-            'Happy 21st Birthday, <span class="name-highlight">' + BIRTHDAY_NAME + '</span>! \ud83c\udf38 ' +
-            'Wishing you a day filled with love, laughter, and all the things that make you smile. ' +
-            'Here\'s to 21 years of being absolutely amazing, and to many, many more beautiful years ahead. ' +
-            'You deserve the world and more. Love you! \ud83d\udc95';
+            'Happy birthday <span class="wave-text">Hulu Kuchulu</span>, I love you with all my heart and soul and I\'m always thinking about you. ' +
+            'I wish I could give you a <span class="hug-word">hug</span> and a <span class="kiss-word">kiss</span> but for now this is all I could think of doing. ' +
+            'I love you so much and wish you all the best. Always.';
+
+        const BIRTHDAY_SIGNATURE = '— Bij 💕';
 
         // =============================================
         //  BLOW DETECTION (direct, easy, no charge bar)
@@ -1806,7 +1916,8 @@
             setTimeout(launchFireworks, 2800);
             setTimeout(launchFireworks, 4200);
 
-            // Start dance party (overlaps with transition)
+            // Start dance party TOGETHER with the message fade-in (so peach/waffle
+            // and the text box appear at the same time)
             setTimeout(startDanceParty, 500);
 
             // PHASE 1: Cake fades out (smooth) + prelude elements fade out
@@ -1827,9 +1938,12 @@
                     });
                 });
                 typeMessage(BIRTHDAY_MESSAGE, function() {
-                    setTimeout(function() {
-                        replayBtn.classList.add('show');
-                    }, 500);
+                    // Type the signature after the main message
+                    typeSignature(BIRTHDAY_SIGNATURE, function() {
+                        setTimeout(function() {
+                            replayBtn.classList.add('show');
+                        }, 500);
+                    });
                 });
             }, 1700); // 700ms wait + 900ms cake transition + 100ms buffer
         }
@@ -1853,19 +1967,33 @@
                 else { tokens.push({tag: false, text: ch}); }
             }
             var i = 0;
-            function visibleLength() {
-                var n = 0;
-                for (var j = 0; j < i; j++) if (!tokens[j].tag) n++;
-                return n;
-            }
+            var waveSplitDone = false; // once true, we rebuild carefully to preserve split
+
             function buildHtml() {
                 var s = '';
                 for (var j = 0; j < i; j++) s += tokens[j].text;
                 return s;
             }
+
             function type() {
                 if (i < tokens.length) {
-                    el.innerHTML = buildHtml() + cursor;
+                    // Once wave is split, always use the split-preserving builder
+                    el.innerHTML = (waveSplitDone ? buildHtmlWithSplit(tokens, i) : buildHtml()) + cursor;
+                    // After the wave-text closing </span> is emitted, split it into
+                    // per-letter spans so the wave animation starts immediately.
+                    if (!waveSplitDone) {
+                        var built = buildHtml();
+                        var waveOpen = built.indexOf('class="wave-text"');
+                        if (waveOpen !== -1) {
+                            var afterOpen = built.substring(waveOpen);
+                            // If there's a </span> after the opening wave-text tag, it's complete
+                            if (afterOpen.indexOf('</span>') !== -1) {
+                                waveSplitDone = true;
+                                // Re-render with the split version preserved
+                                el.innerHTML = buildHtmlWithSplit(tokens, i) + cursor;
+                            }
+                        }
+                    }
                     i++;
                     // Skip ahead instantly through tags so there's no pause on them
                     if (i < tokens.length && tokens[i - 1].tag) {
@@ -1876,11 +2004,85 @@
                 } else {
                     setTimeout(function() {
                         el.innerHTML = text;
+                        // Final activation of wave text
+                        activateWaveText();
                         if (typeof onDone === 'function') onDone();
                     }, 1800);
                 }
             }
+
+            // Build HTML but preserve the already-split wave-text spans.
+            // Once waveSplitDone is true, the wave-text portion is replaced with
+            // the per-letter spans that activateWaveText() created.
+            function buildHtmlWithSplit(toks, upTo) {
+                // Find the wave-text opening tag and its closing tag in the tokens
+                var result = '';
+                var inWave = false;
+                var waveDone = false;
+                var waveLetters = '';
+                for (var j = 0; j < upTo; j++) {
+                    var tk = toks[j];
+                    if (tk.tag && tk.text.indexOf('class="wave-text"') !== -1) {
+                        inWave = true;
+                        result += tk.text; // opening <span class="wave-text">
+                    } else if (inWave && tk.tag && tk.text === '</span>') {
+                        // Closing tag of wave-text — emit the split letters instead
+                        var letters = waveLetters.split('');
+                        for (var li = 0; li < letters.length; li++) {
+                            var lc = letters[li];
+                            result += '<span class="wave-letter" style="animation-delay:' + (li * 0.1) + 's">' +
+                                      (lc === ' ' ? '&nbsp;' : lc) + '</span>';
+                        }
+                        result += tk.text; // closing </span>
+                        inWave = false;
+                        waveDone = true;
+                    } else if (inWave && !tk.tag) {
+                        waveLetters += tk.text;
+                    } else {
+                        result += tk.text;
+                    }
+                }
+                return result;
+            }
+
             type();
+        }
+
+        // Type the signature line (simpler — no nested HTML)
+        function typeSignature(text, onDone) {
+            var el = document.getElementById('message-signature');
+            if (!el) { if (onDone) onDone(); return; }
+            el.innerHTML = '';
+            el.style.opacity = '1';
+            var i = 0;
+            function type() {
+                if (i < text.length) {
+                    el.textContent = text.substring(0, i + 1);
+                    i++;
+                    setTimeout(type, Math.random() * 40 + 35);
+                } else {
+                    if (typeof onDone === 'function') onDone();
+                }
+            }
+            type();
+        }
+
+        // After the message finishes, split the wave-text "Hulu Kuchulu" into
+        // per-letter spans so the wave CSS animation can ripple through them.
+        // Safe to call multiple times — checks dataset.split to avoid re-splitting.
+        function activateWaveText() {
+            var waveEl = document.querySelector('.message-text .wave-text');
+            if (!waveEl || waveEl.dataset.split === '1') return;
+            var letters = waveEl.textContent;
+            waveEl.innerHTML = '';
+            for (var i = 0; i < letters.length; i++) {
+                var sp = document.createElement('span');
+                sp.className = 'wave-letter';
+                sp.textContent = letters[i] === ' ' ? '\u00A0' : letters[i];
+                sp.style.animationDelay = (i * 0.1) + 's';
+                waveEl.appendChild(sp);
+            }
+            waveEl.dataset.split = '1';
         }
 
         // =============================================
@@ -1905,6 +2107,12 @@
             messageSection.classList.remove('show');
             replayBtn.classList.remove('show');
             contentEl.classList.remove('faded');
+
+            // Clear message text + signature for next run
+            var msgEl = document.getElementById('message-text');
+            var sigEl = document.getElementById('message-signature');
+            if (msgEl) msgEl.innerHTML = '';
+            if (sigEl) sigEl.innerHTML = '';
 
             // Phase 2: after message gone, show cake again
             setTimeout(function() {
@@ -1987,15 +2195,15 @@
             this.x = Math.random() * sWidth;
             this.y = initial ? Math.random() * sHeight : -20;
             this.size = Math.random() * 8 + 5;
-            this.speedY = Math.random() * 0.45 + 0.15;   // slower, gentler fall
-            this.speedX = Math.random() * 0.3 - 0.15;    // less horizontal drift
+            this.speedY = Math.random() * 1.4 + 0.8;    // faster fall so petals appear sooner
+            this.speedX = Math.random() * 0.5 - 0.25;
             this.rotation = Math.random() * Math.PI * 2;
-            this.rotSpeed = (Math.random() - 0.5) * 0.02;
-            this.wobbleSpeed = Math.random() * 0.015 + 0.008;
+            this.rotSpeed = (Math.random() - 0.5) * 0.03;
+            this.wobbleSpeed = Math.random() * 0.02 + 0.01;
             this.wobbleOffset = Math.random() * Math.PI * 2;
             this.targetOpacity = Math.random() * 0.4 + 0.4;
             this.opacity = 0;                             // start invisible — fade in smoothly
-            this.fadeInSpeed = 0.006 + Math.random() * 0.006; // per-frame fade rate
+            this.fadeInSpeed = 0.012 + Math.random() * 0.01; // faster fade-in
             this.color = getActivePetalColors()[Math.floor(Math.random() * getActivePetalColors().length)];
             this.type = Math.random() > 0.7 ? 'flower' : 'petal';
         };
@@ -2226,6 +2434,187 @@
             var hint = document.getElementById('confetti-hint');
             if (hint) { hint.style.opacity = '0'; setTimeout(function() { if (hint) hint.remove(); }, 1000); }
         }, 8000);
+
+        // =============================================
+        //  HEART-STARS BACKGROUND
+        //  Heart-shaped stars that float side-to-side, plus occasional
+        //  shooting-heart-stars that streak across randomly.
+        // =============================================
+        var bgCanvas = document.getElementById('bg-stars-canvas');
+        var bgCtx = bgCanvas.getContext('2d');
+        var bgW, bgH;
+        function resizeBg() {
+            bgW = window.innerWidth; bgH = window.innerHeight;
+            bgCanvas.width = bgW; bgCanvas.height = bgH;
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        var HEART_STAR_COLORS = [
+            'rgba(255, 107, 157, 0.85)',  // pink
+            'rgba(233, 30, 99, 0.8)',     // magenta
+            'rgba(214, 51, 108, 0.8)',    // rose
+            'rgba(255, 183, 197, 0.9)',   // soft pink
+            'rgba(173, 20, 87, 0.75)',    // wine
+            'rgba(255, 213, 79, 0.8)'     // gold accent
+        ];
+
+        // Draw a heart shape at the current context position
+        function drawHeart(ctx, size) {
+            ctx.beginPath();
+            var s = size;
+            ctx.moveTo(0, s * 0.25);
+            ctx.bezierCurveTo(0, 0, -s, 0, -s, s * 0.3);
+            ctx.bezierCurveTo(-s, s * 0.6, -s * 0.5, s * 0.85, 0, s * 1.1);
+            ctx.bezierCurveTo(s * 0.5, s * 0.85, s, s * 0.6, s, s * 0.3);
+            ctx.bezierCurveTo(s, 0, 0, 0, 0, s * 0.25);
+            ctx.fill();
+        }
+
+        function HeartStar() { this.reset(true); }
+        HeartStar.prototype.reset = function(initial) {
+            this.x = Math.random() * bgW;
+            this.y = initial ? Math.random() * bgH : Math.random() * bgH;
+            this.size = Math.random() * 4 + 2;          // 2–6px
+            this.baseOpacity = Math.random() * 0.35 + 0.55; // higher base visibility
+            this.opacity = 0;
+            this.targetOpacity = this.baseOpacity;
+            // Float side-to-side
+            this.vx = (Math.random() - 0.5) * 0.35;
+            this.vy = (Math.random() - 0.5) * 0.15;      // very slow vertical drift
+            this.wobbleSpeed = Math.random() * 0.02 + 0.008;
+            this.wobbleOffset = Math.random() * Math.PI * 2;
+            this.twinkleSpeed = Math.random() * 0.03 + 0.015;
+            this.twinkleOffset = Math.random() * Math.PI * 2;
+            this.color = HEART_STAR_COLORS[Math.floor(Math.random() * HEART_STAR_COLORS.length)];
+            this.rotation = (Math.random() - 0.5) * 0.6;
+        };
+        HeartStar.prototype.update = function(t) {
+            this.x += this.vx;
+            this.y += this.vy + Math.sin(t * this.wobbleSpeed + this.wobbleOffset) * 0.15;
+            // Wrap around edges
+            if (this.x < -10) this.x = bgW + 10;
+            if (this.x > bgW + 10) this.x = -10;
+            if (this.y < -10) this.y = bgH + 10;
+            if (this.y > bgH + 10) this.y = -10;
+            // Twinkle
+            this.opacity = this.targetOpacity * (0.6 + 0.4 * Math.sin(t * this.twinkleSpeed + this.twinkleOffset));
+        };
+        HeartStar.prototype.draw = function(ctx) {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.opacity);
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation);
+            ctx.fillStyle = this.color;
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 6;
+            drawHeart(ctx, this.size);
+            ctx.restore();
+        };
+
+        // Shooting heart-stars — streak across the screen randomly
+        function ShootingHeart() { this.reset(); }
+        ShootingHeart.prototype.reset = function() {
+            // Start from a random edge, fly toward the opposite side
+            var side = Math.floor(Math.random() * 4);
+            var speed = 4 + Math.random() * 4;
+            if (side === 0) { // top-left → bottom-right
+                this.x = -30; this.y = Math.random() * bgH * 0.5;
+                this.vx = speed; this.vy = speed * 0.5;
+            } else if (side === 1) { // top-right → bottom-left
+                this.x = bgW + 30; this.y = Math.random() * bgH * 0.5;
+                this.vx = -speed; this.vy = speed * 0.5;
+            } else if (side === 2) { // left → right, slight down
+                this.x = -30; this.y = Math.random() * bgH;
+                this.vx = speed; this.vy = (Math.random() - 0.5) * 2;
+            } else { // right → left
+                this.x = bgW + 30; this.y = Math.random() * bgH;
+                this.vx = -speed; this.vy = (Math.random() - 0.5) * 2;
+            }
+            this.size = Math.random() * 3 + 3;
+            this.color = HEART_STAR_COLORS[Math.floor(Math.random() * HEART_STAR_COLORS.length)];
+            this.opacity = 0;
+            this.fadingIn = true;
+            this.life = 0;
+            this.maxLife = 120 + Math.random() * 60;
+            this.trail = [];
+            this.alive = true;
+        };
+        ShootingHeart.prototype.update = function() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.life++;
+            // Trail
+            this.trail.push({x: this.x, y: this.y});
+            if (this.trail.length > 12) this.trail.shift();
+            // Fade in then out
+            if (this.fadingIn) {
+                this.opacity += 0.05;
+                if (this.opacity >= 0.85) { this.opacity = 0.85; this.fadingIn = false; }
+            } else {
+                if (this.life > this.maxLife - 30) {
+                    this.opacity -= 0.03;
+                }
+            }
+            // Remove when off-screen or life over
+            if (this.opacity <= 0 && !this.fadingIn) { this.alive = false; }
+            if (this.x < -60 || this.x > bgW + 60 || this.y < -60 || this.y > bgH + 60) { this.alive = false; }
+            if (this.life > this.maxLife) { this.alive = false; }
+        };
+        ShootingHeart.prototype.draw = function(ctx) {
+            // Draw trail
+            for (var i = 0; i < this.trail.length; i++) {
+                var p = this.trail[i];
+                var trailAlpha = (i / this.trail.length) * this.opacity * 0.5;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, trailAlpha);
+                ctx.translate(p.x, p.y);
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 4;
+                drawHeart(ctx, this.size * (0.3 + i / this.trail.length * 0.7));
+                ctx.restore();
+            }
+            // Draw head
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.opacity);
+            ctx.translate(this.x, this.y);
+            ctx.fillStyle = this.color;
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = 10;
+            drawHeart(ctx, this.size);
+            ctx.restore();
+        };
+
+        var heartStars = [];
+        var shootingHearts = [];
+        var SHOOTING_HEART_COUNT = window.innerWidth < 500 ? 16 : 28;
+        for (var hs = 0; hs < SHOOTING_HEART_COUNT; hs++) heartStars.push(new HeartStar());
+
+        var bgStarsRunning = true;
+        var nextShootingHeart = 2000; // first shooting heart after 2s
+
+        function animateBgStars(t) {
+            bgCtx.clearRect(0, 0, bgW, bgH);
+            // Floating heart-stars
+            for (var i = 0; i < heartStars.length; i++) {
+                heartStars[i].update(t || 0);
+                heartStars[i].draw(bgCtx);
+            }
+            // Shooting hearts
+            for (var j = shootingHearts.length - 1; j >= 0; j--) {
+                shootingHearts[j].update();
+                shootingHearts[j].draw(bgCtx);
+                if (!shootingHearts[j].alive) shootingHearts.splice(j, 1);
+            }
+            // Spawn a new shooting heart at random intervals
+            if (t > nextShootingHeart) {
+                shootingHearts.push(new ShootingHeart());
+                nextShootingHeart = t + 2500 + Math.random() * 5000; // every 2.5–7.5s
+            }
+            requestAnimationFrame(animateBgStars);
+        }
+        requestAnimationFrame(animateBgStars);
 
         // =============================================
         //  ENTRANCE: trigger cake section fade-in on load
