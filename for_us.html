@@ -60,7 +60,7 @@
             transition: background 1.5s ease;
         }
 
-        /* Heart-stars background canvas — floating + shooting heart-shaped stars */
+        /* Shooting-hearts background canvas */
         #bg-stars-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 
         /* Vignette that appears at 75%+ progress for dramatic buildup */
@@ -233,6 +233,19 @@
             transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s ease;
             position: relative;
             overflow: hidden;
+        }
+        /* Subtle countdown glow animation */
+        .countdown-box::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 10%; right: 10%; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 157, 0.4), transparent);
+            border-radius: 2px;
+            animation: countdownGlow 3s ease-in-out infinite;
+        }
+        @keyframes countdownGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
         }
         /* Liquid-glass light reflection on top edge */
         .countdown-box::before {
@@ -578,6 +591,27 @@
         .wish-btn:disabled {
             opacity: 0.55; cursor: default; transform: none !important;
             animation: btnFloat 3s ease-in-out infinite !important;
+        }
+        .wish-btn.locked {
+            background: rgba(214, 51, 108, 0.12);
+            backdrop-filter: blur(10px) saturate(160%);
+            -webkit-backdrop-filter: blur(10px) saturate(160%);
+            border-color: rgba(255, 183, 197, 0.3);
+            cursor: not-allowed;
+            font-size: clamp(13px, 3.5vw, 17px);
+            padding: 16px 32px;
+            animation: btnFloat 3s ease-in-out infinite, lockedPulse 2.5s ease-in-out infinite !important;
+            box-shadow:
+                0 4px 16px rgba(214, 51, 108, 0.12),
+                inset 0 1px 1px rgba(255, 255, 255, 0.6);
+        }
+        .wish-btn.locked .sparkle-left,
+        .wish-btn.locked .sparkle-right {
+            display: none;
+        }
+        @keyframes lockedPulse {
+            0%, 100% { opacity: 0.45; }
+            50% { opacity: 0.7; }
         }
 
         /* Blow meter — real-time mic level feedback */
@@ -1038,16 +1072,17 @@
 
         /* Party trail sparkles */
         .party-trail {
-            position: absolute;
-            font-size: 24px;
+            position: fixed;
+            z-index: 95;
+            font-size: 22px;
             pointer-events: none;
-            animation: trailFloat 2.2s ease-out forwards;
-            filter: drop-shadow(0 0 6px rgba(255, 200, 100, 0.8));
+            animation: trailFloat 2s ease-out forwards;
+            filter: drop-shadow(0 0 5px rgba(255, 200, 100, 0.7));
         }
         @keyframes trailFloat {
-            0%   { opacity: 0; transform: translateY(0) scale(0.4) rotate(0deg); }
-            20%  { opacity: 1; transform: translateY(-14px) scale(1.1) rotate(-10deg); }
-            100% { opacity: 0; transform: translateY(-100px) scale(0.6) rotate(25deg); }
+            0%   { opacity: 0; transform: translateY(0) scale(0.5) rotate(0deg); }
+            15%  { opacity: 1; transform: translateY(-12px) scale(1.05) rotate(-8deg); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.5) rotate(20deg); }
         }
 
         /* Emoji confetti — spawned when clicking the dancers.
@@ -1360,12 +1395,18 @@
         const countdownEl = document.getElementById('countdown');
         const bannerEl = document.getElementById('birthday-banner');
 
+        var isBirthday = false;
+
         function updateCountdown() {
             const now = new Date();
             const diff = BIRTHDAY_DATE - now;
             if (diff <= 0) {
                 countdownEl.style.display = 'none';
                 bannerEl.classList.add('show');
+                if (!isBirthday) {
+                    isBirthday = true;
+                    unlockWishBtn();
+                }
                 return;
             }
             cdDays.textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
@@ -1373,8 +1414,27 @@
             cdMins.textContent = String(Math.floor((diff / 60000) % 60)).padStart(2, '0');
             cdSecs.textContent = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
         }
+
+        function lockWishBtn() {
+            wishBtn.disabled = true;
+            wishBtn.classList.add('locked');
+            wishBtn.innerHTML =
+                '🔒 Wait till it\'s your birthday to blow the candles, and don\'t you DARE forget this time or I\'ll beeb your boobies.';
+        }
+
+        function unlockWishBtn() {
+            wishBtn.disabled = false;
+            wishBtn.classList.remove('locked');
+            wishBtn.innerHTML =
+                '<span class="sparkle-left">✦</span>' +
+                'Make a wish and press me' +
+                '<span class="sparkle-right">✦</span>';
+        }
         updateCountdown();
         setInterval(updateCountdown, 1000);
+
+        // Lock the wish button until the countdown reaches zero
+        if (!isBirthday) lockWishBtn();
 
         // =============================================
         //  GENERATE CANDLES
@@ -1685,7 +1745,7 @@
             trail.style.left = cx + 'px';
             trail.style.top = cy + 'px';
             trail.style.color = ['#d6336c', '#ff6b9d', '#ec407a', '#ffd54f'][Math.floor(Math.random() * 4)];
-            danceStage.appendChild(trail);
+            document.body.appendChild(trail);
             setTimeout(function() { trail.remove(); }, 2300);
         }
 
@@ -1724,8 +1784,8 @@
             var power = 6 + Math.random() * 10;          // 6–16 px/frame initial speed
             this.vx = Math.cos(angle) * power;
             this.vy = Math.sin(angle) * power - 8;       // bias upward
-            this.gravity = 0.42;
-            this.bounce = 0.62;                          // energy retained on floor bounce
+            this.gravity = 0.36;
+            this.bounce = 0.55;                          // energy retained on floor bounce
             this.rotation = Math.random() * 360;
             this.rotSpeed = (Math.random() - 0.5) * 14;
             this.bounces = 0;
@@ -1825,7 +1885,7 @@
             var cx = rect.left + rect.width / 2;
             var cy = rect.top + rect.height / 2;
 
-            var count = 18 + Math.floor(Math.random() * 8); // 18–25 bouncy emojis
+            var count = 12 + Math.floor(Math.random() * 6); // 12–18 bouncy emojis
             for (var i = 0; i < count; i++) {
                 var emoji = emojis[Math.floor(Math.random() * emojis.length)];
                 var sizeIdx = pickWeighted(CONFETTI_SIZE_WEIGHTS);
@@ -2237,10 +2297,14 @@
 
                 // Reset UI
                 wishBtn.disabled = false;
-                wishBtn.innerHTML =
-                    '<span class="sparkle-left">✦</span>' +
-                    'Make a wish and press me' +
-                    '<span class="sparkle-right">✦</span>';
+                if (!isBirthday) {
+                    lockWishBtn();
+                } else {
+                    wishBtn.innerHTML =
+                        '<span class="sparkle-left">✦</span>' +
+                        'Make a wish and press me' +
+                        '<span class="sparkle-right">✦</span>';
+                }
                 blowHint.textContent = 'Each blow puts out one candle!';
 
                 // Show cake (reverse the leaving state smoothly)
@@ -2543,9 +2607,8 @@
         }, 8000);
 
         // =============================================
-        //  HEART-STARS BACKGROUND
-        //  Heart-shaped stars that float side-to-side, plus occasional
-        //  shooting-heart-stars that streak across randomly.
+        //  SHOOTING HEARTS BACKGROUND
+        //  Shooting-heart-stars that streak across the screen.
         // =============================================
         var bgCanvas = document.getElementById('bg-stars-canvas');
         var bgCtx = bgCanvas.getContext('2d');
@@ -2577,53 +2640,6 @@
             ctx.bezierCurveTo(s, 0, 0, 0, 0, s * 0.25);
             ctx.fill();
         }
-
-        function HeartStar() { this.reset(true); }
-        HeartStar.prototype.reset = function(initial) {
-            this.x = Math.random() * bgW;
-            this.y = initial ? Math.random() * bgH : Math.random() * bgH;
-            // Varied sizes: small, medium, and some larger hearts
-            var sizeRoll = Math.random();
-            if (sizeRoll < 0.5)      this.size = Math.random() * 3 + 1.5;   // tiny: 1.5–4.5px
-            else if (sizeRoll < 0.85) this.size = Math.random() * 4 + 4;     // medium: 4–8px
-            else                      this.size = Math.random() * 6 + 8;     // large: 8–14px
-            this.baseOpacity = Math.random() * 0.35 + 0.55; // higher base visibility
-            this.opacity = 0;
-            this.targetOpacity = this.baseOpacity;
-            // Float side-to-side
-            this.vx = (Math.random() - 0.5) * 0.35;
-            this.vy = (Math.random() - 0.5) * 0.15;      // very slow vertical drift
-            this.wobbleSpeed = Math.random() * 0.02 + 0.008;
-            this.wobbleOffset = Math.random() * Math.PI * 2;
-            this.twinkleSpeed = Math.random() * 0.03 + 0.015;
-            this.twinkleOffset = Math.random() * Math.PI * 2;
-            this.color = HEART_STAR_COLORS[Math.floor(Math.random() * HEART_STAR_COLORS.length)];
-            this.rotation = (Math.random() - 0.5) * 0.6;
-            // Larger hearts get a bigger glow
-            this.glowBlur = this.size > 7 ? 12 : 6;
-        };
-        HeartStar.prototype.update = function(t) {
-            this.x += this.vx;
-            this.y += this.vy + Math.sin(t * this.wobbleSpeed + this.wobbleOffset) * 0.15;
-            // Wrap around edges
-            if (this.x < -10) this.x = bgW + 10;
-            if (this.x > bgW + 10) this.x = -10;
-            if (this.y < -10) this.y = bgH + 10;
-            if (this.y > bgH + 10) this.y = -10;
-            // Twinkle
-            this.opacity = this.targetOpacity * (0.6 + 0.4 * Math.sin(t * this.twinkleSpeed + this.twinkleOffset));
-        };
-        HeartStar.prototype.draw = function(ctx) {
-            ctx.save();
-            ctx.globalAlpha = Math.max(0, this.opacity);
-            ctx.translate(this.x, this.y);
-            ctx.rotate(this.rotation);
-            ctx.fillStyle = this.color;
-            ctx.shadowColor = this.color;
-            ctx.shadowBlur = this.glowBlur;
-            drawHeart(ctx, this.size);
-            ctx.restore();
-        };
 
         // Shooting heart-stars — streak across the screen randomly
         function ShootingHeart() { this.reset(); }
@@ -2699,34 +2715,42 @@
             ctx.restore();
         };
 
-        var heartStars = [];
         var shootingHearts = [];
-        var SHOOTING_HEART_COUNT = window.innerWidth < 500 ? 32 : 55; // more hearts
-        for (var hs = 0; hs < SHOOTING_HEART_COUNT; hs++) heartStars.push(new HeartStar());
 
-        var bgStarsRunning = true;
-        var nextShootingHeart = 2000; // first shooting heart after 2s
 
+
+        var bgStarsRunning = false;
         function animateBgStars(t) {
+            if (!bgStarsRunning) return;
             bgCtx.clearRect(0, 0, bgW, bgH);
-            // Floating heart-stars
-            for (var i = 0; i < heartStars.length; i++) {
-                heartStars[i].update(t || 0);
-                heartStars[i].draw(bgCtx);
-            }
-            // Shooting hearts
+            // Shooting hearts only (floating hearts removed)
             for (var j = shootingHearts.length - 1; j >= 0; j--) {
                 shootingHearts[j].update();
                 shootingHearts[j].draw(bgCtx);
                 if (!shootingHearts[j].alive) shootingHearts.splice(j, 1);
             }
-            // Spawn a new shooting heart at random intervals
+            // Spawn a new shooting heart at random intervals (more frequent)
             if (t > nextShootingHeart) {
                 shootingHearts.push(new ShootingHeart());
-                nextShootingHeart = t + 2500 + Math.random() * 5000; // every 2.5–7.5s
+                nextShootingHeart = t + 800 + Math.random() * 2200; // every 0.8–3s
             }
-            requestAnimationFrame(animateBgStars);
+            // Only keep running if there are active shooting hearts or it's time for the next one
+            if (shootingHearts.length > 0 || t <= nextShootingHeart) {
+                requestAnimationFrame(animateBgStars);
+            } else {
+                bgStarsRunning = false;
+            }
         }
+        // Kick off the shooting heart animation loop
+        function ensureBgStarsRunning() {
+            if (!bgStarsRunning) {
+                bgStarsRunning = true;
+                requestAnimationFrame(animateBgStars);
+            }
+        }
+        // Start the loop and spawn the first shooting heart
+        nextShootingHeart = 500;
+        ensureBgStarsRunning();
         requestAnimationFrame(animateBgStars);
 
         // =============================================
