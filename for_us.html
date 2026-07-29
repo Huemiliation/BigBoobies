@@ -60,6 +60,22 @@
             transition: background 1.5s ease;
         }
 
+        /* Heart & party-hat grid pattern — subtle, low-opacity, infinitely drifting */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            z-index: 0; pointer-events: none;
+            opacity: 0.055;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%23d6336c'%3E%3Cpath d='M40 44 C40 36 47 31 53 31 C57 31 60 33 63 36 C66 33 69 31 73 31 C79 31 86 36 86 44 C86 55 63 69 63 69 C63 69 40 55 40 44 Z'/%3E%3C/g%3E%3Cg fill='%23ff6b9d'%3E%3Cpath d='M118 118 L134 118 L126 88 Z'/%3E%3C/g%3E%3Ccircle cx='126' cy='84' r='4' fill='%23ffd54f'/%3E%3C/svg%3E");
+            background-size: 160px 160px;
+            background-repeat: repeat;
+            animation: gridDrift 40s linear infinite;
+        }
+        @keyframes gridDrift {
+            from { background-position: 0 0; }
+            to { background-position: 160px 160px; }
+        }
+
         /* Vignette that appears at 75%+ progress for dramatic buildup */
         body::after {
             content: '';
@@ -189,14 +205,28 @@
             animation: fadeSlideIn 1.2s ease-out 0.5s forwards;
         }
         .countdown-box {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px; padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            border-radius: 18px; padding: 12px 14px;
             min-width: 66px; text-align: center;
-            box-shadow: var(--shadow-soft);
+            box-shadow:
+                0 8px 24px rgba(214, 51, 108, 0.12),
+                inset 0 1px 1px rgba(255, 255, 255, 0.9),
+                inset 0 -1px 2px rgba(255, 183, 197, 0.2);
             transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Liquid-glass light reflection on top edge */
+        .countdown-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 45%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%);
+            border-radius: 18px 18px 0 0;
+            pointer-events: none;
         }
         .countdown-box:hover {
             transform: translateY(-3px);
@@ -456,14 +486,15 @@
             background: linear-gradient(-45deg, #f06292, #ec407a, #ff80ab, #e91e63, #f48fb1, #ff6b9d);
             background-size: 300% 300%;
             animation: btnGradient 4s ease infinite, btnFloat 3s ease-in-out infinite;
-            border: 2px solid rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 60px;
             padding: 16px 40px;
             cursor: pointer;
             box-shadow:
                 0 0 24px rgba(236, 64, 122, 0.4),
                 0 0 60px rgba(236, 64, 122, 0.15),
-                0 10px 30px rgba(0, 0, 0, 0.12);
+                0 10px 30px rgba(0, 0, 0, 0.12),
+                inset 0 1px 1px rgba(255, 255, 255, 0.5);
             position: relative; overflow: hidden;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             z-index: 5;
@@ -522,12 +553,14 @@
         .blow-meter.show { display: flex; }
         .blow-meter-bar {
             width: 100%; height: 8px;
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 10px;
             overflow: hidden;
             position: relative;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         .blow-meter-fill {
             height: 100%; width: 0%;
@@ -597,18 +630,27 @@
             pointer-events: auto;
         }
         .message-card {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid rgba(255, 183, 197, 0.6);
+            background: rgba(255, 255, 255, 0.42);
+            backdrop-filter: blur(32px) saturate(200%);
+            -webkit-backdrop-filter: blur(32px) saturate(200%);
+            border: 1.5px solid rgba(255, 255, 255, 0.55);
             border-radius: 32px;
             padding: 36px 32px;
             box-shadow:
-                0 16px 48px rgba(214, 51, 108, 0.2),
-                0 2px 8px rgba(214, 51, 108, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+                0 20px 60px rgba(214, 51, 108, 0.22),
+                0 4px 12px rgba(214, 51, 108, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.95),
+                inset 0 -2px 4px rgba(255, 183, 197, 0.25);
             position: relative;
             overflow: hidden;
+        }
+        /* Liquid-glass top sheen */
+        .message-card .glass-sheen {
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.08) 60%, transparent 100%);
+            border-radius: 32px 32px 0 0;
+            pointer-events: none;
         }
         .message-card::before {
             content: '';
@@ -617,6 +659,7 @@
             background: linear-gradient(90deg, transparent, #ff6b9d, #ec407a, #ff6b9d, transparent);
             border-radius: 0 0 4px 4px;
             opacity: 0.9;
+            z-index: 1;
         }
         .message-card::after {
             content: '';
@@ -657,15 +700,17 @@
             font-family: 'Quicksand', sans-serif;
             font-size: 13px; font-weight: 600;
             color: var(--pink-deep);
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1.5px solid rgba(214, 51, 108, 0.4);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1.5px solid rgba(255, 255, 255, 0.6);
             border-radius: 50px;
             padding: 11px 24px;
             cursor: pointer;
             letter-spacing: 0.5px;
-            box-shadow: 0 4px 14px rgba(214, 51, 108, 0.12);
+            box-shadow:
+                0 6px 20px rgba(214, 51, 108, 0.14),
+                inset 0 1px 1px rgba(255, 255, 255, 0.9);
             transition: all 0.25s var(--ease-smooth);
             opacity: 0;
             transform: translateY(10px);
@@ -726,7 +771,7 @@
         .dancer-waffle {
             left: 6%;
             top: 50%;
-            animation: waffleDance 2.8s ease-in-out infinite,
+            animation: waffleDance 2.0s ease-in-out infinite,
                        waffleDrift 14s ease-in-out infinite,
                        waffleGlow 1.8s ease-in-out infinite;
         }
@@ -763,7 +808,7 @@
         .dancer-peach {
             right: 6%;
             top: 50%;
-            animation: peachDance 2.5s ease-in-out infinite,
+            animation: peachDance 1.8s ease-in-out infinite,
                        peachDrift 14s ease-in-out infinite,
                        peachGlow 1.6s ease-in-out infinite;
         }
@@ -811,13 +856,14 @@
         }
 
         /* Emoji confetti — spawned when clicking the dancers.
-           Varying sizes (large → medium → small → tiny) and colored glows. */
+           Sizes vary (large → medium → small → tiny) with colored glows.
+           Physics is driven by JS (bounce + gravity) so no CSS animation here. */
         .emoji-confetti {
             position: fixed;
             pointer-events: none;
             z-index: 95;
             will-change: transform, opacity;
-            animation: emojiConfettiFly 1.6s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+            line-height: 1;
         }
         /* Size variants */
         .emoji-confetti.size-lg  { font-size: 42px; }
@@ -836,21 +882,6 @@
             filter:
                 drop-shadow(0 0 8px rgba(255, 105, 180, 0.95))
                 drop-shadow(0 0 16px rgba(255, 64, 129, 0.6));
-        }
-
-        @keyframes emojiConfettiFly {
-            0% {
-                opacity: 1;
-                transform: translate(0, 0) scale(0.3) rotate(0deg);
-            }
-            15% {
-                opacity: 1;
-                transform: translate(calc(var(--dx) * 0.15), calc(var(--dy) * 0.15 - 20px)) scale(1.15) rotate(calc(var(--rot) * 0.15));
-            }
-            100% {
-                opacity: 0;
-                transform: translate(var(--dx), calc(var(--dy) + 180px)) scale(0.5) rotate(var(--rot));
-            }
         }
 
         .party-bubble {
@@ -881,6 +912,31 @@
         @keyframes hintFade { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
 
         /* --- RESPONSIVE --- */
+        /* Mobile / tablet: stack dancers vertically (peach above, waffle below message) */
+        @media (max-width: 768px) {
+            .dance-stage {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: space-between;
+                padding: 6vh 0 5vh;
+            }
+            .dance-stage.active .dancer { position: relative !important; }
+            .dancer-waffle {
+                left: auto !important; right: auto !important; top: auto !important;
+                order: 3;
+            }
+            .dancer-peach {
+                left: auto !important; right: auto !important; top: auto !important;
+                order: 1;
+            }
+            .party-bubble { display: none; }
+            /* Shift content up so message sits between the two dancers */
+            .content.faded {
+                justify-content: flex-start;
+                padding-top: 16vh;
+            }
+        }
         @media (max-width: 380px) {
             .tier-candles-bot .candles-row { gap: 3px; }
             .tier-candles-bot .candle-body { width: 4px; height: 14px; }
@@ -888,8 +944,6 @@
             .tier-candles-mid .candles-row { gap: 5px; }
             .countdown-box { min-width: 56px; padding: 8px 8px; }
             .wish-btn { padding: 14px 30px; }
-            .dancer-waffle { left: 2%; }
-            .dancer-peach { right: 2%; }
         }
         @media (min-height: 800px) { .content { gap: 24px; } }
         @supports (padding-top: env(safe-area-inset-top)) {
@@ -1023,6 +1077,7 @@
             <!-- Message Section -->
             <div class="message-section" id="message-section">
                 <div class="message-card">
+                    <div class="glass-sheen"></div>
                     <h2 class="message-title">Happy 21st Birthday, Helia! 🌸</h2>
                     <p class="message-text" id="message-text"></p>
                 </div>
@@ -1176,6 +1231,9 @@
             container.appendChild(smoke);
             setTimeout(function() { smoke.remove(); }, 800);
 
+            // Haptic feedback — a short, crisp pulse for each candle blown out
+            if (navigator.vibrate) navigator.vibrate(45);
+
             candlesOut++;
             updateCounter();
             updateProgressEffects();
@@ -1238,10 +1296,7 @@
                 spawnAmbientSparkle();
             }
 
-            // 6. Sync petal count + colors to progress (more + deeper colors)
-            if (typeof syncPetalsToProgress === 'function') {
-                syncPetalsToProgress();
-            }
+            // (Petals are NOT spawned here — they only appear after ALL candles are blown)
         }
 
         function resetProgressEffects() {
@@ -1250,10 +1305,7 @@
             edgeGlow.classList.remove('active');
             edgeGlowFill.style.boxShadow = 'none';
             edgeGlowInner.style.background = '';
-            // Refresh petals back to the base palette
-            if (typeof syncPetalsToProgress === 'function') {
-                syncPetalsToProgress();
-            }
+            // Petals are cleared separately during replay
         }
 
         // Ambient floating sparkles (background atmosphere)
@@ -1314,7 +1366,7 @@
                 blowHint.classList.add('show');
                 wishBtn.onclick = function() {
                     extinguishCandle();
-                    if (navigator.vibrate) navigator.vibrate(30);
+                    if (navigator.vibrate) navigator.vibrate(45);
                 };
             }
         }
@@ -1364,7 +1416,6 @@
                 extinguishCandle();
                 blowMeter.classList.add('detected');
                 blowMeterLabel.textContent = 'Candle out! 🕯️💨';
-                if (navigator.vibrate) navigator.vibrate(50);
             }
 
             // Detect blow END (level drops below end threshold)
@@ -1421,8 +1472,9 @@
         }
 
         // =============================================
-        //  EMOJI CONFETTI — click a dancer to burst its own emoji
-        //  Sizes range from large down to tiny, with matching glows.
+        //  EMOJI CONFETTI — physics-based bouncy emojis
+        //  Pop out of the dancer, bounce across the screen with gravity,
+        //  and disappear when they fall off-screen.
         // =============================================
         var CONFETTI_SIZES = ['size-lg', 'size-md', 'size-sm', 'size-xs', 'size-tiny'];
         // Weighted toward smaller sizes so the burst feels like a sparkling spray
@@ -1441,42 +1493,128 @@
         var CONFETTI_EMOJIS_WAFFLE = ['🧇', '🍯', '🧈', '🍓', '🥞', '🎉', '✨', '💛', '🌟', '🧇'];
         var CONFETTI_EMOJIS_PEACH  = ['🍑', '🌸', '💖', '🌷', '💐', '🎉', '✨', '💗', '🌟', '🍑'];
 
+        // --- Physics-based emoji bouncer ---
+        var emojiBouncers = [];
+        var emojiPhysicsRunning = false;
+        var emojiLastTime = 0;
+
+        function EmojiBouncer(x, y, emoji, glowClass, sizeClass) {
+            this.x = x;
+            this.y = y;
+            // Strong outward + upward pop
+            var angle = Math.random() * Math.PI * 2;
+            var power = 6 + Math.random() * 10;          // 6–16 px/frame initial speed
+            this.vx = Math.cos(angle) * power;
+            this.vy = Math.sin(angle) * power - 8;       // bias upward
+            this.gravity = 0.42;
+            this.bounce = 0.62;                          // energy retained on floor bounce
+            this.rotation = Math.random() * 360;
+            this.rotSpeed = (Math.random() - 0.5) * 14;
+            this.bounces = 0;
+            this.maxBounces = 2 + Math.floor(Math.random() * 2); // 2–3 bounces then fall through
+            this.life = 0;
+            this.maxLife = 4500;
+            this.alive = true;
+
+            var el = document.createElement('div');
+            el.className = 'emoji-confetti ' + glowClass + ' ' + sizeClass;
+            el.textContent = emoji;
+            el.style.left = '0px';
+            el.style.top = '0px';
+            el.style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(0deg)';
+            document.body.appendChild(el);
+            this.element = el;
+        }
+
+        EmojiBouncer.prototype.update = function(dt) {
+            // dt is in ms; normalise to ~60fps frame factor
+            var f = dt / 16.67;
+            this.vy += this.gravity * f;
+            this.x += this.vx * f;
+            this.y += this.vy * f;
+            this.rotation += this.rotSpeed * f;
+            this.life += dt;
+
+            var floorY = window.innerHeight - 20;
+            // Bounce off floor (until maxBounces reached, then fall through)
+            if (this.y > floorY && this.vy > 0 && this.bounces < this.maxBounces) {
+                this.y = floorY;
+                this.vy = -this.vy * this.bounce;
+                this.vx *= 0.82;
+                this.rotSpeed *= 0.75;
+                this.bounces++;
+            }
+
+            // Bounce off side walls softly
+            if (this.x < 0 && this.vx < 0) { this.x = 0; this.vx = -this.vx * 0.7; }
+            if (this.x > window.innerWidth && this.vx > 0) { this.x = window.innerWidth; this.vx = -this.vx * 0.7; }
+
+            // Remove when below screen (after bounces exhausted) or life over
+            if (this.y > window.innerHeight + 60 || this.life > this.maxLife) {
+                this.alive = false;
+                return;
+            }
+
+            // Fade out in the last 600ms of life
+            var opacity = 1;
+            if (this.life > this.maxLife - 600) {
+                opacity = Math.max(0, (this.maxLife - this.life) / 600);
+            }
+            // Also start fading after last bounce as it falls away
+            if (this.bounces >= this.maxBounces && this.vy > 0) {
+                opacity = Math.min(opacity, Math.max(0, 1 - (this.y - floorY) / 100));
+            }
+
+            this.element.style.transform =
+                'translate(' + this.x + 'px,' + this.y + 'px) rotate(' + this.rotation + 'deg)';
+            this.element.style.opacity = opacity;
+        };
+
+        EmojiBouncer.prototype.destroy = function() {
+            if (this.element && this.element.parentNode) {
+                this.element.parentNode.removeChild(this.element);
+            }
+        };
+
+        function animateEmojiPhysics(time) {
+            if (emojiBouncers.length === 0) {
+                emojiPhysicsRunning = false;
+                return;
+            }
+            var dt = Math.min(50, time - emojiLastTime); // clamp dt to avoid jumps after tab switch
+            emojiLastTime = time;
+            for (var i = emojiBouncers.length - 1; i >= 0; i--) {
+                emojiBouncers[i].update(dt);
+                if (!emojiBouncers[i].alive) {
+                    emojiBouncers[i].destroy();
+                    emojiBouncers.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateEmojiPhysics);
+        }
+
+        function startEmojiPhysics() {
+            if (!emojiPhysicsRunning) {
+                emojiPhysicsRunning = true;
+                emojiLastTime = performance.now();
+                requestAnimationFrame(animateEmojiPhysics);
+            }
+        }
+
         function spawnEmojiConfetti(dancerEl, emojis, glowClass) {
             if (!dancerEl) return;
             var rect = dancerEl.getBoundingClientRect();
             var cx = rect.left + rect.width / 2;
             var cy = rect.top + rect.height / 2;
 
-            var count = 22 + Math.floor(Math.random() * 10); // 22–31 pieces (fuller confetti burst)
+            var count = 18 + Math.floor(Math.random() * 8); // 18–25 bouncy emojis
             for (var i = 0; i < count; i++) {
-                var piece = document.createElement('div');
-                piece.className = 'emoji-confetti ' + glowClass;
-                // Pick a random emoji from the mix so the burst looks like varied emoji confetti
-                piece.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-
-                // Pick a size (weighted toward small)
+                var emoji = emojis[Math.floor(Math.random() * emojis.length)];
                 var sizeIdx = pickWeighted(CONFETTI_SIZE_WEIGHTS);
-                piece.classList.add(CONFETTI_SIZES[sizeIdx]);
-
-                // Random outward direction + distance (wider spread for confetti feel)
-                var angle = Math.random() * Math.PI * 2;
-                var distance = 80 + Math.random() * 180; // 80–260px
-                var dx = Math.cos(angle) * distance;
-                var dy = Math.sin(angle) * distance * 0.6 - 60; // bias upward
-                var rot = (Math.random() - 0.5) * 720; // up to ±360deg
-
-                piece.style.left = cx + 'px';
-                piece.style.top = cy + 'px';
-                piece.style.setProperty('--dx', dx + 'px');
-                piece.style.setProperty('--dy', dy + 'px');
-                piece.style.setProperty('--rot', rot + 'deg');
-                // No animation delay — pop immediately for an instant confetti burst
-
-                document.body.appendChild(piece);
-                (function(el) {
-                    setTimeout(function() { el.remove(); }, 1800);
-                })(piece);
+                var sizeClass = CONFETTI_SIZES[sizeIdx];
+                emojiBouncers.push(new EmojiBouncer(cx, cy, emoji, glowClass, sizeClass));
             }
+            startEmojiPhysics();
         }
 
         // Click/tap handlers on the dancers
@@ -1485,7 +1623,7 @@
                 return function(e) {
                     e.stopPropagation();
                     spawnEmojiConfetti(dancerEl, emojis, glowClass);
-                    if (navigator.vibrate) navigator.vibrate(25);
+                    if (navigator.vibrate) navigator.vibrate(35);
                 };
             }
             dancerWaffle.addEventListener('click', handleDancerClick(dancerWaffle, CONFETTI_EMOJIS_WAFFLE, 'glow-waffle'));
@@ -1495,13 +1633,13 @@
                 e.preventDefault();
                 e.stopPropagation();
                 spawnEmojiConfetti(dancerWaffle, CONFETTI_EMOJIS_WAFFLE, 'glow-waffle');
-                if (navigator.vibrate) navigator.vibrate(25);
+                if (navigator.vibrate) navigator.vibrate(35);
             }, { passive: false });
             dancerPeach.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 spawnEmojiConfetti(dancerPeach, CONFETTI_EMOJIS_PEACH, 'glow-peach');
-                if (navigator.vibrate) navigator.vibrate(25);
+                if (navigator.vibrate) navigator.vibrate(35);
             }, { passive: false });
         }
         setupDancerClicks();
@@ -1531,6 +1669,29 @@
         }
 
         // =============================================
+        //  HAPP BIRTHDAY HAPTIC SONG
+        //  Plays the rhythm of "Happy Birthday" via phone vibration.
+        //  navigator.vibrate only supports duration (no intensity),
+        //  so we vary vibrate/pause lengths to match the melody rhythm.
+        // =============================================
+        function playHappyBirthdayHaptics() {
+            if (!navigator.vibrate) return;
+            // Rhythm units (ms)
+            var eighth = 170, quarter = 340, half = 680, whole = 1050;
+            var gap = 60, phraseGap = 260;
+
+            // "Happy birthday to you"  (6 notes: eighth-eighth-quarter-quarter-quarter-half)
+            var phrase = [eighth, gap, eighth, gap, quarter, gap, quarter, gap, quarter, gap, half, phraseGap];
+            // "Happy birthday dear Heliaaa" (7 notes, last one held)
+            var phraseLong = [eighth, gap, eighth, gap, quarter, gap, quarter, gap, quarter, gap, quarter, gap, half, phraseGap];
+            // "Happy birthday to you" final (ends with a longer whole note)
+            var phraseEnd = [eighth, gap, eighth, gap, quarter, gap, quarter, gap, quarter, gap, whole];
+
+            var pattern = phrase.concat(phrase).concat(phraseLong).concat(phraseEnd);
+            navigator.vibrate(pattern);
+        }
+
+        // =============================================
         //  CELEBRATION — smooth cross-fade transition
         // =============================================
         function onAllCandlesOut() {
@@ -1545,6 +1706,12 @@
                 '<span class="sparkle-right">✦</span>';
             blowHint.classList.remove('show');
             blowMeter.classList.remove('show');
+
+            // Play the Happy Birthday song via haptic vibrations
+            playHappyBirthdayHaptics();
+
+            // Start spawning petals (they fade in smoothly from here)
+            startPetalSpawn();
 
             // Burst of confetti at cake position
             var cakeRect = cakeSection.getBoundingClientRect();
@@ -1615,6 +1782,14 @@
             if (partyTrailTimer) { clearInterval(partyTrailTimer); partyTrailTimer = null; }
             if (barrelRollTimer) { clearTimeout(barrelRollTimer); barrelRollTimer = null; }
             danceStage.querySelectorAll('.party-trail').forEach(function(t) { t.remove(); });
+
+            // Stop haptics (cancel any ongoing vibration pattern)
+            if (navigator.vibrate) navigator.vibrate(0);
+
+            // Clear all petals + bouncy emojis (optimisation: frees the rAF loops)
+            clearAllPetals();
+            for (var i = emojiBouncers.length - 1; i >= 0; i--) { emojiBouncers[i].destroy(); }
+            emojiBouncers.length = 0;
 
             // Phase 1: message fades out + prelude elements fade back in
             messageSection.classList.remove('show');
@@ -1705,7 +1880,9 @@
             this.rotSpeed = (Math.random() - 0.5) * 0.02;
             this.wobbleSpeed = Math.random() * 0.015 + 0.008;
             this.wobbleOffset = Math.random() * Math.PI * 2;
-            this.opacity = Math.random() * 0.4 + 0.4;
+            this.targetOpacity = Math.random() * 0.4 + 0.4;
+            this.opacity = 0;                             // start invisible — fade in smoothly
+            this.fadeInSpeed = 0.006 + Math.random() * 0.006; // per-frame fade rate
             this.color = getActivePetalColors()[Math.floor(Math.random() * getActivePetalColors().length)];
             this.type = Math.random() > 0.7 ? 'flower' : 'petal';
         };
@@ -1713,6 +1890,11 @@
             this.y += this.speedY;
             this.x += this.speedX + Math.sin(t * this.wobbleSpeed + this.wobbleOffset) * 0.5;
             this.rotation += this.rotSpeed;
+            // Smooth fade-in toward target opacity
+            if (this.opacity < this.targetOpacity) {
+                this.opacity += this.fadeInSpeed;
+                if (this.opacity > this.targetOpacity) this.opacity = this.targetOpacity;
+            }
             if (this.y > sHeight + 20) this.reset(false);
             if (this.x < -20) this.x = sWidth + 20;
             if (this.x > sWidth + 20) this.x = -20;
@@ -1745,35 +1927,49 @@
         };
 
         resizeSakura();
-        // Spawn petals gradually (one at a time from the top) instead of popping in all at once
-        var petalSpawnTimer = setInterval(function() {
-            if (petals.length < BASE_PETALS) {
-                petals.push(new Petal(false)); // spawn at top, fall down naturally
-            } else {
-                clearInterval(petalSpawnTimer);
-            }
-        }, 110);
+        // Petals do NOT spawn on load — they only appear (with a smooth fade-in)
+        // after ALL candles are blown out, via startPetalSpawn().
 
-        // Reconcile the active petal count + colors with progress.
-        // Called from updateProgressEffects().
-        function syncPetalsToProgress() {
+        var petalSpawnTimer = null;
+        var sakuraRunning = false;
+        var sakuraTime = 0;
+
+        // Begin gradually spawning petals (called from onAllCandlesOut).
+        // Each new petal starts at opacity 0 and fades in smoothly.
+        function startPetalSpawn() {
             var target = getTargetPetalCount();
-            // Add petals if we need more
-            while (petals.length < target) petals.push(new Petal());
-            // (We don't remove petals when progress resets on replay —
-            //  instead their colors refresh via reset() when they wrap.)
-            // Refresh a random subset of existing petals to the new palette
-            // so the color shift is visible without a jarring swap.
-            var colors = getActivePetalColors();
-            for (var i = 0; i < petals.length; i++) {
-                if (Math.random() < 0.5) {
-                    petals[i].color = colors[Math.floor(Math.random() * colors.length)];
+            if (petalSpawnTimer) clearInterval(petalSpawnTimer);
+            petalSpawnTimer = setInterval(function() {
+                if (petals.length < target) {
+                    petals.push(new Petal(false)); // spawn at top, fall down + fade in
+                    if (!sakuraRunning) {
+                        sakuraRunning = true;
+                        requestAnimationFrame(animateSakura);
+                    }
+                } else {
+                    clearInterval(petalSpawnTimer);
+                    petalSpawnTimer = null;
                 }
-            }
+            }, 140); // one new petal every 140ms — gradual, never pops in
         }
 
-        var sakuraTime = 0;
+        function clearAllPetals() {
+            petals.length = 0;
+            if (petalSpawnTimer) { clearInterval(petalSpawnTimer); petalSpawnTimer = null; }
+            sakuraRunning = false;
+            sCtx.clearRect(0, 0, sWidth, sHeight);
+        }
+
+        // (syncPetalsToProgress is no longer called during candle progress —
+        //  petals only exist after the celebration begins.)
+        function syncPetalsToProgress() { /* no-op — kept for safety */ }
+
         function animateSakura() {
+            // Optimization: skip the loop entirely when there are no petals
+            if (petals.length === 0) {
+                sakuraRunning = false;
+                return;
+            }
             sCtx.clearRect(0, 0, sWidth, sHeight);
             sakuraTime++;
             for (var i = 0; i < petals.length; i++) {
@@ -1783,7 +1979,6 @@
             requestAnimationFrame(animateSakura);
         }
         window.addEventListener('resize', resizeSakura);
-        animateSakura();
 
         // =============================================
         //  EFFECTS CANVAS (Confetti + Fireworks)
@@ -1829,6 +2024,7 @@
 
         function spawnConfetti(x, y, count) {
             for (var i = 0; i < (count || 18); i++) confettiPieces.push(new ConfettiPiece(x, y));
+            startFxLoop();
         }
 
         var fireworkParticles = [];
@@ -1866,12 +2062,19 @@
                         for (var i = 0; i < 30 + Math.floor(Math.random() * 20); i++) {
                             fireworkParticles.push(new FWParticle(cx, cy, color));
                         }
+                        startFxLoop();
                     }, delay);
                 })(b * 300);
             }
         }
 
+        var fxRunning = false;
         function animateEffects() {
+            // Optimization: skip the loop entirely when there are no particles
+            if (confettiPieces.length === 0 && fireworkParticles.length === 0) {
+                fxRunning = false;
+                return;
+            }
             fxCtx.clearRect(0, 0, fxWidth, fxHeight);
             var i;
             for (i = confettiPieces.length - 1; i >= 0; i--) {
@@ -1884,7 +2087,12 @@
             }
             requestAnimationFrame(animateEffects);
         }
-        animateEffects();
+        function startFxLoop() {
+            if (!fxRunning) {
+                fxRunning = true;
+                requestAnimationFrame(animateEffects);
+            }
+        }
 
         // Tap for confetti
         document.addEventListener('click', function(e) {
