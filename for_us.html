@@ -593,25 +593,37 @@
             animation: btnFloat 3s ease-in-out infinite !important;
         }
         .wish-btn.locked {
-            background: rgba(214, 51, 108, 0.12);
-            backdrop-filter: blur(10px) saturate(160%);
-            -webkit-backdrop-filter: blur(10px) saturate(160%);
-            border-color: rgba(255, 183, 197, 0.3);
+            background: rgba(214, 51, 108, 0.22);
+            backdrop-filter: blur(14px) saturate(180%);
+            -webkit-backdrop-filter: blur(14px) saturate(180%);
+            border-color: rgba(255, 183, 197, 0.4);
             cursor: not-allowed;
             font-size: clamp(13px, 3.5vw, 17px);
             padding: 16px 32px;
+            color: #fff;
+            text-shadow: 0 1px 4px rgba(120, 20, 60, 0.7), 0 0 8px rgba(255, 107, 157, 0.3);
             animation: btnFloat 3s ease-in-out infinite, lockedPulse 2.5s ease-in-out infinite !important;
             box-shadow:
-                0 4px 16px rgba(214, 51, 108, 0.12),
-                inset 0 1px 1px rgba(255, 255, 255, 0.6);
+                0 6px 24px rgba(214, 51, 108, 0.2),
+                0 0 40px rgba(236, 64, 122, 0.08),
+                inset 0 1px 1px rgba(255, 255, 255, 0.7),
+                inset 0 -1px 2px rgba(214, 51, 108, 0.15);
         }
         .wish-btn.locked .sparkle-left,
         .wish-btn.locked .sparkle-right {
             display: none;
         }
+        /* Shimmer shine on locked button — same as the normal button but slightly subtler */
+        .wish-btn.locked::before {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+            animation: shimmer 6s ease-in-out infinite 1s;
+        }
+        .wish-btn.locked::after {
+            background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%);
+        }
         @keyframes lockedPulse {
-            0%, 100% { opacity: 0.45; }
-            50% { opacity: 0.7; }
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.85; }
         }
 
         /* Blow meter — real-time mic level feedback */
