@@ -776,6 +776,11 @@
             vertical-align: baseline;
             line-height: 1.4;
         }
+        /* "Kuchulu" means "tiny" — render it much smaller than "Hulu" */
+        .message-text .wave-text .wave-small {
+            font-size: 0.6em;
+            vertical-align: baseline;
+        }
         .wave-letter {
             display: inline-block;
             color: #ff6b9d;
@@ -795,7 +800,7 @@
             100% { color: #ff6b9d; text-shadow: 0 0 8px #ff6b9d; }
         }
 
-        /* --- "kiss" word — wine-red glow + pulsing scale. Kiss emoji BEHIND the word --- */
+        /* --- "kiss" word — wine-red glow. Kiss emoji BEHIND the word, both grow together --- */
         .message-text .kiss-word {
             display: inline-block;
             font-weight: 700;
@@ -805,7 +810,8 @@
             text-shadow:
                 0 0 6px rgba(173, 20, 87, 0.8),
                 0 0 14px rgba(136, 14, 79, 0.5);
-            animation: kissPulse 2.2s ease-in-out infinite;
+            /* Word and emoji share the same grow/shrink timing */
+            animation: kissGrow 2.2s ease-in-out infinite;
         }
         /* Kiss emoji sits behind the word (lower z-index, absolutely positioned) */
         .message-text .kiss-word::before {
@@ -813,20 +819,29 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            transform: translate(-50%, -50%) scale(0.6);
+            transform: translate(-50%, -50%) scale(0.5);
             z-index: 1;
-            opacity: 0.5;
+            opacity: 0.3;           /* lower opacity so the word stays readable */
             font-size: 1.6em;
             pointer-events: none;
-            animation: kissEmojiPop 2.2s ease-in-out infinite;
+            /* Emoji grows in sync with the word — same keyframe, mirrored scale */
+            animation: kissEmojiGrow 2.2s ease-in-out infinite;
         }
-        @keyframes kissPulse {
-            0%, 100% { transform: scale(1); text-shadow: 0 0 6px rgba(173,20,87,0.8), 0 0 14px rgba(136,14,79,0.5); }
-            50%      { transform: scale(1.12); text-shadow: 0 0 10px rgba(173,20,87,1), 0 0 24px rgba(136,14,79,0.7); }
+        /* Word grows from 1 → 1.3 → 1 in sync with the emoji */
+        @keyframes kissGrow {
+            0%, 100% {
+                transform: scale(1);
+                text-shadow: 0 0 6px rgba(173,20,87,0.8), 0 0 14px rgba(136,14,79,0.5);
+            }
+            50% {
+                transform: scale(1.3);
+                text-shadow: 0 0 12px rgba(173,20,87,1), 0 0 28px rgba(136,14,79,0.7);
+            }
         }
-        @keyframes kissEmojiPop {
-            0%, 100% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.4; }
-            50%      { transform: translate(-50%, -50%) scale(1.3); opacity: 0.85; }
+        /* Emoji grows from 0.5 → 1.4 → 0.5 in sync with the word */
+        @keyframes kissEmojiGrow {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.25; }
+            50%      { transform: translate(-50%, -50%) scale(1.4); opacity: 0.5; }
         }
 
         /* --- "hug" word — squeezing hug animation, text only (no emojis) --- */
@@ -1092,31 +1107,36 @@
         @keyframes hintFade { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
 
         /* --- RESPONSIVE --- */
-        /* Mobile / tablet: waffle + peach side-by-side ABOVE the text box */
+        /* Mobile / tablet: waffle + peach side-by-side, sitting right above the text box.
+           The dance-stage is positioned via JS to track the top of the message card
+           so the dancers move upward as the text grows. */
         @media (max-width: 768px) {
             .dance-stage {
                 display: flex;
                 flex-direction: row;       /* side by side */
                 align-items: center;
                 justify-content: center;
-                gap: 36px;
-                top: 0;
+                gap: 28px;
+                top: auto;
                 bottom: auto;
+                left: 0;
+                right: 0;
                 height: auto;
-                padding: 5vh 16px 0;
+                padding: 0 16px;
+                /* Position is set via JS (translateY) to sit just above the message card */
             }
             .dance-stage.active .dancer { position: relative !important; }
             .dancer-waffle,
             .dancer-peach {
                 left: auto !important; right: auto !important; top: auto !important;
                 order: 0;
-                font-size: clamp(48px, 12vw, 64px);
+                font-size: clamp(42px, 11vw, 56px);
             }
             .party-bubble { display: none; }
             /* Content stays centered */
             .content.faded { justify-content: center; }
-            /* Give the message a little top breathing room so it doesn't collide with dancers */
-            .message-section { padding-top: 8vh; }
+            /* Message section stays centered in the viewport */
+            .message-section { padding-top: 0; }
         }
         @media (max-width: 380px) {
             .tier-candles-bot .candles-row { gap: 4px; }
@@ -1282,7 +1302,7 @@
         const TIER_CANDLES = [4, 7, 10]; // top, middle, bottom
 
         const BIRTHDAY_MESSAGE =
-            'Happy birthday <span class="wave-text">Hulu Kuchulu</span>, I love you with all my heart and soul and I\'m always thinking about you. ' +
+            'Happy birthday <span class="wave-text">Hulu <span class="wave-small">Kuchulu</span></span>, I love you with all my heart and soul and I\'m always thinking about you. ' +
             'I wish I could give you a <span class="hug-word">hug</span> and a <span class="kiss-word">kiss</span> but for now this is all I could think of doing. ' +
             'I love you so much and wish you all the best. Always.';
 
@@ -1648,6 +1668,8 @@
             }, 350);
             // Kick off random barrel rolls
             scheduleBarrelRoll();
+            // Position dancers above the message on mobile
+            setTimeout(positionDancersAboveMessage, 100);
         }
 
         function spawnPartyTrail(dancerId) {
@@ -1949,6 +1971,28 @@
         }
 
         // =============================================
+        //  MOBILE DANCER POSITIONING
+        //  On mobile, position the waffle + peach right above the message card,
+        //  and move them upward as the text grows so they never overlap.
+        // =============================================
+        function positionDancersAboveMessage() {
+            if (window.innerWidth > 768) return; // only on mobile/tablet
+            var stage = document.getElementById('dance-stage');
+            var msgCard = document.querySelector('.message-card');
+            if (!stage || !msgCard) return;
+            // Only reposition when the dance party is active
+            if (!stage.classList.contains('active')) return;
+            var cardRect = msgCard.getBoundingClientRect();
+            // Sit the dancers just above the top of the message card, centered
+            var dancerHeight = stage.offsetHeight || 56;
+            var topPx = cardRect.top - dancerHeight - 8;
+            // Clamp so they never go off the top of the screen
+            if (topPx < 8) topPx = 8;
+            stage.style.top = topPx + 'px';
+            stage.style.transform = 'none';
+        }
+
+        // =============================================
         //  TYPEWRITER MESSAGE
         //  Handles HTML tags safely (so <span class="name-highlight"> isn't split mid-tag).
         // =============================================
@@ -1979,21 +2023,39 @@
                 if (i < tokens.length) {
                     // Once wave is split, always use the split-preserving builder
                     el.innerHTML = (waveSplitDone ? buildHtmlWithSplit(tokens, i) : buildHtml()) + cursor;
-                    // After the wave-text closing </span> is emitted, split it into
-                    // per-letter spans so the wave animation starts immediately.
+                    // After the wave-text's OWN closing </span> is emitted, start using
+                    // the split builder so the wave animation begins immediately.
                     if (!waveSplitDone) {
-                        var built = buildHtml();
-                        var waveOpen = built.indexOf('class="wave-text"');
-                        if (waveOpen !== -1) {
-                            var afterOpen = built.substring(waveOpen);
-                            // If there's a </span> after the opening wave-text tag, it's complete
-                            if (afterOpen.indexOf('</span>') !== -1) {
-                                waveSplitDone = true;
-                                // Re-render with the split version preserved
-                                el.innerHTML = buildHtmlWithSplit(tokens, i) + cursor;
+                        // Check if the wave-text opening tag has been emitted
+                        var waveStarted = false;
+                        var depth = 0;
+                        for (var ti = 0; ti < i; ti++) {
+                            var tt = tokens[ti];
+                            if (tt.tag) {
+                                if (tt.text.indexOf('class="wave-text"') !== -1) {
+                                    waveStarted = true;
+                                    depth = 1; // we're inside wave-text
+                                } else if (tt.text.indexOf('<span') === 0 && tt.text.indexOf('class="') !== -1) {
+                                    if (waveStarted) depth++; // nested span opens
+                                } else if (tt.text === '</span>') {
+                                    if (waveStarted) {
+                                        depth--;
+                                        if (depth === 0) {
+                                            // wave-text's own closing tag has been emitted
+                                            waveSplitDone = true;
+                                            break;
+                                        }
+                                    }
+                                }
                             }
                         }
+                        if (waveSplitDone) {
+                            // Re-render with the split version preserved
+                            el.innerHTML = buildHtmlWithSplit(tokens, i) + cursor;
+                        }
                     }
+                    // Move dancers upward as the text box grows (mobile)
+                    positionDancersAboveMessage();
                     i++;
                     // Skip ahead instantly through tags so there's no pause on them
                     if (i < tokens.length && tokens[i - 1].tag) {
@@ -2006,40 +2068,71 @@
                         el.innerHTML = text;
                         // Final activation of wave text
                         activateWaveText();
+                        // Final dancer position update
+                        positionDancersAboveMessage();
                         if (typeof onDone === 'function') onDone();
                     }, 1800);
                 }
             }
 
             // Build HTML but preserve the already-split wave-text spans.
-            // Once waveSplitDone is true, the wave-text portion is replaced with
-            // the per-letter spans that activateWaveText() created.
+            // Handles nested .wave-small wrapper so "Kuchulu" stays small.
             function buildHtmlWithSplit(toks, upTo) {
-                // Find the wave-text opening tag and its closing tag in the tokens
                 var result = '';
                 var inWave = false;
-                var waveDone = false;
-                var waveLetters = '';
+                var inSmall = false;
+                var waveDelay = 0;
+                var normalLetters = '';
+                var smallLetters = '';
+
+                function emitLetters(letters, target) {
+                    for (var li = 0; li < letters.length; li++) {
+                        var lc = letters[li];
+                        target += '<span class="wave-letter" style="animation-delay:' + (waveDelay * 0.1) + 's">' +
+                                  (lc === ' ' ? '&nbsp;' : lc) + '</span>';
+                        waveDelay++;
+                    }
+                    return target;
+                }
+
                 for (var j = 0; j < upTo; j++) {
                     var tk = toks[j];
                     if (tk.tag && tk.text.indexOf('class="wave-text"') !== -1) {
                         inWave = true;
                         result += tk.text; // opening <span class="wave-text">
+                    } else if (inWave && tk.tag && tk.text.indexOf('class="wave-small"') !== -1) {
+                        inSmall = true;
+                        // Emit any normal letters collected so far
+                        result = emitLetters(normalLetters, result);
+                        normalLetters = '';
+                        result += tk.text; // opening <span class="wave-small">
                     } else if (inWave && tk.tag && tk.text === '</span>') {
-                        // Closing tag of wave-text — emit the split letters instead
-                        var letters = waveLetters.split('');
-                        for (var li = 0; li < letters.length; li++) {
-                            var lc = letters[li];
-                            result += '<span class="wave-letter" style="animation-delay:' + (li * 0.1) + 's">' +
-                                      (lc === ' ' ? '&nbsp;' : lc) + '</span>';
+                        if (inSmall) {
+                            // Close wave-small: emit small letters inside it
+                            result = emitLetters(smallLetters, result);
+                            smallLetters = '';
+                            result += tk.text; // closing </span> for wave-small
+                            inSmall = false;
+                        } else {
+                            // Close wave-text: emit any remaining normal letters
+                            result = emitLetters(normalLetters, result);
+                            normalLetters = '';
+                            result += tk.text; // closing </span> for wave-text
+                            inWave = false;
                         }
-                        result += tk.text; // closing </span>
-                        inWave = false;
-                        waveDone = true;
                     } else if (inWave && !tk.tag) {
-                        waveLetters += tk.text;
+                        if (inSmall) smallLetters += tk.text;
+                        else normalLetters += tk.text;
                     } else {
                         result += tk.text;
+                    }
+                }
+                // If we're still inside wave (not yet closed), emit collected letters
+                if (inWave) {
+                    if (inSmall) {
+                        result = emitLetters(smallLetters, result);
+                    } else {
+                        result = emitLetters(normalLetters, result);
                     }
                 }
                 return result;
@@ -2069,19 +2162,33 @@
 
         // After the message finishes, split the wave-text "Hulu Kuchulu" into
         // per-letter spans so the wave CSS animation can ripple through them.
+        // Preserves nested .wave-small wrapper so "Kuchulu" stays small.
         // Safe to call multiple times — checks dataset.split to avoid re-splitting.
         function activateWaveText() {
             var waveEl = document.querySelector('.message-text .wave-text');
             if (!waveEl || waveEl.dataset.split === '1') return;
-            var letters = waveEl.textContent;
-            waveEl.innerHTML = '';
-            for (var i = 0; i < letters.length; i++) {
-                var sp = document.createElement('span');
-                sp.className = 'wave-letter';
-                sp.textContent = letters[i] === ' ' ? '\u00A0' : letters[i];
-                sp.style.animationDelay = (i * 0.1) + 's';
-                waveEl.appendChild(sp);
+            var delay = 0;
+            function splitNode(node) {
+                if (node.nodeType === 3) { // text node
+                    var text = node.textContent;
+                    var frag = document.createDocumentFragment();
+                    for (var i = 0; i < text.length; i++) {
+                        var sp = document.createElement('span');
+                        sp.className = 'wave-letter';
+                        sp.textContent = text[i] === ' ' ? '\u00A0' : text[i];
+                        sp.style.animationDelay = (delay * 0.1) + 's';
+                        delay++;
+                        frag.appendChild(sp);
+                    }
+                    node.parentNode.replaceChild(frag, node);
+                } else if (node.nodeType === 1) { // element
+                    var children = Array.prototype.slice.call(node.childNodes);
+                    for (var c = 0; c < children.length; c++) {
+                        splitNode(children[c]);
+                    }
+                }
             }
+            splitNode(waveEl);
             waveEl.dataset.split = '1';
         }
 
@@ -2475,7 +2582,11 @@
         HeartStar.prototype.reset = function(initial) {
             this.x = Math.random() * bgW;
             this.y = initial ? Math.random() * bgH : Math.random() * bgH;
-            this.size = Math.random() * 4 + 2;          // 2–6px
+            // Varied sizes: small, medium, and some larger hearts
+            var sizeRoll = Math.random();
+            if (sizeRoll < 0.5)      this.size = Math.random() * 3 + 1.5;   // tiny: 1.5–4.5px
+            else if (sizeRoll < 0.85) this.size = Math.random() * 4 + 4;     // medium: 4–8px
+            else                      this.size = Math.random() * 6 + 8;     // large: 8–14px
             this.baseOpacity = Math.random() * 0.35 + 0.55; // higher base visibility
             this.opacity = 0;
             this.targetOpacity = this.baseOpacity;
@@ -2488,6 +2599,8 @@
             this.twinkleOffset = Math.random() * Math.PI * 2;
             this.color = HEART_STAR_COLORS[Math.floor(Math.random() * HEART_STAR_COLORS.length)];
             this.rotation = (Math.random() - 0.5) * 0.6;
+            // Larger hearts get a bigger glow
+            this.glowBlur = this.size > 7 ? 12 : 6;
         };
         HeartStar.prototype.update = function(t) {
             this.x += this.vx;
@@ -2507,7 +2620,7 @@
             ctx.rotate(this.rotation);
             ctx.fillStyle = this.color;
             ctx.shadowColor = this.color;
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = this.glowBlur;
             drawHeart(ctx, this.size);
             ctx.restore();
         };
@@ -2588,7 +2701,7 @@
 
         var heartStars = [];
         var shootingHearts = [];
-        var SHOOTING_HEART_COUNT = window.innerWidth < 500 ? 16 : 28;
+        var SHOOTING_HEART_COUNT = window.innerWidth < 500 ? 32 : 55; // more hearts
         for (var hs = 0; hs < SHOOTING_HEART_COUNT; hs++) heartStars.push(new HeartStar());
 
         var bgStarsRunning = true;
@@ -2622,6 +2735,11 @@
         setTimeout(function() {
             cakeSection.classList.add('entered');
         }, 600);
+
+        // Keep dancers positioned above the message on resize (mobile)
+        window.addEventListener('resize', function() {
+            setTimeout(positionDancersAboveMessage, 50);
+        });
 
     })();
     </script>
